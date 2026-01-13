@@ -90,10 +90,25 @@ jobs:
             exit 0
           fi
 
-          TAR_PATH="$ARCHIVE_DIR/old-runs-$(date +%Y%m%d%H%M%S).tar.gz"
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          TAR_PATH="$ARCHIVE_DIR/old-runs-${TIMESTAMP}.tar.gz"
+          MANIFEST_PATH="$ARCHIVE_DIR/old-runs-${TIMESTAMP}-manifest.json"
           echo "Archiving the following runs to $TAR_PATH:\n$old_runs"
           # Create a tarball of the old run directories
           tar -czf "$TAR_PATH" -C "$RUNS_DIR" $old_runs
+
+          # Create a small manifest JSON with archived run names and counts
+          archived_count=$(echo "$old_runs" | wc -w | tr -d ' ')
+          # Build JSON array of run names
+          runs_json=$(printf '%s\n' $old_runs | jq -R -s -c 'split("\n")[:-1]')
+          cat > "$MANIFEST_PATH" <<EOF
+{
+  "timestamp": "${TIMESTAMP}",
+  "archived_count": ${archived_count},
+  "runs": ${runs_json}
+}
+EOF
+          echo "Manifest written to $MANIFEST_PATH"
 
           # If S3 bucket env provided and aws cli available, upload there
           if [ -n "${AWS_S3_BUCKET:-}" ]; then
@@ -112,9 +127,10 @@ jobs:
           fi
 
           if [ "$uploaded" = false ]; then
-            # Move tar into workspace to be picked up by upload-artifact step below
-            mv "$TAR_PATH" "$GITHUB_WORKSPACE/old-runs-archive.tar.gz"
-            echo "Tarball moved to $GITHUB_WORKSPACE/old-runs-archive.tar.gz"
+            # Move tar and manifest into workspace to be picked up by upload-artifact step below
+            mv "$TAR_PATH" "$GITHUB_WORKSPACE/old-runs-archive-${TIMESTAMP}.tar.gz"
+            mv "$MANIFEST_PATH" "$GITHUB_WORKSPACE/old-runs-archive-${TIMESTAMP}-manifest.json"
+            echo "Tarball and manifest moved to workspace: old-runs-archive-${TIMESTAMP}.*"
           fi
 
           # Remove the archived run directories
@@ -133,7 +149,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: old-runs-archive
-          path: old-runs-archive.tar.gz
+          path: |
+            old-runs-archive-*.tar.gz
+            old-runs-archive-*-manifest.json
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
