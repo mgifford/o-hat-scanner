@@ -22,9 +22,10 @@ This repository provides two accessibility scanning modes:
 
 3. **Deploy to GitHub**:
    - Push this code to a repository.
-   - Go to **Settings > Pages** and set source to "GitHub Actions".
+   - **CRITICAL STEP**: Go to **Settings > Pages** in your repository.
+   - Under **Build and deployment** > **Source**, select **GitHub Actions** (beta).
    - Go to **Actions > a11y-scan** workflow.
-   - Click **Run workflow**, enter URLs (one per line).
+   - Click **Run workflow**, enter URLs (one per line) or leave blank to use `targets.txt`.
    - Once finished, view your report at `https://<user>.github.io/<repo>/`.
 
 ## 🛡️ Standalone Scanner Setup
