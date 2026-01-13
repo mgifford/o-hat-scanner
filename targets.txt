@@ -1,4 +1,5 @@
 # Add URLs to scan here, one per line
+# Trigger workflow after Oobee report template implementation
 https://www.w3.org/WAI/demos/bad/before/home.html
 https://cms.gov
 https://va.gov
