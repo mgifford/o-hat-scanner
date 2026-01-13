@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Scan Report: local-test-1768332026904</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; color: #222; }
+        a { color: #1976d2; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        h1, h2, h3, h4 { margin: 0; }
+
+        header { background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%); color: #fff; padding: 2rem 1rem; }
+        .header-content { max-width: 1200px; margin: 0 auto; }
+        .back-link { color: #bbdefb; font-size: 14px; display: inline-block; margin-bottom: 0.75rem; }
+        .back-link:hover { color: #fff; }
+        h1 { font-size: 28px; font-weight: 700; }
+        .meta { margin-top: 0.5rem; font-size: 14px; color: #e3f2fd; }
+        .meta strong { color: #fff; }
+        .download-link { display: inline-block; margin-top: 1rem; padding: 10px 16px; background: #fff; color: #0d47a1; border-radius: 4px; font-weight: 600; }
+        .download-link:hover { background: #e3f2fd; text-decoration: none; }
+
+        .container { max-width: 1200px; margin: -40px auto 0 auto; padding: 0 1rem 2rem 1rem; }
+        .layout { display: grid; grid-template-columns: 2fr 0.9fr; gap: 1.5rem; align-items: start; }
+        @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } }
+
+        .panel { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,0.04); padding: 1.5rem; }
+        .panel + .panel { margin-top: 1rem; }
+        .panel h3 { font-size: 16px; font-weight: 700; color: #111; margin-bottom: 0.75rem; }
+        .panel small { color: #666; }
+
+        .search-row { display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .search-input { flex: 1 1 260px; padding: 10px 12px; border: 1px solid #ccd7e1; border-radius: 4px; font-size: 14px; }
+        .search-input:focus { outline: 2px solid #90caf9; border-color: #90caf9; }
+
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+        .card { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; padding: 1rem; }
+        .card h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #666; margin-bottom: 0.35rem; }
+        .card .value { font-size: 30px; font-weight: 700; }
+        .card.critical .value { color: #d32f2f; }
+        .card.warning .value { color: #f57c00; }
+        .card.info .value { color: #1976d2; }
+        .card .subtext { font-size: 12px; color: #666; margin-top: 4px; }
+
+        .bar { background: #e0e0e0; height: 22px; border-radius: 4px; overflow: hidden; display: flex; margin: 10px 0; }
+        .bar-segment { height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 700; }
+        .bar-auto { background: #1976d2; }
+
+        .top-pages { display: grid; gap: 0.5rem; }
+        .page-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border: 1px solid #e6e6e6; border-radius: 4px; }
+        .page-row .url { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 13px; overflow-wrap: anywhere; }
+        .pill { background: #e3f2fd; color: #0d47a1; padding: 4px 10px; border-radius: 999px; font-weight: 700; font-size: 12px; white-space: nowrap; }
+
+        .issues-by-severity { margin-top: 1.5rem; }
+        .severity-group { border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; margin-bottom: 1rem; }
+        .severity-header { background: #f7f9fc; padding: 1rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .severity-header .title { font-weight: 700; }
+        .severity-header .count { background: #e0e0e0; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 700; }
+        .severity-content { padding: 1rem; }
+
+        .violation-item { border-bottom: 1px solid #f0f0f0; padding: 0.75rem 0; }
+        .violation-item:last-child { border-bottom: none; }
+        .violation-id { font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color: #111; }
+        .violation-help { color: #555; margin: 4px 0 6px 0; }
+        .violation-meta { font-size: 12px; color: #777; margin-bottom: 8px; }
+        .node-list { background: #fafafa; border: 1px solid #e6e6e6; border-radius: 4px; padding: 10px; font-size: 13px; }
+        .node-item { margin-bottom: 8px; }
+        .node-item:last-child { margin-bottom: 0; }
+        .node-url { font-weight: 700; }
+        .node-selector { color: #1976d2; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        .node-html { margin-top: 4px; color: #555; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; overflow-wrap: anywhere; }
+
+        .pill-critical { background: #ffebee; color: #c62828; }
+        .pill-warning { background: #fff3e0; color: #ef6c00; }
+        .pill-info { background: #e3f2fd; color: #1565c0; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <a href="../../index.html" class="back-link">← Back to all runs</a>
+            <h1>Accessibility Scan Report</h1>
+            <p class="meta">
+                <strong>Scan ID:</strong> local-test-1768332026904 · <strong>Date:</strong> 1/13/2026, 2:20:27 PM · <strong>Mode:</strong> ci-local
+            </p>
+            <a href="report.csv" class="download-link" download>Download CSV</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="layout">
+            <!-- Main column -->
+            <div class="panel">
+                <div class="search-row">
+                    <input id="issueSearch" class="search-input" type="search" placeholder="Search issues (ID, description, page)..." aria-label="Search issues">
+                </div>
+
+                <div class="summary-grid">
+                    <div class="card">
+                        <h4>Pages scanned</h4>
+                        <div class="value">4</div>
+                        <div class="subtext">Targets from sitemap or config</div>
+                    </div>
+                    <div class="card">
+                        <h4>Pages with issues</h4>
+                        <div class="value">0</div>
+                        <div class="subtext">0% of pages</div>
+                    </div>
+                    <div class="card critical">
+                        <h4>Must Fix</h4>
+                        <div class="value">0</div>
+                        <div class="subtext">Critical / Serious impacts</div>
+                    </div>
+                    <div class="card warning">
+                        <h4>Good to Fix</h4>
+                        <div class="value">0</div>
+                        <div class="subtext">Moderate / Minor impacts</div>
+                    </div>
+                    <div class="card info">
+                        <h4>Manual review</h4>
+                        <div class="value">0</div>
+                        <div class="subtext">Potential false positives</div>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 1rem;">
+                    <h3>WCAG compliance snapshot</h3>
+                    <small>Automated coverage only; manual verification still required.</small>
+                    <div class="bar" aria-label="Automation coverage">
+                        <div class="bar-segment bar-auto" style="width: 0%">0% automation</div>
+                        <div class="bar-segment" style="background:#e0e0e0; width: 100%"></div>
+                    </div>
+                </div>
+
+                
+
+                <div class="panel issues-by-severity" style="margin-top: 1rem;">
+                    <h3>Issues grouped by impact</h3>
+                    
+                    <div class="no-violations"><p>✓ No accessibility issues found.</p></div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="panel">
+                <h3>About this scan</h3>
+                <div style="margin-bottom: 0.5rem; font-weight: 600;">1/13/2026, 2:20:27 PM (America/Toronto)</div>
+                <div style="margin-bottom: 0.25rem;">Target: http://localhost:8082/standalone/index.html</div>
+                <div style="margin-bottom: 0.25rem;">Viewport: Desktop</div>
+                <div style="margin-bottom: 0.25rem;">Mode: ci-local</div>
+                <div style="margin-top: 0.5rem;">Pages crawled: 4</div>
+                <div>Total occurrences: 0</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle severity blocks
+        document.querySelectorAll('.severity-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                content.style.display = content.style.display === 'none' ? 'block' : 'none';
+            });
+        });
+
+        // Simple search filtering across issue text and IDs
+        const searchInput = document.getElementById('issueSearch');
+        searchInput?.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('.violation-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(term) ? 'block' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>

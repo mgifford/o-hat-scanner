@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>A11y Scan Reports</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd; }
+        th { background: #f4f4f4; }
+        .status-pass { color: green; }
+        .status-fail { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Accessibility Scan Reports</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Run ID</th>
+                <th>Date</th>
+                <th>Pages Scanned</th>
+                <th>Violations (Pages)</th>
+                <th>Total Issues</th>
+                <th>Link</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>local-test-1768332121977</td>
+                    <td>1/13/2026, 2:22:02 PM</td>
+                    <td>4</td>
+                    <td>4</td>
+                    <td class="status-fail">20</td>
+                    <td><a href="runs/local-test-1768332121977/index.html">View Report</a></td>
+                </tr>
+            
+                <tr>
+                    <td>local-test-1768332026904</td>
+                    <td>1/13/2026, 2:20:27 PM</td>
+                    <td>4</td>
+                    <td>0</td>
+                    <td class="status-pass">0</td>
+                    <td><a href="runs/local-test-1768332026904/index.html">View Report</a></td>
+                </tr>
+            
+        </tbody>
+    </table>
+</body>
+</html>

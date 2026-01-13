@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Login Page with Issues</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #fafafa; }
+        .card { max-width: 400px; margin: 40px auto; background: white; border: 1px solid #ddd; border-radius: 6px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        h1 { margin-top: 0; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; }
+        button { width: 100%; padding: 12px; background: #0056b3; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #004085; }
+        .note { font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <a href="../index.html">← Back to Test Site</a>
+    <h1>Login</h1>
+    <p class="note">Intentional accessibility issues for testing filters (exclude "login" to skip this page).</p>
+
+    <!-- Issue: Inputs missing labels -->
+    <input type="text" placeholder="Username">
+    <input type="password" placeholder="Password">
+
+    <!-- Issue: Checkbox without label -->
+    <div>
+        <input type="checkbox" id="remember">
+        <!-- Missing label for checkbox -->
+    </div>
+
+    <!-- Issue: Button with vague text -->
+    <button>Go</button>
+</div>
+</body>
+</html>

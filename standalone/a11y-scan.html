@@ -137,6 +137,7 @@
             <button id="startBtn">Start Scan</button>
             <button id="stopBtn" class="stop" disabled>Stop</button>
             <button id="exportBtn" disabled>Export JSON</button>
+            <button id="exportCsvBtn" disabled>Export CSV</button>
             <span id="statusPill" class="pill idle">idle</span>
         </div>
     </div>
@@ -186,6 +187,7 @@
         startBtn: document.getElementById('startBtn'),
         stopBtn: document.getElementById('stopBtn'),
         exportBtn: document.getElementById('exportBtn'),
+        exportCsvBtn: document.getElementById('exportCsvBtn'),
         statusPill: document.getElementById('statusPill'),
         status: document.getElementById('status'),
         loadedCount: document.getElementById('loadedCount'),
@@ -243,14 +245,20 @@
     }
 
     function applyFilters(urls) {
-        const prefix = (els.pathPrefix.value || "").trim();
+        // Normalize prefix so both "/blog" and "blog" work against paths like "/standalone/blog/post1.html".
+        const rawPrefix = (els.pathPrefix.value || "").trim();
+        const prefix = rawPrefix ? (rawPrefix.startsWith('/') ? rawPrefix : `/${rawPrefix}`) : "";
         const maxPages = parseInt(els.maxPages.value, 10) || 50;
         const excludes = (els.excludeStr.value || "").split(',').map(s => s.trim()).filter(Boolean);
         const filtered = [];
 
         for (const raw of urls) {
             const u = new URL(raw, window.location.href);
-            if (prefix && !u.pathname.startsWith(prefix)) continue;
+            if (prefix) {
+                // Accept if path starts with the prefix (exact) OR contains it after "/standalone" to handle the local folder prefix.
+                const path = u.pathname;
+                if (!(path.startsWith(prefix) || path.startsWith(`/standalone${prefix}`))) continue;
+            }
             let blocked = false;
             for (const ex of excludes) {
                 if (u.href.includes(ex)) { blocked = true; break; }
@@ -389,6 +397,7 @@
         setStatus('Loading URLs...', 'loading');
         els.startBtn.disabled = true;
         els.exportBtn.disabled = true;
+        els.exportCsvBtn.disabled = true;
         els.results.innerHTML = '';
         els.log.textContent = '';
 
@@ -418,6 +427,7 @@
         els.startBtn.disabled = true;
         els.stopBtn.disabled = false;
         els.exportBtn.disabled = true;
+        els.exportCsvBtn.disabled = true;
 
         // Refresh URLs from current inputs so the user does not need to pre-load.
         await loadUrls();
@@ -516,6 +526,7 @@
 
         els.stopBtn.disabled = true;
         els.exportBtn.disabled = false;
+        els.exportCsvBtn.disabled = false;
         els.startBtn.disabled = false;
     }
 
@@ -534,6 +545,69 @@
         a.download = `axe-scan-${new Date().toISOString().replaceAll(':', '-')}.json`;
         a.click();
         URL.revokeObjectURL(url);
+    }
+
+    function mapSeverityLabel(impact) {
+        const mapping = {
+            critical: 'Must Fix',
+            serious: 'Must Fix',
+            moderate: 'Good to Fix',
+            minor: 'Good to Fix'
+        };
+        return mapping[impact] || 'Manual Review Required';
+    }
+
+    function escapeCsvField(field) {
+        if (field === null || field === undefined) return '""';
+        const s = String(field);
+        return `"${s.replace(/"/g, '""')}"`;
+    }
+
+    function exportCsv() {
+        if (!runData) return;
+        const headers = [
+            "customFlowLabel","deviceChosen","scanCompletedAt","severity","issueId",
+            "issueDescription","wcagConformance","url","pageTitle","context",
+            "howToFix","axeImpact","xpath","learnMore"
+        ];
+
+        let csvContent = headers.map(escapeCsvField).join(',') + "\n";
+        const finishedAt = runData.finishedAt || new Date().toISOString();
+
+        for (const [url, data] of Object.entries(runData.resultsByUrl || {})) {
+            const violations = data.violations || [];
+            for (const v of violations) {
+                const nodes = v.nodes || [];
+                const severity = mapSeverityLabel(v.impact);
+                for (const node of nodes) {
+                    const row = [
+                        "None", // customFlowLabel
+                        "Desktop", // deviceChosen
+                        finishedAt, // scanCompletedAt
+                        severity, // severity
+                        v.id || '', // issueId
+                        v.description || v.help || '', // issueDescription
+                        v.tags ? v.tags.join(',') : '', // wcagConformance
+                        url, // url
+                        data.title || '', // pageTitle (not collected in standalone)
+                        node.html || '', // context
+                        node.failureSummary || '', // howToFix
+                        v.impact || '', // axeImpact
+                        node.target ? node.target.join(', ') : '', // xpath/selector
+                        v.helpUrl || '' // learnMore
+                    ];
+                    csvContent += row.map(escapeCsvField).join(',') + "\n";
+                }
+            }
+        }
+
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const dlUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = dlUrl;
+        a.download = `axe-scan-${new Date().toISOString().replaceAll(':', '-')}.csv`;
+        a.click();
+        URL.revokeObjectURL(dlUrl);
     }
 
     els.sourceType.addEventListener('change', () => {
@@ -555,6 +629,7 @@
 
     els.stopBtn.addEventListener('click', stopScan);
     els.exportBtn.addEventListener('click', exportJson);
+    els.exportCsvBtn.addEventListener('click', exportCsv);
 
     // Auto-load URLs on open for convenience
     loadUrls().catch(err => {

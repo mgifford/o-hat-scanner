@@ -99,85 +99,90 @@ function generateMainIndex(summaries) {
 function generateRunPage(runId, results, pageStats) {
     const urls = Object.keys(results.resultsByUrl);
     const { mustFixCount, goodToFixCount, reviewCount, pagesWithIssues, automationCoverage } = pageStats;
+    const totalIssues = mustFixCount + goodToFixCount + reviewCount;
+    const topPages = getTopPages(results);
+    const runDate = results.startedAt ? new Date(results.startedAt) : new Date();
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const primaryTarget = (results.targets && results.targets[0]) || urls[0] || 'N/A';
+    const runDir = path.join(SITE_DIR, 'runs', runId);
+    fs.mkdirSync(runDir, { recursive: true });
 
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Scan Report: ${runId}</title>
+    <title>Scan Report: ${esc(runId)}</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
-        header { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 2rem 1rem; margin-bottom: 2rem; }
-        .header-content { max-width: 1200px; margin: 0 auto; }
-        .back-link { color: #1976d2; text-decoration: none; font-size: 14px; display: inline-block; margin-bottom: 1rem; }
-        .back-link:hover { text-decoration: underline; }
-        h1 { margin: 0.5rem 0 0 0; font-size: 28px; }
-        .meta { color: #666; font-size: 14px; margin: 0.5rem 0 0 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; color: #222; }
+        a { color: #1976d2; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        h1, h2, h3, h4 { margin: 0; }
 
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem 2rem 1rem; }
-        
-        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-        .card { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1.5rem; }
-        .card h3 { margin: 0 0 0.5rem 0; font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
-        .card .value { font-size: 32px; font-weight: bold; margin: 0; }
+        header { background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%); color: #fff; padding: 2rem 1rem; }
+        .header-content { max-width: 1200px; margin: 0 auto; }
+        .back-link { color: #bbdefb; font-size: 14px; display: inline-block; margin-bottom: 0.75rem; }
+        .back-link:hover { color: #fff; }
+        h1 { font-size: 28px; font-weight: 700; }
+        .meta { margin-top: 0.5rem; font-size: 14px; color: #e3f2fd; }
+        .meta strong { color: #fff; }
+        .download-link { display: inline-block; margin-top: 1rem; padding: 10px 16px; background: #fff; color: #0d47a1; border-radius: 4px; font-weight: 600; }
+        .download-link:hover { background: #e3f2fd; text-decoration: none; }
+
+        .container { max-width: 1200px; margin: -40px auto 0 auto; padding: 0 1rem 2rem 1rem; }
+        .layout { display: grid; grid-template-columns: 2fr 0.9fr; gap: 1.5rem; align-items: start; }
+        @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } }
+
+        .panel { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,0.04); padding: 1.5rem; }
+        .panel + .panel { margin-top: 1rem; }
+        .panel h3 { font-size: 16px; font-weight: 700; color: #111; margin-bottom: 0.75rem; }
+        .panel small { color: #666; }
+
+        .search-row { display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .search-input { flex: 1 1 260px; padding: 10px 12px; border: 1px solid #ccd7e1; border-radius: 4px; font-size: 14px; }
+        .search-input:focus { outline: 2px solid #90caf9; border-color: #90caf9; }
+
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+        .card { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; padding: 1rem; }
+        .card h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #666; margin-bottom: 0.35rem; }
+        .card .value { font-size: 30px; font-weight: 700; }
         .card.critical .value { color: #d32f2f; }
         .card.warning .value { color: #f57c00; }
         .card.info .value { color: #1976d2; }
+        .card .subtext { font-size: 12px; color: #666; margin-top: 4px; }
 
-        .compliance-section { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1.5rem; margin-bottom: 2rem; }
-        .compliance-section h3 { margin: 0 0 1rem 0; font-size: 16px; font-weight: 600; }
-        .bar { background: #e0e0e0; height: 24px; border-radius: 4px; overflow: hidden; display: flex; }
-        .bar-segment { height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold; }
-        .bar-pass { background: #4caf50; }
+        .bar { background: #e0e0e0; height: 22px; border-radius: 4px; overflow: hidden; display: flex; margin: 10px 0; }
+        .bar-segment { height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 700; }
         .bar-auto { background: #1976d2; }
 
-        .issues-section { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1.5rem; margin-bottom: 2rem; }
-        .issues-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem; }
-        .issue-box { padding: 1rem; border: 1px solid #e0e0e0; border-radius: 4px; text-align: center; cursor: pointer; transition: all 0.2s; }
-        .issue-box:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .issue-box .count { font-size: 28px; font-weight: bold; margin-bottom: 0.5rem; }
-        .issue-box .label { font-size: 14px; color: #666; }
-        .issue-must-fix .count { color: #d32f2f; }
-        .issue-good-to-fix .count { color: #f57c00; }
-        .issue-review .count { color: #1976d2; }
+        .top-pages { display: grid; gap: 0.5rem; }
+        .page-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border: 1px solid #e6e6e6; border-radius: 4px; }
+        .page-row .url { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 13px; overflow-wrap: anywhere; }
+        .pill { background: #e3f2fd; color: #0d47a1; padding: 4px 10px; border-radius: 999px; font-weight: 700; font-size: 12px; white-space: nowrap; }
 
-        .pages-section { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1.5rem; margin-bottom: 2rem; }
-        .pages-section h3 { margin: 0 0 1rem 0; font-size: 16px; font-weight: 600; }
-        .page-item { padding: 1rem; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
-        .page-item:last-child { border-bottom: none; }
-        .page-url { flex: 1; font-family: monospace; font-size: 13px; word-break: break-all; }
-        .page-badge { background: #f0f0f0; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 600; margin-left: 1rem; white-space: nowrap; }
-        .badge-critical { background: #ffebee; color: #d32f2f; }
-        .badge-warning { background: #fff3e0; color: #f57c00; }
-        .badge-info { background: #e3f2fd; color: #1976d2; }
+        .issues-by-severity { margin-top: 1.5rem; }
+        .severity-group { border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; margin-bottom: 1rem; }
+        .severity-header { background: #f7f9fc; padding: 1rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .severity-header .title { font-weight: 700; }
+        .severity-header .count { background: #e0e0e0; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 700; }
+        .severity-content { padding: 1rem; }
 
-        .details-section { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; overflow: hidden; margin-bottom: 2rem; }
-        .issues-by-severity { margin-bottom: 0; }
-        .severity-group { border-bottom: 1px solid #e0e0e0; }
-        .severity-group:last-child { border-bottom: none; }
-        .severity-header { padding: 1.5rem; background: #fafafa; border-bottom: 1px solid #e0e0e0; cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
-        .severity-header:hover { background: #f5f5f5; }
-        .severity-header .count { background: #e0e0e0; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 1rem; }
-        .severity-content { padding: 1.5rem; }
-        .violation-item { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #f0f0f0; }
+        .violation-item { border-bottom: 1px solid #f0f0f0; padding: 0.75rem 0; }
         .violation-item:last-child { border-bottom: none; }
-        .violation-id { font-weight: 600; font-family: monospace; color: #333; }
-        .violation-help { color: #666; margin: 0.5rem 0; }
-        .violation-impact { font-size: 12px; color: #999; margin-top: 0.5rem; }
-        .node-list { margin-top: 1rem; background: #f9f9f9; padding: 1rem; border-radius: 4px; font-size: 13px; }
-        .node-item { margin-bottom: 0.5rem; }
-        .node-selector { font-family: monospace; color: #1976d2; }
-        .node-html { font-family: monospace; color: #666; margin-top: 0.25rem; padding: 0.5rem; background: #fff; border-radius: 2px; overflow-x: auto; max-height: 100px; }
+        .violation-id { font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color: #111; }
+        .violation-help { color: #555; margin: 4px 0 6px 0; }
+        .violation-meta { font-size: 12px; color: #777; margin-bottom: 8px; }
+        .node-list { background: #fafafa; border: 1px solid #e6e6e6; border-radius: 4px; padding: 10px; font-size: 13px; }
+        .node-item { margin-bottom: 8px; }
+        .node-item:last-child { margin-bottom: 0; }
+        .node-url { font-weight: 700; }
+        .node-selector { color: #1976d2; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        .node-html { margin-top: 4px; color: #555; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; overflow-wrap: anywhere; }
 
-        .no-violations { padding: 2rem; text-align: center; color: #666; }
-
-        a { color: #1976d2; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-
-        .download-link { display: inline-block; margin: 1rem 0; padding: 8px 16px; background: #1976d2; color: white; border-radius: 4px; text-decoration: none; }
-        .download-link:hover { background: #1565c0; text-decoration: none; }
+        .pill-critical { background: #ffebee; color: #c62828; }
+        .pill-warning { background: #fff3e0; color: #ef6c00; }
+        .pill-info { background: #e3f2fd; color: #1565c0; }
     </style>
 </head>
 <body>
@@ -186,129 +191,154 @@ function generateRunPage(runId, results, pageStats) {
             <a href="../../index.html" class="back-link">← Back to all runs</a>
             <h1>Accessibility Scan Report</h1>
             <p class="meta">
-                <strong>Scan ID:</strong> ${runId} |
-                <strong>Date:</strong> ${new Date(results.startedAt).toLocaleString()} |
-                <strong>Mode:</strong> ${results.mode}
+                <strong>Scan ID:</strong> ${esc(runId)} · <strong>Date:</strong> ${runDate.toLocaleString()} · <strong>Mode:</strong> ${esc(results.mode || 'unknown')}
             </p>
-            <a href="report.csv" class="download-link" download>Download CSV Report</a>
+            <a href="report.csv" class="download-link" download>Download CSV</a>
         </div>
     </header>
 
     <div class="container">
-        <!-- Summary Cards -->
-        <div class="summary-grid">
-            <div class="card">
-                <h3>Pages Scanned</h3>
-                <p class="value">${urls.length}</p>
-            </div>
-            <div class="card">
-                <h3>Pages with Issues</h3>
-                <p class="value">${pagesWithIssues}</p>
-            </div>
-            <div class="card critical">
-                <h3>Must Fix</h3>
-                <p class="value">${mustFixCount}</p>
-            </div>
-            <div class="card warning">
-                <h3>Good to Fix</h3>
-                <p class="value">${goodToFixCount}</p>
-            </div>
-            <div class="card info">
-                <h3>Manual Review</h3>
-                <p class="value">${reviewCount}</p>
-            </div>
-        </div>
+        <div class="layout">
+            <!-- Main column -->
+            <div class="panel">
+                <div class="search-row">
+                    <input id="issueSearch" class="search-input" type="search" placeholder="Search issues (ID, description, page)..." aria-label="Search issues">
+                </div>
 
-        <!-- Issues Summary Box -->
-        <div class="issues-section">
-            <h3>Issue Categories</h3>
-            <div class="issues-grid">
-                <div class="issue-box issue-must-fix">
-                    <div class="count">${mustFixCount}</div>
-                    <div class="label">Must Fix</div>
-                </div>
-                <div class="issue-box issue-good-to-fix">
-                    <div class="count">${goodToFixCount}</div>
-                    <div class="label">Good to Fix</div>
-                </div>
-                <div class="issue-box issue-review">
-                    <div class="count">${reviewCount}</div>
-                    <div class="label">Manual Review</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Top Affected Pages -->
-        ${pagesWithIssues > 0 ? `
-        <div class="pages-section">
-            <h3>Top Pages with Issues</h3>
-            ${getTopPages(results).map(({ url, count, severity }) => `
-                <div class="page-item">
-                    <div class="page-url">${esc(url)}</div>
-                    <span class="page-badge ${severity === 'critical' ? 'badge-critical' : severity === 'warning' ? 'badge-warning' : 'badge-info'}">${count} issues</span>
-                </div>
-            `).join('')}
-        </div>
-        ` : ''}
-
-        <!-- Issues by Severity -->
-        <div class="details-section issues-by-severity">
-            ${['critical', 'moderate', 'review'].map(severity => {
-                const label = SEVERITY_MAP[severity]?.label || severity;
-                const groupIssues = getIssuesByViolationType(results, severity);
-                if (groupIssues.length === 0) return '';
-                
-                return `
-                <div class="severity-group">
-                    <div class="severity-header">
-                        <span>${label}</span>
-                        <span class="count">${countTotalNodes(groupIssues)} issues</span>
+                <div class="summary-grid">
+                    <div class="card">
+                        <h4>Pages scanned</h4>
+                        <div class="value">${urls.length}</div>
+                        <div class="subtext">Targets from sitemap or config</div>
                     </div>
-                    <div class="severity-content">
-                        ${groupIssues.map(({ violationId, help, impact, helpUrl, pages }) => `
-                            <div class="violation-item">
-                                <div class="violation-id">${esc(violationId)}</div>
-                                <div class="violation-help">${esc(help)}</div>
-                                <div class="violation-impact">Impact: ${esc(impact)} | Affected pages: ${pages.size}</div>
-                                ${helpUrl ? `<div><a href="${esc(helpUrl)}" target="_blank" rel="noopener">Learn more</a></div>` : ''}
-                                <div class="node-list">
-                                    ${[...pages.values()].slice(0, 3).map(({ url, nodes }) => `
-                                        <div class="node-item">
-                                            <div><strong>${esc(url)}</strong> (${nodes.length} node${nodes.length !== 1 ? 's' : ''})</div>
-                                            ${nodes.slice(0, 1).map(node => `
-                                                <div class="node-selector">Selector: ${esc(node.target?.join(', ') || 'N/A')}</div>
-                                                ${node.html ? `<div class="node-html">${esc(node.html.substring(0, 150))}</div>` : ''}
-                                            `).join('')}
-                                        </div>
-                                    `).join('')}
-                                    ${pages.size > 3 ? `<div class="node-item">... and ${pages.size - 3} more page${pages.size - 3 !== 1 ? 's' : ''}</div>` : ''}
-                                </div>
+                    <div class="card">
+                        <h4>Pages with issues</h4>
+                        <div class="value">${pagesWithIssues}</div>
+                        <div class="subtext">${Math.round((pagesWithIssues / Math.max(urls.length, 1)) * 100)}% of pages</div>
+                    </div>
+                    <div class="card critical">
+                        <h4>Must Fix</h4>
+                        <div class="value">${mustFixCount}</div>
+                        <div class="subtext">Critical / Serious impacts</div>
+                    </div>
+                    <div class="card warning">
+                        <h4>Good to Fix</h4>
+                        <div class="value">${goodToFixCount}</div>
+                        <div class="subtext">Moderate / Minor impacts</div>
+                    </div>
+                    <div class="card info">
+                        <h4>Manual review</h4>
+                        <div class="value">${reviewCount}</div>
+                        <div class="subtext">Potential false positives</div>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 1rem;">
+                    <h3>WCAG compliance snapshot</h3>
+                    <small>Automated coverage only; manual verification still required.</small>
+                    <div class="bar" aria-label="Automation coverage">
+                        <div class="bar-segment bar-auto" style="width: ${automationCoverage}%">${automationCoverage}% automation</div>
+                        <div class="bar-segment" style="background:#e0e0e0; width: ${100 - automationCoverage}%"></div>
+                    </div>
+                </div>
+
+                ${topPages.length ? `
+                <div class="panel" style="margin-top: 1rem;">
+                    <h3>Top pages to review</h3>
+                    <div class="top-pages">
+                        ${topPages.map(({ url, count, severity }) => `
+                            <div class="page-row">
+                                <div class="url">${esc(url)}</div>
+                                <span class="pill ${severity === 'critical' ? 'pill-critical' : severity === 'moderate' ? 'pill-warning' : 'pill-info'}">${count} issues</span>
                             </div>
                         `).join('')}
                     </div>
+                </div>` : ''}
+
+                <div class="panel issues-by-severity" style="margin-top: 1rem;">
+                    <h3>Issues grouped by impact</h3>
+                    ${['critical', 'moderate', 'review'].map(severity => {
+                        const label = SEVERITY_MAP[severity]?.label || severity;
+                        const groupIssues = getIssuesByViolationType(results, severity);
+                        const total = countTotalNodes(groupIssues);
+                        if (!groupIssues.length) return '';
+                        const pillClass = severity === 'critical' ? 'pill-critical' : severity === 'moderate' ? 'pill-warning' : 'pill-info';
+                        return `
+                        <div class="severity-group" data-severity="${severity}">
+                            <div class="severity-header">
+                                <span class="title">${label}</span>
+                                <span class="count ${pillClass}">${total} occurrences</span>
+                            </div>
+                            <div class="severity-content">
+                                ${groupIssues.map(({ violationId, help, impact, helpUrl, pages }) => `
+                                    <div class="violation-item" data-violation="${esc(violationId)}">
+                                        <div class="violation-id">${esc(violationId)}</div>
+                                        <div class="violation-help">${esc(help)}</div>
+                                        <div class="violation-meta">Impact: ${esc(impact || 'unknown')} · Pages with issue: ${pages.size}</div>
+                                        ${helpUrl ? `<div><a href="${esc(helpUrl)}" target="_blank" rel="noopener">Learn more</a></div>` : ''}
+                                        <div class="node-list">
+                                            ${[...pages.values()].slice(0, 5).map(({ url, nodes }) => `
+                                                <div class="node-item">
+                                                    <div class="node-url">${esc(url)} (${nodes.length} node${nodes.length !== 1 ? 's' : ''})</div>
+                                                    ${nodes.slice(0, 1).map(node => `
+                                                        <div class="node-selector">Selector: ${esc(node.target?.join(', ') || 'N/A')}</div>
+                                                        ${node.html ? `<div class="node-html">${esc(node.html.substring(0, 200))}</div>` : ''}
+                                                        ${node.failureSummary ? `<div class="node-html">${esc(node.failureSummary)}</div>` : ''}
+                                                    `).join('')}
+                                                </div>
+                                            `).join('')}
+                                            ${pages.size > 5 ? `<div class="node-item">... ${pages.size - 5} more page${pages.size - 5 === 1 ? '' : 's'}</div>` : ''}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>`;
+                    }).join('')}
+                    ${totalIssues === 0 ? '<div class="no-violations"><p>✓ No accessibility issues found.</p></div>' : ''}
                 </div>
-                `;
-            }).join('')}
-            ${mustFixCount + goodToFixCount + reviewCount === 0 ? '<div class="no-violations"><p>✓ No accessibility issues found!</p></div>' : ''}
+            </div>
+
+            <!-- Sidebar -->
+            <div class="panel">
+                <h3>About this scan</h3>
+                <div style="margin-bottom: 0.5rem; font-weight: 600;">${runDate.toLocaleString()} (${timezone})</div>
+                <div style="margin-bottom: 0.25rem;">Target: ${esc(primaryTarget)}</div>
+                <div style="margin-bottom: 0.25rem;">Viewport: Desktop</div>
+                <div style="margin-bottom: 0.25rem;">Mode: ${esc(results.mode || 'ci')}</div>
+                <div style="margin-top: 0.5rem;">Pages crawled: ${urls.length}</div>
+                <div>Total occurrences: ${totalIssues}</div>
+            </div>
         </div>
     </div>
 
     <script>
+        // Toggle severity blocks
         document.querySelectorAll('.severity-header').forEach(header => {
             header.addEventListener('click', () => {
                 const content = header.nextElementSibling;
                 content.style.display = content.style.display === 'none' ? 'block' : 'none';
             });
         });
+
+        // Simple search filtering across issue text and IDs
+        const searchInput = document.getElementById('issueSearch');
+        searchInput?.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('.violation-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(term) ? 'block' : 'none';
+            });
+        });
     </script>
 </body>
 </html>`;
 
-    const outDir = path.join(SITE_DIR, 'runs', runId);
-    fs.writeFileSync(path.join(outDir, 'index.html'), html);
+    fs.writeFileSync(path.join(runDir, 'index.html'), html);
 }
 
-main();
+if (process.env.NODE_ENV !== 'test') {
+    main();
+}
 
 function generateCSV(runId, results) {
     const headers = [
@@ -462,3 +492,5 @@ function esc(s) {
     if (s === null || s === undefined) return '';
     return String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }
+
+export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity };

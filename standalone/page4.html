@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Page 4: ARIA and Language Issues</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h2 {
+            color: #333;
+            margin-top: 30px;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 4px;
+        }
+        .custom-widget {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin: 10px 0;
+            background: white;
+            cursor: pointer;
+        }
+        .correct-widget {
+            border: 1px solid #0056b3;
+            background: #e6f2ff;
+        }
+        .back-link {
+            display: inline-block;
+            color: #0056b3;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="index.html" class="back-link">← Back to Test Site</a>
+
+    <!-- Issue: Missing lang attribute on html element -->
+    <h1>Page 4: ARIA and Language Issues</h1>
+    
+    <p>This page contains accessibility issues related to ARIA misuse and missing language declarations. Note: This page itself is missing the lang attribute on the &lt;html&gt; element.</p>
+
+    <h2>Incorrect ARIA Role Usage</h2>
+    <div class="section">
+        <p>The following elements have incorrect or misused ARIA roles:</p>
+        
+        <!-- Issue: Using role="button" on a div when it should be a button element -->
+        <div role="button" tabindex="0" class="custom-widget">
+            Click me (but I'm not actually a button element)
+        </div>
+
+        <!-- Issue: Using role="link" on a span -->
+        <span role="link" tabindex="0" class="custom-widget" onclick="alert('Clicked')">
+            I look like a link but I'm a span with role=link
+        </span>
+
+        <!-- Issue: Using role="heading" with wrong level -->
+        <div role="heading" aria-level="0" class="custom-widget">
+            This div has role="heading" with invalid aria-level of 0
+        </div>
+
+        <!-- Issue: Incorrect role combination -->
+        <button role="checkbox" aria-checked="false" class="custom-widget">
+            I'm a button but I have role="checkbox"
+        </button>
+    </div>
+
+    <h2>Correct ARIA Usage (for comparison)</h2>
+    <div class="section">
+        <button class="correct-widget">I'm a proper button element</button>
+        
+        <a href="#" class="correct-widget" style="display: inline-block; text-decoration: none;">I'm a proper link element</a>
+        
+        <div role="heading" aria-level="2" class="correct-widget">
+            This div has correct role="heading" with aria-level="2"
+        </div>
+
+        <input type="checkbox" id="check1" aria-label="Accept terms">
+        <label for="check1">Proper checkbox with label</label>
+    </div>
+
+    <h2>Custom Widgets with Incomplete ARIA</h2>
+    <div class="section">
+        <p>These custom widgets are missing important ARIA attributes:</p>
+        
+        <!-- Issue: Using role="tablist" but missing proper ARIA -->
+        <div role="tablist">
+            <div role="tab" tabindex="0">Tab 1</div>
+            <div role="tab">Tab 2</div>
+            <div role="tab">Tab 3</div>
+            <!-- Missing aria-selected, aria-controls, and tab panels -->
+        </div>
+    </div>
+
+    <h2>Missing Language Information</h2>
+    <div class="section">
+        <p>This entire page is missing the <code>lang</code> attribute on the <code>&lt;html&gt;</code> element.</p>
+        <p>It should have: <code>&lt;html lang="en"&gt;</code></p>
+        <p>This affects screen readers' pronunciation and text-to-speech accuracy.</p>
+    </div>
+
+    <h2>Summary of Issues on This Page</h2>
+    <ul>
+        <li>Missing lang attribute on html element (entire page)</li>
+        <li>div with role="button" instead of using button element</li>
+        <li>span with role="link" instead of using a element</li>
+        <li>div with role="heading" and invalid aria-level</li>
+        <li>button with role="checkbox" (conflicting roles)</li>
+        <li>tablist with incomplete ARIA attributes (missing aria-selected, aria-controls)</li>
+        <li>Expected violations: html-lang-valid, button-name, link-name, aria-roles</li>
+    </ul>
+
+</div>
+
+</body>
+</html>

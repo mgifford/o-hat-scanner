@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Blog Post: Accessibility Pitfalls</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        .hero { background: #f5f5f5; padding: 30px; border-radius: 6px; }
+        .content { max-width: 800px; margin: 0 auto; }
+        .bad-contrast { color: #888888; background: #8a8a8a; padding: 12px; border-radius: 4px; }
+        .button-row { margin: 20px 0; }
+        button { background: #0056b3; color: white; border: none; padding: 10px 16px; border-radius: 4px; cursor: pointer; }
+        .icon-btn { width: 40px; height: 40px; font-size: 20px; padding: 8px; }
+    </style>
+</head>
+<body>
+<div class="content">
+    <a href="../index.html">← Back to Test Site</a>
+    <div class="hero">
+        <h1>Blog Post: Accessibility Pitfalls</h1>
+        <!-- Issue: Missing alt on decorative image -->
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='200'%3E%3Crect width='600' height='200' fill='%230056b3'/%3E%3Ctext x='50%' y='50%' fill='white' dy='.3em' font-size='32' text-anchor='middle'%3EHero%20Graphic%3C/text%3E%3C/svg%3E">
+        <p class="bad-contrast">This intro text has low contrast to mimic a real-world blog styling issue.</p>
+    </div>
+
+    <h2>Skipped Heading Level</h2>
+    <!-- Issue: Heading jumps from h2 to h4 -->
+    <h4>Deep Dive Without Proper Structure</h4>
+    <p>We intentionally skipped h3 here. Screen readers may misinterpret document structure.</p>
+
+    <div class="button-row">
+        <!-- Issue: Icon-only buttons without labels -->
+        <button class="icon-btn">👍</button>
+        <button class="icon-btn">📤</button>
+        <button class="icon-btn">🗑️</button>
+    </div>
+
+    <h2>Summary of Issues</h2>
+    <ul>
+        <li>Missing alt text on hero image</li>
+        <li>Low contrast text block</li>
+        <li>Skipped heading level (h2 to h4)</li>
+        <li>Icon-only buttons without accessible names</li>
+    </ul>
+</div>
+</body>
+</html>
