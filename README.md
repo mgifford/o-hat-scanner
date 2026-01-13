@@ -148,4 +148,4 @@ Each scan run generates:
 
 ## License
 
-MIT
+AGPL-3.0 - See [LICENSE](LICENSE) for details.
