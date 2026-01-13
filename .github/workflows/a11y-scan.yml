@@ -1,13 +1,18 @@
 name: a11y-scan
 
 on:
+  push:
+    paths:
+      - 'targets.txt'
+      - 'scripts/**'
+      - '.github/workflows/**'
   workflow_dispatch:
     inputs:
       urls:
-        description: 'List of URLs to scan (one per line)'
-        required: true
+        description: 'List of URLs to scan (one per line). Leave empty to use targets.txt'
+        required: false
         type: string
-        default: 'https://example.com'
+        default: ''
       max_pages:
         description: 'Max pages per site'
         required: false
