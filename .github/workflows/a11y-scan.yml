@@ -18,6 +18,10 @@ on:
         required: false
         default: '50'
         type: string
+  schedule:
+    # Daily at 03:00 UTC. Change to '0 3 * * 0' for weekly (Sundays),
+    # or '0 3 1 * *' for monthly (1st of month).
+    - cron: '0 3 * * *'
 
 permissions:
   contents: read
