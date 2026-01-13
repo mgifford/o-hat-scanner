@@ -19,8 +19,6 @@ on:
         default: '50'
         type: string
   schedule:
-    # Daily at 03:00 UTC. Change to '0 3 * * 0' for weekly (Sundays),
-    # or '0 3 1 * *' for monthly (1st of month).
     - cron: '0 3 * * *'
 
 permissions:
@@ -51,17 +49,17 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      - name: Debug: show inputs and targets
+      - name: "Debug: show inputs and targets"
         run: |
-          echo "--- workflow input 'urls' (inputs.urls) ---"
-          echo "${{ inputs.urls }}"
+          echo "--- workflow input 'urls' (github.event.inputs.urls) ---"
+          echo "${{ github.event.inputs.urls }}"
           echo "--- contents of targets.txt (if present) ---"
           if [ -f targets.txt ]; then cat targets.txt; else echo "(no targets.txt)"; fi
 
       - name: Run CI Scan
         env:
-          INPUT_URLS: ${{ inputs.urls }}
-          INPUT_MAX_PAGES: ${{ inputs.max_pages }}
+          INPUT_URLS: ${{ github.event.inputs.urls }}
+          INPUT_MAX_PAGES: ${{ github.event.inputs.max_pages }}
           INPUT_CONCURRENCY: '2'
         run: npm run scan:ci
 
@@ -102,12 +100,12 @@ jobs:
           # Build JSON array of run names
           runs_json=$(printf '%s\n' $old_runs | jq -R -s -c 'split("\n")[:-1]')
           cat > "$MANIFEST_PATH" <<EOF
-{
-  "timestamp": "${TIMESTAMP}",
-  "archived_count": ${archived_count},
-  "runs": ${runs_json}
-}
-EOF
+          {
+            "timestamp": "${TIMESTAMP}",
+            "archived_count": ${archived_count},
+            "runs": ${runs_json}
+          }
+          EOF
           echo "Manifest written to $MANIFEST_PATH"
 
           # If S3 bucket env provided and aws cli available, upload there
