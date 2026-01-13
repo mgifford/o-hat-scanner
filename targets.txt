@@ -1,2 +1,5 @@
 # Add URLs to scan here, one per line
 https://www.w3.org/WAI/demos/bad/before/home.html
+https://cms.gov
+https://va.gov
+https://civicactions.com
