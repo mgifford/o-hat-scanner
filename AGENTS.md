@@ -1,4 +1,4 @@
-# agents.md
+# AGENTS.md
 
 This repo supports two accessibility scanning modes in one codebase:
 
@@ -23,22 +23,22 @@ If you change anything that violates these constraints, you broke the repo.
 
 ## Repo layout (must remain stable)
 
-- `scripts/scan-ci.js`  
+- `scripts/scan-ci.js`
   CI crawler + axe runner. Produces JSON artifacts under `/site/runs/<runId>/`.
 
-- `scripts/generate-report.js`  
+- `scripts/generate-report.js`
   Converts JSON into static HTML under `/site`. Must not require a server.
 
-- `scripts/shared-schema.js`  
+- `scripts/shared-schema.js`
   Defines the shared schema and validation helpers. Both modes must match it.
 
-- `standalone/a11y-scan.html`  
+- `standalone/a11y-scan.html`
   Single-file scanner UI that crawls same-origin pages via sitemap or list.
 
-- `assets/axe.min.js`  
+- `assets/axe.min.js`
   Vendored axe build for standalone scanning and (optionally) for CI injection.
 
-- `.github/workflows/a11y-scan.yml`  
+- `.github/workflows/a11y-scan.yml`
   Runs `scan-ci.js` and `generate-report.js`, then deploys `/site` to Pages.
 
 ---
@@ -65,157 +65,159 @@ All scans produce this shape:
     }
   }
 }
-
+```
 
 Rules:
-	•	resultsByUrl[url].violations must always exist (empty array allowed).
-	•	Errors must be captured per URL, not crash the entire run.
-	•	Keep axe’s object structure intact. Do not “simplify” it in a lossy way.
-	•	Add fields only in a backwards-compatible way.
+- `resultsByUrl[url].violations` must always exist (empty array allowed).
+- Errors must be captured per URL, not crash the entire run.
+- Keep axe’s object structure intact. Do not “simplify” it in a lossy way.
+- Add fields only in a backwards-compatible way.
 
-⸻
+---
 
-Security and safety rules
+## Security and safety rules
 
-Standalone scanner gating
-	•	The standalone scanner MUST have a gate (token query param or stronger).
-	•	Do not remove the gate.
-	•	README must warn: do not deploy publicly, prefer staging or auth.
+### Standalone scanner gating
+- The standalone scanner MUST have a gate (token query param or stronger).
+- Do not remove the gate.
+- README must warn: do not deploy publicly, prefer staging or auth.
 
-Data handling
-	•	Reports may include DOM snippets and selectors. Treat as potentially sensitive.
-	•	Do not add automatic uploading to third-party services.
+### Data handling
+- Reports may include DOM snippets and selectors. Treat as potentially sensitive.
+- Do not add automatic uploading to third-party services.
 
-⸻
+---
 
-Crawling rules
+## Crawling rules
 
-CI mode
-	•	Prefer sitemap discovery when possible.
-	•	Otherwise crawl internal links same-origin up to maxPages.
-	•	Concurrency is allowed but must be bounded (default 2).
+### CI mode
+- Prefer sitemap discovery when possible.
+- Otherwise crawl internal links same-origin up to maxPages.
+- Concurrency is allowed but must be bounded (default 2).
 
-Standalone mode
-	•	Default is sequential scanning (no parallel iframes).
-	•	Source of URLs is sitemap.xml by default, plus optional filtering.
-	•	Provide maxPages, timeout, and delay controls.
+### Standalone mode
+- Default is sequential scanning (no parallel iframes).
+- Source of URLs is sitemap.xml by default, plus optional filtering.
+- Provide maxPages, timeout, and delay controls.
 
 Do not implement an uncontrolled crawler that can lock up browsers or CI runners.
 
-⸻
+---
 
-Reporting rules
-	•	/site/index.html must list runs and link to per-run pages.
-	•	/site/runs/<runId>/index.html must show:
-	•	pages scanned
-	•	pages with violations
-	•	total violation instances
-	•	table by URL
-	•	expandable per-rule details with node targets and snippets where available
-	•	Keep the report static. No backend. No database.
+## Reporting rules
+- `/site/index.html` must list runs and link to per-run pages.
+- `/site/runs/<runId>/index.html` must show:
+  - pages scanned
+  - pages with violations
+  - total violation instances
+  - table by URL
+  - expandable per-rule details with node targets and snippets where available
+- Keep the report static. No backend. No database.
 
-⸻
+---
 
-Test-driven development and unit testing
+## Test-driven development and unit testing
 
-This project uses test-driven development (TDD) as the default workflow.
-Unit testing is mandatory.
+This project is developed using **test-driven development (TDD)** as the default workflow. Unit testing is not optional.
 
-TDD rules
-	•	Write a failing test before implementing a fix or feature.
-	•	Every PR must include tests covering new or changed behavior.
-	•	If a change cannot be unit tested, document why and what alternative validation was used.
+### TDD rules
+- For any behavior change or bug fix, write a failing test first, then implement the change, then refactor.
+- Every PR must include tests that cover:
+  - The bug being fixed (regression test), or
+  - The new feature behavior (positive and negative cases), or
+  - Both.
+- If a change cannot be meaningfully tested (rare), the PR must explicitly document why and what was done instead (for example, narrow integration test, contract test, or a manual verification script).
 
-Required unit test coverage
-
+### Unit testing scope (minimum)
 Unit tests must exist for:
-	•	URL normalization and validation
-	•	Sitemap parsing (urlset and sitemapindex)
-	•	Filtering logic (prefix, exclude substrings, maxPages)
-	•	Same-origin enforcement
-	•	Concurrency limiting (CI mode)
-	•	Sequential execution guarantees (standalone logic)
-	•	Shared schema validation and backwards compatibility
-	•	Aggregation math (counts and summaries)
-	•	Per-URL error handling (timeouts, navigation failures)
+- URL normalization and validation
+- Sitemap parsing (urlset and sitemapindex)
+- Filtering logic (prefix, exclude substrings, maxPages)
+- Crawl boundary enforcement (same-origin)
+- Concurrency limiting (CI mode) and sequential enforcement (standalone mode logic if extracted)
+- Shared schema validation and backwards compatibility behaviors
+- Report aggregation math (pages scanned, pages with violations, total violation instances)
+- Error handling per URL (timeouts, navigation errors, missing sitemap)
 
-Test boundaries
-	•	Prefer pure-function tests for parsing, filtering, aggregation, and schema logic.
-	•	Use Playwright-based integration tests sparingly and deterministically.
-	•	Do not commit flaky or timing-sensitive tests.
+### Test strategy boundaries
+- Prefer **pure function** units for most logic (parsing, filtering, aggregation, schema validation).
+- Keep Playwright-dependent tests to a small number of **integration tests** using:
+  - A tiny local fixture site (static HTML pages) served during tests, or
+  - A mocked browser interface if you have separated concerns cleanly.
+- Do not add flaky tests. If a test is nondeterministic, it must be redesigned or quarantined with clear rationale.
 
-Definition of done
+### Definition of done for changes
+A change is not complete unless:
+- All unit tests pass locally and in CI.
+- Test coverage does not decrease without justification.
+- New code paths are exercised by tests.
 
-A change is complete only when:
-	•	All tests pass locally and in CI
-	•	Coverage does not regress without justification
-	•	New code paths are exercised by tests
+---
 
-⸻
+## Accessibility target: WCAG 2.2 AA
 
-Accessibility target: WCAG 2.2 AA
+The project itself (repo-generated reports and the standalone scanner UI) must meet **WCAG 2.2 Level AA**.
 
-The project itself must meet WCAG 2.2 Level AA.
+### What this means here
+- The generated report pages in `/site` must be WCAG 2.2 AA conformant.
+- `standalone/a11y-scan.html` must be WCAG 2.2 AA conformant.
+- This requirement applies to:
+  - Keyboard navigation
+  - Focus visibility and focus order
+  - Labels and accessible names
+  - Color contrast (AA)
+  - Headings and structure
+  - Error identification and messaging
+  - Status announcements (progress updates should be announced appropriately)
+  - Non-text content handling (icons, controls)
+  - Reflow and responsive layout
+  - No keyboard traps
 
-Scope
-	•	/site generated report pages
-	•	standalone/a11y-scan.html UI
+### Important limitation (do not misrepresent)
+- Axe results for scanned sites do not equal WCAG 2.2 AA compliance. Automated testing is partial coverage only.
+- Do not claim the scanners “certify” compliance.
 
-Requirements
-	•	Full keyboard operability
-	•	Visible focus indicators
-	•	Logical heading structure
-	•	Accessible form labels and controls
-	•	Color contrast meeting AA
-	•	Clear error and status messaging
-	•	No keyboard traps
-	•	Responsive layout and reflow support
+### Required accessibility checks
+- Add automated checks for the scanner UI and report UI:
+  - Axe-based checks are allowed and encouraged, but must not be the only gate.
+- Add at least one manual verification checklist item in the README for releases:
+  - Keyboard-only smoke test
+  - Screen reader spot-check (at minimum: headings, table navigation, expandable details, progress updates)
+  - Contrast check for key UI elements
 
-Dynamic updates (scan progress, completion) must be announced via appropriate aria-live regions.
+### UI implementation requirements
+- No inaccessible custom controls. Use native elements where possible:
+  - `<button>`, `<details>/<summary>`, `<table>` with proper headers, `<label>` + form controls.
+- Any dynamic progress updates must be surfaced to assistive tech:
+  - Use an `aria-live` region for scan progress and completion status.
 
-Important limitation
-	•	Automated scan results do not equal WCAG 2.2 AA compliance.
-	•	Do not claim or imply certification or full conformance of scanned sites.
+---
 
-Accessibility verification
-	•	Automated checks (axe or equivalent) are required but insufficient alone.
-	•	Manual release checks must include:
-	•	Keyboard-only navigation
-	•	Screen reader spot-check of headings, tables, expandable sections, and progress updates
-	•	Visual contrast review of primary UI elements
+## Agent expectations for tests and accessibility
 
-UI implementation rules
-	•	Prefer native HTML elements over custom widgets.
-	•	Do not introduce inaccessible custom controls.
-	•	Any UI change must be reviewed for accessibility impact.
+When an agent changes code:
+- It must add or update unit tests first (TDD).
+- It must not introduce accessibility regressions in the report UI or standalone UI.
+- If modifying UI markup or styling, the agent must explicitly verify:
+  - keyboard navigation still works,
+  - focus is visible,
+  - headings remain logical,
+  - labels remain correct.
 
-⸻
+If those checks were not performed, the work is considered incomplete.
 
-Agent expectations
+---
 
-When making changes, agents must:
-	1.	Identify which mode is affected (CI, standalone, or both).
-	2.	Add or update unit tests first (TDD).
-	3.	Preserve the shared schema contract.
-	4.	Avoid introducing accessibility regressions.
-	5.	Update documentation if behavior changes.
+## What not to do
+- Do not add cross-origin scanning claims or code paths in standalone mode.
+- Do not load axe from a CDN in standalone mode.
+- Do not split the standalone scanner into multiple files.
+- Do not remove GitHub Pages deployment or move reports out of /site.
+- Do not weaken or remove testing or accessibility requirements.
 
-If these steps are not followed, the work is incomplete.
+---
 
-⸻
-
-What not to do
-	•	Do not add cross-origin scanning claims or code paths in standalone mode.
-	•	Do not load axe from a CDN in standalone mode.
-	•	Do not split the standalone scanner into multiple files.
-	•	Do not remove GitHub Pages deployment or move reports out of /site.
-	•	Do not weaken or remove testing or accessibility requirements.
-
-⸻
-
-Definitions
-	•	Violation instances: total count of nodes across all violations.
-	•	Violation rules: count of unique violations entries (rule IDs).
-	•	Same-origin: protocol, host, and port must match exactly.
-
-End of file.
+## Definitions
+- **Violation instances**: total count of nodes across all violations.
+- **Violation rules**: count of unique violations entries (rule IDs).
+- **Same-origin**: protocol, host, and port must match exactly.
