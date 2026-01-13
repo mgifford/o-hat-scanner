@@ -21,6 +21,7 @@ function main() {
         if (fs.existsSync(resultsPath)) {
             const results = JSON.parse(fs.readFileSync(resultsPath, 'utf-8'));
             generateRunPage(runId, results); // creates site/runs/<id>/index.html
+            generateCSV(runId, results); // creates site/runs/<id>/report.csv
             
             // Collect summary for main index
             const summaryPath = path.join(runPath, 'summary.json');
@@ -123,7 +124,7 @@ function generateRunPage(runId, results) {
         <a href="../../index.html">&larr; Back to all runs</a>
         <h1>Scan Results: ${runId}</h1>
         <p>Started: ${new Date(results.startedAt).toLocaleString()} | Mode: ${results.mode}</p>
-    </header>
+        <p><a href="report.csv" download>Download CSV Report</a></p>
 
     <div class="summary-cards">
         <div class="card">
@@ -182,3 +183,54 @@ function generateRunPage(runId, results) {
 }
 
 main();
+
+function generateCSV(runId, results) {
+    const headers = [
+        "customFlowLabel","deviceChosen","scanCompletedAt","severity","issueId",
+        "issueDescription","wcagConformance","url","pageTitle","context",
+        "howToFix","axeImpact","xpath","learnMore"
+    ];
+
+    let csvContent = headers.map(h => `"${h}"`).join(",") + "\n";
+
+    for (const url of Object.keys(results.resultsByUrl)) {
+        const data = results.resultsByUrl[url];
+        if (!data.violations) continue;
+
+        for (const v of data.violations) {
+            for (const node of v.nodes) {
+                const row = [
+                    "None", // customFlowLabel
+                    "Desktop", // deviceChosen
+                    results.finishedAt || new Date().toISOString(), // scanCompletedAt
+                    mapSeverity(v.impact), // severity
+                    v.id, // issueId
+                    v.description, // issueDescription
+                    v.tags ? v.tags.join(',') : '', // wcagConformance
+                    url, // url
+                    data.title || '', // pageTitle
+                    node.html || '', // context
+                    node.failureSummary || '', // howToFix
+                    v.impact || '', // axeImpact
+                    node.target ? node.target[0] : '', // xpath/selector
+                    v.helpUrl || '' // learnMore
+                ];
+                
+                csvContent += row.map(field => escapeCSV(field)).join(",") + "\n";
+            }
+        }
+    }
+
+    const outDir = path.join(SITE_DIR, 'runs', runId);
+    fs.writeFileSync(path.join(outDir, 'report.csv'), csvContent);
+}
+
+function escapeCSV(field) {
+    if (field === null || field === undefined) return '""';
+    const stringField = String(field);
+    return `"${stringField.replace(/"/g, '""')}"`;
+}
+
+function mapSeverity(impact) {
+    return "needsReview"; 
+}
