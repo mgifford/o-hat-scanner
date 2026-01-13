@@ -9,7 +9,7 @@
     "vendor-assets": "cp node_modules/axe-core/axe.min.js assets/axe.min.js",
     "scan:ci": "node scripts/scan-ci.js",
     "report": "node scripts/generate-report.js",
-    "test": "jest"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "keywords": [
     "accessibility",
@@ -31,5 +31,10 @@
     "jest": "^29.7.0",
     "jest-playwright-preset": "^4.0.0",
     "playwright": "^1.57.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "extensionsToTreatAsEsm": [".js"],
+    "transform": {}
   }
 }

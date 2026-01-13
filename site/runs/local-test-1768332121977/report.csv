@@ -1,0 +1,186 @@
+"customFlowLabel","deviceChosen","scanCompletedAt","severity","issueId","issueDescription","wcagConformance","url","pageTitle","context","howToFix","axeImpact","xpath","learnMore"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","color-contrast","Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds","cat.color,wcag2aa,wcag143,TTv5,TT13.c,EN-301-549,EN-9.1.4.3,ACT,RGAAv4,RGAA-3.2.1","http://localhost:8082/standalone/index.html","","<div class=""error-badge"">This page has issues</div>","Fix any of the following:
+  Element has insufficient color contrast of 3.5 (foreground color: #d32f2f, background color: #ffcccc, font size: 9.0pt (12px), font weight: bold). Expected contrast ratio of 4.5:1","serious",".error-badge","https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","color-contrast","Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds","cat.color,wcag2aa,wcag143,TTv5,TT13.c,EN-301-549,EN-9.1.4.3,ACT,RGAAv4,RGAA-3.2.1","http://localhost:8082/standalone/index.html","","<p class=""low-contrast"">This text has poor contrast (text color #777777 on background #888888) - intentional for testing.</p>","Fix any of the following:
+  Element has insufficient color contrast of 1.26 (foreground color: #777777, background color: #888888, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1","serious",".low-contrast","https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","landmark-one-main","Ensure the document has a main landmark","cat.semantics,best-practice","http://localhost:8082/standalone/index.html","","<html lang=""en"">","Fix all of the following:
+  Document does not have a main landmark","moderate","html","https://dequeuniversity.com/rules/axe/4.11/landmark-one-main?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","link-in-text-block","Ensure links are distinguished from surrounding text in a way that does not rely on color","cat.color,wcag2a,wcag141,TTv5,TT13.a,EN-301-549,EN-9.1.4.1,RGAAv4,RGAA-10.6.1","http://localhost:8082/standalone/index.html","","<a href=""page3.html"">Visit Page 3 →</a>","Fix any of the following:
+  The link has insufficient color contrast of 2.98:1 with the surrounding text. (Minimum contrast is 3:1, link text: #0056b3, surrounding text: #000000)
+  The link has no styling (such as underline) to distinguish it from the surrounding text","serious","a[href$=""page3.html""]","https://dequeuniversity.com/rules/axe/4.11/link-in-text-block?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/index.html","","<div class=""container"">","Fix any of the following:
+  Some page content is not contained by landmarks","moderate",".container","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","button-name","Ensure buttons have discernible text","cat.name-role-value,wcag2a,wcag412,section508,section508.22.a,TTv5,TT6.a,EN-301-549,EN-9.4.1.2,ACT,RGAAv4,RGAA-11.9.1","http://localhost:8082/standalone/demo-bad.html","","<button class=""bad-button""></button>","Fix any of the following:
+  Element does not have inner text that is visible to screen readers
+  aria-label attribute does not exist or is empty
+  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty
+  Element has no title attribute
+  Element does not have an implicit (wrapped) <label>
+  Element does not have an explicit <label>
+  Element's default semantics were not overridden with role=""none"" or role=""presentation""","critical","button","https://dequeuniversity.com/rules/axe/4.11/button-name?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","color-contrast","Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds","cat.color,wcag2aa,wcag143,TTv5,TT13.c,EN-301-549,EN-9.1.4.3,ACT,RGAAv4,RGAA-3.2.1","http://localhost:8082/standalone/demo-bad.html","","<h1>Welcome to the Bad Page</h1>","Fix any of the following:
+  Element has insufficient color contrast of 1.16 (foreground color: #eeeeee, background color: #ffffff, font size: 24.0pt (32px), font weight: bold). Expected contrast ratio of 3:1","serious","h1","https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","color-contrast","Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds","cat.color,wcag2aa,wcag143,TTv5,TT13.c,EN-301-549,EN-9.1.4.3,ACT,RGAAv4,RGAA-3.2.1","http://localhost:8082/standalone/demo-bad.html","","<h3>Skipped to H3</h3>","Fix any of the following:
+  Element has insufficient color contrast of 1.16 (foreground color: #eeeeee, background color: #ffffff, font size: 14.0pt (18.72px), font weight: bold). Expected contrast ratio of 3:1","serious","h3","https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","color-contrast","Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds","cat.color,wcag2aa,wcag143,TTv5,TT13.c,EN-301-549,EN-9.1.4.3,ACT,RGAAv4,RGAA-3.2.1","http://localhost:8082/standalone/demo-bad.html","","<div id=""duplicate"">First</div>","Fix any of the following:
+  Element has insufficient color contrast of 1.16 (foreground color: #eeeeee, background color: #ffffff, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1","serious","div:nth-child(7)","https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","color-contrast","Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds","cat.color,wcag2aa,wcag143,TTv5,TT13.c,EN-301-549,EN-9.1.4.3,ACT,RGAAv4,RGAA-3.2.1","http://localhost:8082/standalone/demo-bad.html","","<div id=""duplicate"">Second</div>","Fix any of the following:
+  Element has insufficient color contrast of 1.16 (foreground color: #eeeeee, background color: #ffffff, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1","serious","div:nth-child(8)","https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","color-contrast","Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds","cat.color,wcag2aa,wcag143,TTv5,TT13.c,EN-301-549,EN-9.1.4.3,ACT,RGAAv4,RGAA-3.2.1","http://localhost:8082/standalone/demo-bad.html","","<td>Row 1, Col 1</td>","Fix any of the following:
+  Element has insufficient color contrast of 1.16 (foreground color: #eeeeee, background color: #ffffff, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1","serious","tr:nth-child(1) > td:nth-child(1)","https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","color-contrast","Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds","cat.color,wcag2aa,wcag143,TTv5,TT13.c,EN-301-549,EN-9.1.4.3,ACT,RGAAv4,RGAA-3.2.1","http://localhost:8082/standalone/demo-bad.html","","<td>Row 1, Col 2</td>","Fix any of the following:
+  Element has insufficient color contrast of 1.16 (foreground color: #eeeeee, background color: #ffffff, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1","serious","tr:nth-child(1) > td:nth-child(2)","https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","color-contrast","Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds","cat.color,wcag2aa,wcag143,TTv5,TT13.c,EN-301-549,EN-9.1.4.3,ACT,RGAAv4,RGAA-3.2.1","http://localhost:8082/standalone/demo-bad.html","","<td>Row 2, Col 1</td>","Fix any of the following:
+  Element has insufficient color contrast of 1.16 (foreground color: #eeeeee, background color: #ffffff, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1","serious","tr:nth-child(2) > td:nth-child(1)","https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","color-contrast","Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds","cat.color,wcag2aa,wcag143,TTv5,TT13.c,EN-301-549,EN-9.1.4.3,ACT,RGAAv4,RGAA-3.2.1","http://localhost:8082/standalone/demo-bad.html","","<td>Row 2, Col 2</td>","Fix any of the following:
+  Element has insufficient color contrast of 1.16 (foreground color: #eeeeee, background color: #ffffff, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1","serious","tr:nth-child(2) > td:nth-child(2)","https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","heading-order","Ensure the order of headings is semantically correct","cat.semantics,best-practice","http://localhost:8082/standalone/demo-bad.html","","<h3>Skipped to H3</h3>","Fix any of the following:
+  Heading order invalid","moderate","h3","https://dequeuniversity.com/rules/axe/4.11/heading-order?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","html-has-lang","Ensure every HTML document has a lang attribute","cat.language,wcag2a,wcag311,TTv5,TT11.a,EN-301-549,EN-9.3.1.1,ACT,RGAAv4,RGAA-8.3.1","http://localhost:8082/standalone/demo-bad.html","","<html>","Fix any of the following:
+  The <html> element does not have a lang attribute","serious","html","https://dequeuniversity.com/rules/axe/4.11/html-has-lang?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","image-alt","Ensure <img> elements have alternative text or a role of none or presentation","cat.text-alternatives,wcag2a,wcag111,section508,section508.22.a,TTv5,TT7.a,TT7.b,EN-301-549,EN-9.1.1.1,ACT,RGAAv4,RGAA-1.1.1","http://localhost:8082/standalone/demo-bad.html","","<img src=""fake-image.jpg"">","Fix any of the following:
+  Element does not have an alt attribute
+  aria-label attribute does not exist or is empty
+  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty
+  Element has no title attribute
+  Element's default semantics were not overridden with role=""none"" or role=""presentation""","critical","img","https://dequeuniversity.com/rules/axe/4.11/image-alt?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","label","Ensure every form element has a label","cat.forms,wcag2a,wcag412,section508,section508.22.n,TTv5,TT5.c,EN-301-549,EN-9.4.1.2,ACT,RGAAv4,RGAA-11.1.1","http://localhost:8082/standalone/demo-bad.html","","<input type=""text"">","Fix any of the following:
+  Element does not have an implicit (wrapped) <label>
+  Element does not have an explicit <label>
+  aria-label attribute does not exist or is empty
+  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty
+  Element has no title attribute
+  Element has no placeholder attribute
+  Element's default semantics were not overridden with role=""none"" or role=""presentation""","critical","input","https://dequeuniversity.com/rules/axe/4.11/label?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","landmark-one-main","Ensure the document has a main landmark","cat.semantics,best-practice","http://localhost:8082/standalone/demo-bad.html","","<html>","Fix all of the following:
+  Document does not have a main landmark","moderate","html","https://dequeuniversity.com/rules/axe/4.11/landmark-one-main?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","link-name","Ensure links have discernible text","cat.name-role-value,wcag2a,wcag244,wcag412,section508,section508.22.a,TTv5,TT6.a,EN-301-549,EN-9.2.4.4,EN-9.4.1.2,ACT,RGAAv4,RGAA-6.2.1","http://localhost:8082/standalone/demo-bad.html","","<a href=""#""></a>","Fix all of the following:
+  Element is in tab order and does not have accessible text
+
+Fix any of the following:
+  Element does not have text that is visible to screen readers
+  aria-label attribute does not exist or is empty
+  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty
+  Element has no title attribute","serious","a","https://dequeuniversity.com/rules/axe/4.11/link-name?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/demo-bad.html","","<h1>Welcome to the Bad Page</h1>","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","h1","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/demo-bad.html","","<img src=""fake-image.jpg"">","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","img","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/demo-bad.html","","<input type=""text"">","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","input","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/demo-bad.html","","<h3>Skipped to H3</h3>","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","h3","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/demo-bad.html","","<div id=""duplicate"">First</div>","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","div:nth-child(7)","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/demo-bad.html","","<div id=""duplicate"">Second</div>","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","div:nth-child(8)","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/demo-bad.html","","<table>
+        <tbody><tr>
+            <td>Row 1, Col 1</td>
+            <td>Row 1, Col 2</td>
+        </tr>
+        <tr>
+            <td>Row 2, Col 1</td>
+            <td>Row 2, Col 2</td>
+        </tr>
+    </tbody></table>","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","table","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","color-contrast","Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds","cat.color,wcag2aa,wcag143,TTv5,TT13.c,EN-301-549,EN-9.1.4.3,ACT,RGAAv4,RGAA-3.2.1","http://localhost:8082/standalone/page1.html","","<div class=""low-contrast"">
+        <strong>Low Contrast Example:</strong> This text has poor color contrast (WCAG violation). Text color is #777777 on background #888888, resulting in a contrast ratio below the required minimum.
+    </div>","Fix any of the following:
+  Element has insufficient color contrast of 1.26 (foreground color: #777777, background color: #888888, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1","serious",".low-contrast","https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","color-contrast","Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds","cat.color,wcag2aa,wcag143,TTv5,TT13.c,EN-301-549,EN-9.1.4.3,ACT,RGAAv4,RGAA-3.2.1","http://localhost:8082/standalone/page1.html","","<strong>Low Contrast Example:</strong>","Fix any of the following:
+  Element has insufficient color contrast of 1.26 (foreground color: #777777, background color: #888888, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1","serious",".low-contrast > strong","https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","color-contrast","Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds","cat.color,wcag2aa,wcag143,TTv5,TT13.c,EN-301-549,EN-9.1.4.3,ACT,RGAAv4,RGAA-3.2.1","http://localhost:8082/standalone/page1.html","","<div class=""worse-contrast"">
+        <strong>Worse Contrast Example:</strong> This text has even worse color contrast. Text color is #888888 on background #999999.
+    </div>","Fix any of the following:
+  Element has insufficient color contrast of 1.24 (foreground color: #888888, background color: #999999, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1","serious",".worse-contrast","https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","color-contrast","Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds","cat.color,wcag2aa,wcag143,TTv5,TT13.c,EN-301-549,EN-9.1.4.3,ACT,RGAAv4,RGAA-3.2.1","http://localhost:8082/standalone/page1.html","","<strong>Worse Contrast Example:</strong>","Fix any of the following:
+  Element has insufficient color contrast of 1.24 (foreground color: #888888, background color: #999999, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1","serious",".worse-contrast > strong","https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","image-alt","Ensure <img> elements have alternative text or a role of none or presentation","cat.text-alternatives,wcag2a,wcag111,section508,section508.22.a,TTv5,TT7.a,TT7.b,EN-301-549,EN-9.1.1.1,ACT,RGAAv4,RGAA-1.1.1","http://localhost:8082/standalone/page1.html","","<img src=""data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='100'%3E%3Crect fill='%230056b3' width='200' height='100'/%3E%3Ctext x='50%' y='50%' text-anchor='middle' dy='.3em' fill='white' font-size='16'%3ETest Image 1%3C/text%3E%3C/svg%3E"">","Fix any of the following:
+  Element does not have an alt attribute
+  aria-label attribute does not exist or is empty
+  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty
+  Element has no title attribute
+  Element's default semantics were not overridden with role=""none"" or role=""presentation""","critical","img:nth-child(2)","https://dequeuniversity.com/rules/axe/4.11/image-alt?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","image-alt","Ensure <img> elements have alternative text or a role of none or presentation","cat.text-alternatives,wcag2a,wcag111,section508,section508.22.a,TTv5,TT7.a,TT7.b,EN-301-549,EN-9.1.1.1,ACT,RGAAv4,RGAA-1.1.1","http://localhost:8082/standalone/page1.html","","<img src=""data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='100'%3E%3Crect fill='%23f57c00' width='200' height='100'/%3E%3Ctext x='50%' y='50%' text-anchor='middle' dy='.3em' fill='white' font-size='16'%3ETest Image 2%3C/text%3E%3C/svg%3E"">","Fix any of the following:
+  Element does not have an alt attribute
+  aria-label attribute does not exist or is empty
+  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty
+  Element has no title attribute
+  Element's default semantics were not overridden with role=""none"" or role=""presentation""","critical","img:nth-child(3)","https://dequeuniversity.com/rules/axe/4.11/image-alt?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","landmark-one-main","Ensure the document has a main landmark","cat.semantics,best-practice","http://localhost:8082/standalone/page1.html","","<html lang=""en"">","Fix all of the following:
+  Document does not have a main landmark","moderate","html","https://dequeuniversity.com/rules/axe/4.11/landmark-one-main?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/page1.html","","<div class=""container"">","Fix any of the following:
+  Some page content is not contained by landmarks","moderate",".container","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","landmark-one-main","Ensure the document has a main landmark","cat.semantics,best-practice","http://localhost:8082/standalone/page2.html","","<html lang=""en"">","Fix all of the following:
+  Document does not have a main landmark","moderate","html","https://dequeuniversity.com/rules/axe/4.11/landmark-one-main?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/page2.html","","<a href=""index.html"" class=""back-link"">← Back to Test Site</a>","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","a","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/page2.html","","<h1>Page 2: Form Labels and Input Issues</h1>","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","h1","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/page2.html","","<p>This page contains accessibility issues related to form inputs without associated labels.</p>","Fix any of the following:
+  Some page content is not contained by landmarks","moderate",".container > p","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/page2.html","","<h2>Form Without Proper Labels</h2>","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","h2:nth-child(4)","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/page2.html","","<h3>User Registration Form</h3>","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","form:nth-child(5) > h3","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/page2.html","","<div class=""form-group"">
+            <input type=""text"" placeholder=""Full Name"" required="""">
+            <p style=""font-size: 12px; color: #666;"">Enter your full name</p>
+        </div>","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","form:nth-child(5) > .form-group:nth-child(2)","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/page2.html","","<div class=""form-group"">
+            <input type=""email"" placeholder=""Email Address"" aria-label=""Email Address"" required="""">
+            <p style=""font-size: 12px; color: #666;"">Your email address</p>
+        </div>","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","form:nth-child(5) > .form-group:nth-child(3)","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/page2.html","","<div class=""form-group"">","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","form:nth-child(5) > .form-group:nth-child(4)","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/page2.html","","<div class=""form-group"">
+            <textarea placeholder=""Enter your message"" rows=""5""></textarea>
+            <p style=""font-size: 12px; color: #666;"">Tell us more about yourself</p>
+        </div>","Fix any of the following:
+  Some page content is not contained by landmarks","moderate",".form-group:nth-child(5)","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/page2.html","","<div class=""form-group"">
+            <input type=""password"" placeholder=""Choose a password"" required="""">
+            <p style=""font-size: 12px; color: #666;"">Must be at least 8 characters</p>
+        </div>","Fix any of the following:
+  Some page content is not contained by landmarks","moderate",".form-group:nth-child(6)","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/page2.html","","<h2>Properly Labeled Form (for comparison)</h2>","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","h2:nth-child(6)","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/page2.html","","<h3>Correct Form Example</h3>","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","form:nth-child(7) > h3","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/page2.html","","<div class=""form-group"">
+            <label for=""name"">Full Name:</label>
+            <input type=""text"" id=""name"" name=""name"" required="""">
+        </div>","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","form:nth-child(7) > .form-group:nth-child(2)","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/page2.html","","<div class=""form-group"">
+            <label for=""email"">Email Address:</label>
+            <input type=""email"" id=""email"" name=""email"" required="""">
+        </div>","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","form:nth-child(7) > .form-group:nth-child(3)","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/page2.html","","<div class=""form-group"">","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","form:nth-child(7) > .form-group:nth-child(4)","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/page2.html","","<h2>Summary of Issues on This Page</h2>","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","h2:nth-child(8)","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Good to Fix","region","Ensure all page content is contained by landmarks","cat.keyboard,best-practice,RGAAv4,RGAA-9.2.1","http://localhost:8082/standalone/page2.html","","<ul>
+        <li>5 form inputs without associated label elements</li>
+        <li>1 select without label</li>
+        <li>1 textarea without label</li>
+        <li>Expected violations: label, form-field-multiple-labels</li>
+    </ul>","Fix any of the following:
+  Some page content is not contained by landmarks","moderate","ul","https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI"
+"None","Desktop","2026-01-13T19:22:02.994Z","Must Fix","select-name","Ensure select element has an accessible name","cat.forms,wcag2a,wcag412,section508,section508.22.n,TTv5,TT5.c,EN-301-549,EN-9.4.1.2,ACT,RGAAv4,RGAA-11.1.1","http://localhost:8082/standalone/page2.html","","<select required="""">
+                <option value="""">-- Select your country --</option>
+                <option value=""us"">United States</option>
+                <option value=""uk"">United Kingdom</option>
+                <option value=""ca"">Canada</option>
+            </select>","Fix any of the following:
+  Element does not have an implicit (wrapped) <label>
+  Element does not have an explicit <label>
+  aria-label attribute does not exist or is empty
+  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty
+  Element has no title attribute
+  Element's default semantics were not overridden with role=""none"" or role=""presentation""","critical","form:nth-child(5) > .form-group:nth-child(4) > select","https://dequeuniversity.com/rules/axe/4.11/select-name?application=axeAPI"

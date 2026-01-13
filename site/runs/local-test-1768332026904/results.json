@@ -1,0 +1,39 @@
+{
+  "runId": "local-test-1768332026904",
+  "startedAt": "2026-01-13T19:20:27.259Z",
+  "finishedAt": "2026-01-13T19:20:27.333Z",
+  "toolVersion": "axe-4.10",
+  "mode": "ci-local",
+  "config": {
+    "urls": [
+      "http://localhost:8082/standalone/index.html",
+      "http://localhost:8082/standalone/demo-bad.html",
+      "http://localhost:8082/standalone/page1.html",
+      "http://localhost:8082/standalone/page2.html"
+    ]
+  },
+  "targets": [
+    "http://localhost:8082/standalone/index.html",
+    "http://localhost:8082/standalone/demo-bad.html",
+    "http://localhost:8082/standalone/page1.html",
+    "http://localhost:8082/standalone/page2.html"
+  ],
+  "resultsByUrl": {
+    "http://localhost:8082/standalone/index.html": {
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:8082/standalone/index.html\nCall log:\n\u001b[2m  - navigating to \"http://localhost:8082/standalone/index.html\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "violations": []
+    },
+    "http://localhost:8082/standalone/demo-bad.html": {
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:8082/standalone/demo-bad.html\nCall log:\n\u001b[2m  - navigating to \"http://localhost:8082/standalone/demo-bad.html\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "violations": []
+    },
+    "http://localhost:8082/standalone/page1.html": {
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:8082/standalone/page1.html\nCall log:\n\u001b[2m  - navigating to \"http://localhost:8082/standalone/page1.html\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "violations": []
+    },
+    "http://localhost:8082/standalone/page2.html": {
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:8082/standalone/page2.html\nCall log:\n\u001b[2m  - navigating to \"http://localhost:8082/standalone/page2.html\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "violations": []
+    }
+  }
+}

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Page 3: Buttons and Heading Hierarchy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 4px;
+        }
+        button {
+            background: #0056b3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 10px 5px 10px 0;
+        }
+        button:hover {
+            background: #004085;
+        }
+        /* Icon-only buttons */
+        .icon-btn {
+            padding: 8px;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+        }
+        .back-link {
+            display: inline-block;
+            color: #0056b3;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="index.html" class="back-link">← Back to Test Site</a>
+
+    <h1>Page 3: Buttons and Heading Hierarchy Issues</h1>
+    
+    <p>This page contains accessibility issues related to buttons without accessible names and improper heading hierarchy.</p>
+
+    <h2>Icon-Only Buttons Without Accessible Names</h2>
+    <div class="section">
+        <p>These buttons have icons but no accessible text:</p>
+        
+        <!-- Issue: Button with icon but no text or aria-label -->
+        <button class="icon-btn">🔍</button>
+        <button class="icon-btn">❤️</button>
+        <button class="icon-btn">⚙️</button>
+        <button class="icon-btn">🔔</button>
+        
+        <p style="margin-top: 20px; font-size: 12px; color: #666;">These buttons are missing accessible names. Users with screen readers won't know what they do.</p>
+    </div>
+
+    <h2>Properly Named Buttons (for comparison)</h2>
+    <div class="section">
+        <button aria-label="Search">🔍</button>
+        <button aria-label="Add to favorites">❤️</button>
+        <button aria-label="Settings">⚙️</button>
+        <button aria-label="Notifications">🔔</button>
+    </div>
+
+    <!-- Issue: Skipped heading level (h1 to h3) -->
+    <h3>Section With Skipped Heading Level</h3>
+    <p>Notice this is an h3, but we jumped directly from the h1 above - we skipped h2. This violates heading hierarchy rules.</p>
+
+    <h3>Another h3 in sequence</h3>
+    <p>This demonstrates improper heading structure. We should have gone h1 → h2 → h3, not h1 → h3 → h3.</p>
+
+    <h2>Proper Heading Hierarchy (for comparison)</h2>
+    <p>The heading above this is an h2, which properly follows the h1 at the top of the page.</p>
+
+    <h3>Subsection Under h2</h3>
+    <p>This h3 is properly nested under the h2 above.</p>
+
+    <h3>Another subsection</h3>
+    <p>This is also an h3 under h2, maintaining proper hierarchy.</p>
+
+    <h2>Summary of Issues on This Page</h2>
+    <ul>
+        <li>4 icon-only buttons without accessible names (aria-label or text)</li>
+        <li>Heading hierarchy starts h1, then jumps to h3 (missing h2)</li>
+        <li>Duplicate h3 elements without proper h2 parent</li>
+        <li>Expected violations: button-name, heading-order</li>
+    </ul>
+
+</div>
+
+</body>
+</html>
