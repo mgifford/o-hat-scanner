@@ -1,5 +1,7 @@
 # A11y Dual Scanner
 
+[![GitHub Pages](https://img.shields.io/badge/Pages-O--Hat--Scanner-blue?logo=github&label=pages)](https://mgifford.github.io/o-hat-scanner/)
+
 This repository provides two accessibility scanning modes:
 1. **CI Scanner**: Runs in GitHub Actions using Playwright + Axe, producing a static HTML report.
 2. **Standalone Scanner**: A single HTML file you can drop into your website to scan it from the inside (same-origin).
@@ -19,6 +21,8 @@ This repository provides two accessibility scanning modes:
    npm run report
    # View report at site/index.html
    ```
+
+Note: The CI scanner reads `INPUT_URLS` from the workflow input when provided. If the workflow `urls` input is left blank, the scanner falls back to `targets.txt` in the repository root. Comment out lines in `targets.txt` with `#` to exclude them from scans.
 
 ## 🧪 Local Testing
 
