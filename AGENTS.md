@@ -27,19 +27,28 @@ If you change anything that violates these constraints, you broke the repo.
   CI crawler + axe runner. Produces JSON artifacts under `/site/runs/<runId>/`.
 
 - `scripts/generate-report.js`
-  Converts JSON into static HTML under `/site`. Must not require a server.
+  Converts JSON into static HTML and CSV reports under `/site`. Implements Oobee-style professional report template with sidebar, search, severity grouping, and top pages ranking. Must not require a server.
+
+- `scripts/scan-local.js`
+  Local testing utility. Scans test pages via Playwright against localhost:8082, generates results compatible with report generator.
 
 - `scripts/shared-schema.js`
   Defines the shared schema and validation helpers. Both modes must match it.
 
 - `standalone/a11y-scan.html`
-  Single-file scanner UI that crawls same-origin pages via sitemap or list.
+  Single-file scanner UI that crawls same-origin pages via sitemap or list. Includes JSON and CSV export with Oobee-compatible headers.
+
+- `standalone/page*.html`, `standalone/blog/`, `standalone/auth/`
+  Test pages with intentional accessibility issues for validation and testing.
 
 - `assets/axe.min.js`
   Vendored axe build for standalone scanning and (optionally) for CI injection.
 
 - `.github/workflows/a11y-scan.yml`
   Runs `scan-ci.js` and `generate-report.js`, then deploys `/site` to Pages.
+
+- `tests/generate-report.test.js`
+  Test suite validating report generation with Oobee template features.
 
 ---
 
@@ -107,13 +116,19 @@ Do not implement an uncontrolled crawler that can lock up browsers or CI runners
 
 ## Reporting rules
 - `/site/index.html` must list runs and link to per-run pages.
-- `/site/runs/<runId>/index.html` must show:
-  - pages scanned
-  - pages with violations
-  - total violation instances
-  - table by URL
-  - expandable per-rule details with node targets and snippets where available
-- Keep the report static. No backend. No database.
+- `/site/runs/<runId>/index.html` must implement Oobee-style professional template with:
+  - **Sidebar**: Scan metadata (date, timezone, page count, target URL)
+  - **Search bar**: Real-time filtering by issue ID, description, or page URL
+  - **Summary cards**: Pages scanned, pages with issues, Must Fix count, Good to Fix count, Manual Review count
+  - **WCAG compliance bar chart**: Shows automation coverage percentage
+  - **Top pages section**: Top 5 affected pages ranked by violation count
+  - **Severity grouping**: Issues organized by impact (critical/moderate/review) with collapsible headers
+  - **Per-issue details**: Violation ID, help text, impact level, affected pages, selectors, HTML snippets
+  - **CSV export link**: Download button in header for spreadsheet export
+- `/site/runs/<runId>/report.csv` must contain 14 columns matching Oobee schema:
+  - customFlowLabel, deviceChosen, scanCompletedAt, severity, issueId, issueDescription, wcagConformance, url, pageTitle, context, howToFix, axeImpact, xpath, learnMore
+  - Severity labels: "Must Fix" (critical), "Good to Fix" (moderate), "Manual Review Required" (minor/review)
+- Keep the report static. No backend. No database. All interactivity client-side JavaScript.
 
 ---
 
