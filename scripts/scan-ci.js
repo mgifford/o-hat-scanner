@@ -44,6 +44,8 @@ async function main() {
     }
 
     console.log(`Starting scan with config: MAX_PAGES=${MAX_PAGES}, CONCURRENCY=${CONCURRENCY}`);
+    // Helpful debug log: show final list of URLs that will be scanned
+    console.log('Final targets to scan:', JSON.stringify(urls, null, 2));
 
     const runResult = createEmptyResult('ci', { 
         maxPages: MAX_PAGES, 
