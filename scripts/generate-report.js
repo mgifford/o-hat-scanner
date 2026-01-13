@@ -91,6 +91,7 @@ function generateMainIndex(summaries) {
         <div class="header-content">
             <h1>🎩 O-Hat Scanner</h1>
             <p class="tagline">Oobee-style accessibility reports powered by GitHub Actions & Pages</p>
+            <p style="margin-top: 1rem;"><a href="https://github.com/mgifford/o-hat-scanner" style="color: #bbdefb; font-weight: 600;">View on GitHub →</a></p>
         </div>
     </header>
     
