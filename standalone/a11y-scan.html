@@ -31,7 +31,7 @@
 <div id="gate-screen">
     <div style="text-align:center;">
         <h2>Access Denied</h2>
-        <p>Please provide a valid token parameter.</p>
+        <p>Please provide a valid password parameter.</p>
     </div>
 </div>
 
@@ -56,7 +56,7 @@
         
         <div class="form-group" id="sitemapInputGroup">
             <label>Sitemap Path</label>
-            <input type="text" id="sitemapPath" value="/sitemap.xml">
+            <input type="text" id="sitemapPath" value="sitemap.xml">
         </div>
 
         <div class="form-group hidden" id="customListGroup">
@@ -86,7 +86,7 @@
 
         <div class="form-group">
             <label>Axe Script Path</label>
-            <input type="text" id="axePath" value="assets/axe.min.js">
+            <input type="text" id="axePath" value="../assets/axe.min.js">
         </div>
 
         <button id="startBtn">Start Scan</button>
@@ -103,13 +103,13 @@
 
 <script>
     // SECURITY CONFIG
-    const VALID_TOKEN = "A11Y-SECRET"; // Change this or use env replacement
+    const VALID_PASSWORD = "A11Y-SECRET"; // Change this or use env replacement
 
     // Init Access Control
     const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
+    const password = params.get('password');
     
-    if (token === VALID_TOKEN) {
+    if (password === VALID_PASSWORD) {
         document.getElementById('gate-screen').classList.add('hidden');
         document.getElementById('app').classList.remove('hidden');
     }
