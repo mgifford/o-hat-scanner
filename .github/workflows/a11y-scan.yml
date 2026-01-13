@@ -47,6 +47,13 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
+      - name: Debug: show inputs and targets
+        run: |
+          echo "--- workflow input 'urls' (inputs.urls) ---"
+          echo "${{ inputs.urls }}"
+          echo "--- contents of targets.txt (if present) ---"
+          if [ -f targets.txt ]; then cat targets.txt; else echo "(no targets.txt)"; fi
+
       - name: Run CI Scan
         env:
           INPUT_URLS: ${{ inputs.urls }}
