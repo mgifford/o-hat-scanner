@@ -4,6 +4,15 @@ import path from 'path';
 const SITE_DIR = 'site';
 const RUNS_DIR = path.join(SITE_DIR, 'runs');
 
+// Severity levels based on axe impact
+const SEVERITY_MAP = {
+    critical: { label: 'Must Fix', order: 1, color: '#d32f2f' },
+    serious: { label: 'Must Fix', order: 1, color: '#d32f2f' },
+    moderate: { label: 'Good to Fix', order: 2, color: '#f57c00' },
+    minor: { label: 'Good to Fix', order: 2, color: '#f57c00' },
+    'review': { label: 'Manual Review Required', order: 3, color: '#1976d2' }
+};
+
 function main() {
     if (!fs.existsSync(RUNS_DIR)) {
         console.log('No runs found.');
@@ -20,7 +29,8 @@ function main() {
         
         if (fs.existsSync(resultsPath)) {
             const results = JSON.parse(fs.readFileSync(resultsPath, 'utf-8'));
-            generateRunPage(runId, results); // creates site/runs/<id>/index.html
+            const pageStats = analyzeResults(results);
+            generateRunPage(runId, results, pageStats); // creates site/runs/<id>/index.html
             generateCSV(runId, results); // creates site/runs/<id>/report.csv
             
             // Collect summary for main index
@@ -86,95 +96,211 @@ function generateMainIndex(summaries) {
     console.log('Generated main index.');
 }
 
-function generateRunPage(runId, results) {
+function generateRunPage(runId, results, pageStats) {
     const urls = Object.keys(results.resultsByUrl);
-    
-    // Process stats
-    const totalViolations = urls.reduce((acc, url) => {
-        const r = results.resultsByUrl[url];
-        return acc + (r.violations ? r.violations.reduce((sum, v) => sum + v.nodes.length, 0) : 0);
-    }, 0);
+    const { mustFixCount, goodToFixCount, reviewCount, pagesWithIssues, automationCoverage } = pageStats;
 
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Run ${runId}</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Scan Report: ${runId}</title>
     <style>
-        body { font-family: system-ui, sans-serif; max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
-        header { border-bottom: 1px solid #ccc; padding-bottom: 1rem; margin-bottom: 2rem; }
-        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-        .card { padding: 1rem; background: #f9f9f9; border-radius: 4px; border: 1px solid #eee; }
-        .card h3 { margin: 0 0 0.5rem 0; font-size: 0.9rem; color: #666; }
-        .card .value { font-size: 1.5rem; font-weight: bold; }
-        .fail { color: #d32f2f; }
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+        header { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 2rem 1rem; margin-bottom: 2rem; }
+        .header-content { max-width: 1200px; margin: 0 auto; }
+        .back-link { color: #1976d2; text-decoration: none; font-size: 14px; display: inline-block; margin-bottom: 1rem; }
+        .back-link:hover { text-decoration: underline; }
+        h1 { margin: 0.5rem 0 0 0; font-size: 28px; }
+        .meta { color: #666; font-size: 14px; margin: 0.5rem 0 0 0; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem 2rem 1rem; }
         
-        details { margin: 0.5rem 0; border: 1px solid #eee; border-radius: 4px; }
-        summary { padding: 0.5rem; cursor: pointer; background: #f4f4f4; font-weight: bold; }
-        .details-body { padding: 1rem; }
-        
-        .url-row { margin-bottom: 2rem; border-top: 2px solid #333; padding-top: 1rem; }
-        .violation-group { margin-left: 1rem; border-left: 2px solid #ddd; padding-left: 1rem; margin-bottom: 1rem; }
-        code { background: #eee; padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.9em; }
-        pre { background: #333; color: #fff; padding: 0.5rem; border-radius: 4px; overflow-x: auto; }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .card { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1.5rem; }
+        .card h3 { margin: 0 0 0.5rem 0; font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+        .card .value { font-size: 32px; font-weight: bold; margin: 0; }
+        .card.critical .value { color: #d32f2f; }
+        .card.warning .value { color: #f57c00; }
+        .card.info .value { color: #1976d2; }
+
+        .compliance-section { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1.5rem; margin-bottom: 2rem; }
+        .compliance-section h3 { margin: 0 0 1rem 0; font-size: 16px; font-weight: 600; }
+        .bar { background: #e0e0e0; height: 24px; border-radius: 4px; overflow: hidden; display: flex; }
+        .bar-segment { height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold; }
+        .bar-pass { background: #4caf50; }
+        .bar-auto { background: #1976d2; }
+
+        .issues-section { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1.5rem; margin-bottom: 2rem; }
+        .issues-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem; }
+        .issue-box { padding: 1rem; border: 1px solid #e0e0e0; border-radius: 4px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .issue-box:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .issue-box .count { font-size: 28px; font-weight: bold; margin-bottom: 0.5rem; }
+        .issue-box .label { font-size: 14px; color: #666; }
+        .issue-must-fix .count { color: #d32f2f; }
+        .issue-good-to-fix .count { color: #f57c00; }
+        .issue-review .count { color: #1976d2; }
+
+        .pages-section { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1.5rem; margin-bottom: 2rem; }
+        .pages-section h3 { margin: 0 0 1rem 0; font-size: 16px; font-weight: 600; }
+        .page-item { padding: 1rem; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+        .page-item:last-child { border-bottom: none; }
+        .page-url { flex: 1; font-family: monospace; font-size: 13px; word-break: break-all; }
+        .page-badge { background: #f0f0f0; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 600; margin-left: 1rem; white-space: nowrap; }
+        .badge-critical { background: #ffebee; color: #d32f2f; }
+        .badge-warning { background: #fff3e0; color: #f57c00; }
+        .badge-info { background: #e3f2fd; color: #1976d2; }
+
+        .details-section { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; overflow: hidden; margin-bottom: 2rem; }
+        .issues-by-severity { margin-bottom: 0; }
+        .severity-group { border-bottom: 1px solid #e0e0e0; }
+        .severity-group:last-child { border-bottom: none; }
+        .severity-header { padding: 1.5rem; background: #fafafa; border-bottom: 1px solid #e0e0e0; cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+        .severity-header:hover { background: #f5f5f5; }
+        .severity-header .count { background: #e0e0e0; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 1rem; }
+        .severity-content { padding: 1.5rem; }
+        .violation-item { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #f0f0f0; }
+        .violation-item:last-child { border-bottom: none; }
+        .violation-id { font-weight: 600; font-family: monospace; color: #333; }
+        .violation-help { color: #666; margin: 0.5rem 0; }
+        .violation-impact { font-size: 12px; color: #999; margin-top: 0.5rem; }
+        .node-list { margin-top: 1rem; background: #f9f9f9; padding: 1rem; border-radius: 4px; font-size: 13px; }
+        .node-item { margin-bottom: 0.5rem; }
+        .node-selector { font-family: monospace; color: #1976d2; }
+        .node-html { font-family: monospace; color: #666; margin-top: 0.25rem; padding: 0.5rem; background: #fff; border-radius: 2px; overflow-x: auto; max-height: 100px; }
+
+        .no-violations { padding: 2rem; text-align: center; color: #666; }
+
+        a { color: #1976d2; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .download-link { display: inline-block; margin: 1rem 0; padding: 8px 16px; background: #1976d2; color: white; border-radius: 4px; text-decoration: none; }
+        .download-link:hover { background: #1565c0; text-decoration: none; }
     </style>
 </head>
 <body>
     <header>
-        <a href="../../index.html">&larr; Back to all runs</a>
-        <h1>Scan Results: ${runId}</h1>
-        <p>Started: ${new Date(results.startedAt).toLocaleString()} | Mode: ${results.mode}</p>
-        <p><a href="report.csv" download>Download CSV Report</a></p>
-
-    <div class="summary-cards">
-        <div class="card">
-            <h3>Pages Scanned</h3>
-            <div class="value">${urls.length}</div>
+        <div class="header-content">
+            <a href="../../index.html" class="back-link">← Back to all runs</a>
+            <h1>Accessibility Scan Report</h1>
+            <p class="meta">
+                <strong>Scan ID:</strong> ${runId} |
+                <strong>Date:</strong> ${new Date(results.startedAt).toLocaleString()} |
+                <strong>Mode:</strong> ${results.mode}
+            </p>
+            <a href="report.csv" class="download-link" download>Download CSV Report</a>
         </div>
-        <div class="card">
-            <h3>Total Violations</h3>
-            <div class="value ${totalViolations > 0 ? 'fail' : ''}">${totalViolations}</div>
+    </header>
+
+    <div class="container">
+        <!-- Summary Cards -->
+        <div class="summary-grid">
+            <div class="card">
+                <h3>Pages Scanned</h3>
+                <p class="value">${urls.length}</p>
+            </div>
+            <div class="card">
+                <h3>Pages with Issues</h3>
+                <p class="value">${pagesWithIssues}</p>
+            </div>
+            <div class="card critical">
+                <h3>Must Fix</h3>
+                <p class="value">${mustFixCount}</p>
+            </div>
+            <div class="card warning">
+                <h3>Good to Fix</h3>
+                <p class="value">${goodToFixCount}</p>
+            </div>
+            <div class="card info">
+                <h3>Manual Review</h3>
+                <p class="value">${reviewCount}</p>
+            </div>
         </div>
-    </div>
 
-    <h2>Details by URL</h2>
-    ${urls.map(url => {
-        const data = results.resultsByUrl[url];
-        const violationCount = data.violations ? data.violations.reduce((sum, v) => sum + v.nodes.length, 0) : 0;
-        
-        if (data.error) {
-            return `<div class="url-row">
-                <h3>${url} <span class="fail">(Error)</span></h3>
-                <p>${data.error}</p>
-            </div>`;
-        }
+        <!-- Issues Summary Box -->
+        <div class="issues-section">
+            <h3>Issue Categories</h3>
+            <div class="issues-grid">
+                <div class="issue-box issue-must-fix">
+                    <div class="count">${mustFixCount}</div>
+                    <div class="label">Must Fix</div>
+                </div>
+                <div class="issue-box issue-good-to-fix">
+                    <div class="count">${goodToFixCount}</div>
+                    <div class="label">Good to Fix</div>
+                </div>
+                <div class="issue-box issue-review">
+                    <div class="count">${reviewCount}</div>
+                    <div class="label">Manual Review</div>
+                </div>
+            </div>
+        </div>
 
-        if (violationCount === 0) return ''; // Skip clean pages in detail view or make optional
+        <!-- Top Affected Pages -->
+        ${pagesWithIssues > 0 ? `
+        <div class="pages-section">
+            <h3>Top Pages with Issues</h3>
+            ${getTopPages(results).map(({ url, count, severity }) => `
+                <div class="page-item">
+                    <div class="page-url">${esc(url)}</div>
+                    <span class="page-badge ${severity === 'critical' ? 'badge-critical' : severity === 'warning' ? 'badge-warning' : 'badge-info'}">${count} issues</span>
+                </div>
+            `).join('')}
+        </div>
+        ` : ''}
 
-        return `<div class="url-row">
-            <h3>${url} <span class="fail">(${violationCount} issues)</span></h3>
-            ${data.violations.map(v => `
-                <details>
-                    <summary>${v.id}: ${v.help} (${v.nodes.length})</summary>
-                    <div class="details-body">
-                        <p><strong>Impact:</strong> ${v.impact}</p>
-                        <p><strong>Description:</strong> ${v.description}</p>
-                        <p><a href="${v.helpUrl}" target="_blank">More info</a></p>
-                        ${v.nodes.map(node => `
-                            <div class="violation-group">
-                                <p>Target: <code>${node.target.join(', ')}</code></p>
-                                <pre>${node.html.replace(/</g, '&lt;')}</pre>
-                                <p>${node.failureSummary}</p>
+        <!-- Issues by Severity -->
+        <div class="details-section issues-by-severity">
+            ${['critical', 'moderate', 'review'].map(severity => {
+                const label = SEVERITY_MAP[severity]?.label || severity;
+                const groupIssues = getIssuesByViolationType(results, severity);
+                if (groupIssues.length === 0) return '';
+                
+                return `
+                <div class="severity-group">
+                    <div class="severity-header">
+                        <span>${label}</span>
+                        <span class="count">${countTotalNodes(groupIssues)} issues</span>
+                    </div>
+                    <div class="severity-content">
+                        ${groupIssues.map(({ violationId, help, impact, helpUrl, pages }) => `
+                            <div class="violation-item">
+                                <div class="violation-id">${esc(violationId)}</div>
+                                <div class="violation-help">${esc(help)}</div>
+                                <div class="violation-impact">Impact: ${esc(impact)} | Affected pages: ${pages.size}</div>
+                                ${helpUrl ? `<div><a href="${esc(helpUrl)}" target="_blank" rel="noopener">Learn more</a></div>` : ''}
+                                <div class="node-list">
+                                    ${[...pages.values()].slice(0, 3).map(({ url, nodes }) => `
+                                        <div class="node-item">
+                                            <div><strong>${esc(url)}</strong> (${nodes.length} node${nodes.length !== 1 ? 's' : ''})</div>
+                                            ${nodes.slice(0, 1).map(node => `
+                                                <div class="node-selector">Selector: ${esc(node.target?.join(', ') || 'N/A')}</div>
+                                                ${node.html ? `<div class="node-html">${esc(node.html.substring(0, 150))}</div>` : ''}
+                                            `).join('')}
+                                        </div>
+                                    `).join('')}
+                                    ${pages.size > 3 ? `<div class="node-item">... and ${pages.size - 3} more page${pages.size - 3 !== 1 ? 's' : ''}</div>` : ''}
+                                </div>
                             </div>
                         `).join('')}
                     </div>
-                </details>
-            `).join('')}
-        </div>`;
-    }).join('')}
-    
-    ${urls.every(u => !results.resultsByUrl[u].violations?.length) ? '<p>No violations found!</p>' : ''}
+                </div>
+                `;
+            }).join('')}
+            ${mustFixCount + goodToFixCount + reviewCount === 0 ? '<div class="no-violations"><p>✓ No accessibility issues found!</p></div>' : ''}
+        </div>
+    </div>
 
+    <script>
+        document.querySelectorAll('.severity-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                content.style.display = content.style.display === 'none' ? 'block' : 'none';
+            });
+        });
+    </script>
 </body>
 </html>`;
 
@@ -199,11 +325,13 @@ function generateCSV(runId, results) {
 
         for (const v of data.violations) {
             for (const node of v.nodes) {
+                const severityClass = mapSeverity(v.impact);
+                const severityLabel = SEVERITY_MAP[severityClass]?.label || 'Manual Review Required';
                 const row = [
                     "None", // customFlowLabel
                     "Desktop", // deviceChosen
                     results.finishedAt || new Date().toISOString(), // scanCompletedAt
-                    mapSeverity(v.impact), // severity
+                    severityLabel, // severity
                     v.id, // issueId
                     v.description, // issueDescription
                     v.tags ? v.tags.join(',') : '', // wcagConformance
@@ -212,7 +340,7 @@ function generateCSV(runId, results) {
                     node.html || '', // context
                     node.failureSummary || '', // howToFix
                     v.impact || '', // axeImpact
-                    node.target ? node.target[0] : '', // xpath/selector
+                    node.target ? node.target.join(', ') : '', // xpath/selector
                     v.helpUrl || '' // learnMore
                 ];
                 
@@ -232,5 +360,105 @@ function escapeCSV(field) {
 }
 
 function mapSeverity(impact) {
-    return "needsReview"; 
+    const mapping = {
+        critical: 'critical',
+        serious: 'critical',
+        moderate: 'moderate',
+        minor: 'moderate',
+        'review': 'review'
+    };
+    return mapping[impact] || 'review';
+}
+
+function analyzeResults(results) {
+    const urls = Object.keys(results.resultsByUrl);
+    let mustFixCount = 0;
+    let goodToFixCount = 0;
+    let reviewCount = 0;
+    const pagesWithIssues = new Set();
+    let totalNodes = 0;
+
+    for (const url of urls) {
+        const data = results.resultsByUrl[url];
+        if (!data.violations || !data.violations.length) continue;
+
+        pagesWithIssues.add(url);
+        for (const v of data.violations) {
+            const nodeCount = (v.nodes || []).length;
+            totalNodes += nodeCount;
+            const severity = mapSeverity(v.impact);
+            if (severity === 'critical') {
+                mustFixCount += nodeCount;
+            } else if (severity === 'moderate') {
+                goodToFixCount += nodeCount;
+            } else {
+                reviewCount += nodeCount;
+            }
+        }
+    }
+
+    return {
+        mustFixCount,
+        goodToFixCount,
+        reviewCount,
+        pagesWithIssues: pagesWithIssues.size,
+        automationCoverage: urls.length > 0 ? Math.round((urls.length - (urls.filter(u => results.resultsByUrl[u].error).length)) / urls.length * 100) : 0
+    };
+}
+
+function getTopPages(results) {
+    const pages = {};
+    for (const url of Object.keys(results.resultsByUrl)) {
+        const data = results.resultsByUrl[url];
+        if (!data.violations) continue;
+        const nodeCount = data.violations.reduce((sum, v) => sum + (v.nodes?.length || 0), 0);
+        if (nodeCount > 0) {
+            const maxSeverity = data.violations.reduce((max, v) => {
+                const sev = mapSeverity(v.impact);
+                return (SEVERITY_MAP[sev]?.order || 999) < (SEVERITY_MAP[max]?.order || 999) ? sev : max;
+            }, 'review');
+            pages[url] = { count: nodeCount, severity: maxSeverity };
+        }
+    }
+    return Object.entries(pages)
+        .sort((a, b) => b[1].count - a[1].count)
+        .slice(0, 5)
+        .map(([url, { count, severity }]) => ({ url, count, severity }));
+}
+
+function getIssuesByViolationType(results, severityFilter) {
+    const violations = {};
+    for (const url of Object.keys(results.resultsByUrl)) {
+        const data = results.resultsByUrl[url];
+        if (!data.violations) continue;
+        for (const v of data.violations) {
+            if (mapSeverity(v.impact) !== severityFilter) continue;
+            const key = v.id;
+            if (!violations[key]) {
+                violations[key] = {
+                    violationId: v.id,
+                    help: v.help || 'N/A',
+                    impact: v.impact || 'unknown',
+                    helpUrl: v.helpUrl,
+                    pages: new Map()
+                };
+            }
+            if (!violations[key].pages.has(url)) {
+                violations[key].pages.set(url, { url, nodes: [] });
+            }
+            violations[key].pages.get(url).nodes.push(...(v.nodes || []));
+        }
+    }
+    return Object.values(violations);
+}
+
+function countTotalNodes(groupIssues) {
+    return groupIssues.reduce((sum, issue) => {
+        return sum + Array.from(issue.pages.values()).reduce((s, page) => s + page.nodes.length, 0);
+    }, 0);
+}
+
+function esc(s) {
+    if (s === null || s === undefined) return '';
+    return String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }
