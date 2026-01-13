@@ -17,10 +17,24 @@ const USER_AGENT = process.env.INPUT_USER_AGENT || 'a11y-dual-scanner/1.0';
 const RAW_URLS = process.env.INPUT_URLS || ''; 
 
 async function main() {
-    const urls = RAW_URLS.split('\n').map(u => u.trim()).filter(u => u);
+    let urls = RAW_URLS.split('\n').map(u => u.trim()).filter(u => u);
+
+    // Legacy/Manual fallback: Check targets.txt if no env provided
+    if (urls.length === 0) {
+        try {
+            const targetsPath = path.join(process.cwd(), 'targets.txt');
+            if (fs.existsSync(targetsPath)) {
+                console.log('Reading URLs from targets.txt');
+                const fileContent = fs.readFileSync(targetsPath, 'utf-8');
+                urls = fileContent.split('\n').map(u => u.trim()).filter(u => u && !u.startsWith('#'));
+            }
+        } catch (e) {
+            console.error('Error reading targets.txt:', e);
+        }
+    }
     
     if (urls.length === 0) {
-        console.log('No URLs provided. Set INPUT_URLS env var.');
+        console.log('No URLs provided. Set INPUT_URLS env var or add to targets.txt.');
         // For testing locally without env var
         if (process.argv[2]) {
              urls.push(process.argv[2]);
