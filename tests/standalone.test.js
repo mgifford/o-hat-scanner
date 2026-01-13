@@ -39,9 +39,10 @@ describe('Standalone Scanner E2E', () => {
   test('Page loads and accepts token', async () => {
     await page.goto(`http://localhost:${PORT}/standalone/a11y-scan.html?token=A11Y-SECRET`);
     
-    // Check gate passes
     const warning = await page.textContent('#warning');
-    expect(warning).toContain('SECURITY WARNING'); 
+    expect(warning).toContain('SECURITY WARNING');
+    const gateVisible = await page.isVisible('#gate-screen');
+    expect(gateVisible).toBe(false);
   });
 
   test('Scans demo-bad.html and correctly reports errors', async () => {
@@ -62,36 +63,77 @@ describe('Standalone Scanner E2E', () => {
     // Let's fix the input in the UI to match our file structure:
     await page.fill('#axePath', '../assets/axe.min.js');
 
-    // Click start
     await page.click('#startBtn');
     
-    // Wait for "Scan Complete"
     await page.waitForFunction(() => document.getElementById('status').innerText.includes('Scan Complete'), { timeout: 30000 });
     
-    // Check results
     const results = await page.innerHTML('#results');
     expect(results).toContain('demo-bad.html');
-    expect(results).toContain('violations');
-    
-    // Verify specific violations we put in valid-bad.html
-    // We expect "Images must have alternative text" but innerText might be summary
-    // The UI shows "X violations"
-    const violationCountText = await page.textContent('.error');
-    const count = parseInt(violationCountText);
-    expect(count).toBeGreaterThan(5); // We put ~7 errors
+    expect(results).toContain('Violation rules');
+
+    const violationNodeCount = await page.$eval('#results table tbody tr td:nth-child(3)', el => parseInt(el.textContent, 10));
+    expect(violationNodeCount).toBeGreaterThan(5);
   }, 60000);
   
   test('Prevents cross-origin scanning', async () => {
     await page.goto(`http://localhost:${PORT}/standalone/a11y-scan.html?token=A11Y-SECRET`);
     
     await page.selectOption('#sourceType', 'custom');
-    await page.fill('#customUrlList', 'https://example.com'); // External domain
-    
+    await page.fill('#customUrlList', 'https://example.com');
+    await page.fill('#axePath', '../assets/axe.min.js');
     await page.click('#startBtn');
     
     await page.waitForFunction(() => document.getElementById('results').innerText.length > 0);
     
     const results = await page.innerText('#results');
-    expect(results).toContain('Error: Skipping cross-origin URL');
+    expect(results.toLowerCase()).toContain('cross-origin');
   });
+
+  test('Allows stop to halt remaining pages', async () => {
+    await page.goto(`http://localhost:${PORT}/standalone/a11y-scan.html?token=A11Y-SECRET`);
+    await page.selectOption('#sourceType', 'custom');
+    await page.fill('#customUrlList', [
+      `http://localhost:${PORT}/standalone/demo-bad.html`,
+      `http://localhost:${PORT}/standalone/demo-bad.html?dup=1`
+    ].join('\n'));
+    await page.fill('#axePath', '../assets/axe.min.js');
+    await page.click('#startBtn');
+    await page.waitForTimeout(500);
+    await page.click('#stopBtn');
+
+    await page.waitForFunction(() => document.getElementById('status').innerText.toLowerCase().includes('stopped'));
+    const scannedCount = await page.$eval('#scannedCount', el => parseInt(el.textContent, 10));
+    expect(scannedCount).toBeLessThanOrEqual(1);
+  }, 30000);
+
+  test('Honors timeout setting per page', async () => {
+    await page.goto(`http://localhost:${PORT}/standalone/a11y-scan.html?token=A11Y-SECRET`);
+    await page.selectOption('#sourceType', 'custom');
+    await page.fill('#customUrlList', `http://localhost:${PORT}/standalone/demo-bad.html`);
+    await page.fill('#axePath', '../assets/axe.min.js');
+    await page.fill('#timeoutMs', '5');
+    await page.click('#startBtn');
+
+    await page.waitForFunction(() => document.getElementById('results').innerText.length > 0);
+    const results = await page.innerText('#results');
+    expect(results.toLowerCase()).toContain('timed out');
+  }, 30000);
+
+  test('Includes passes and incomplete when toggled', async () => {
+    await page.goto(`http://localhost:${PORT}/standalone/a11y-scan.html?token=A11Y-SECRET`);
+    await page.selectOption('#sourceType', 'custom');
+    const targetUrl = `http://localhost:${PORT}/standalone/demo-bad.html`;
+    await page.fill('#customUrlList', targetUrl);
+    await page.fill('#axePath', '../assets/axe.min.js');
+    await page.check('#includePasses');
+    await page.check('#includeIncomplete');
+    await page.click('#startBtn');
+
+    await page.waitForFunction(() => document.getElementById('status').innerText.includes('Scan Complete'), { timeout: 30000 });
+    const runData = await page.evaluate(() => window.__lastRun);
+    expect(runData.config.includePasses).toBe(true);
+    expect(runData.config.includeIncomplete).toBe(true);
+    expect(runData.resultsByUrl[targetUrl].passes.length).toBeGreaterThan(0);
+    expect(runData.resultsByUrl[targetUrl].incomplete.length).toBeGreaterThanOrEqual(0);
+  }, 60000);
 });

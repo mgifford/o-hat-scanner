@@ -2,28 +2,49 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Standalone A11y Scanner</title>
     <style>
-        body { font-family: system-ui, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; line-height: 1.5; }
-        #warning { background: #ffebee; border: 1px solid #ffcdd2; padding: 10px; color: #b71c1c; font-weight: bold; margin-bottom: 20px; }
+        body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; line-height: 1.5; }
+        #warning { background: #ffebee; border: 1px solid #ffcdd2; padding: 10px; color: #b71c1c; font-weight: bold; margin-bottom: 20px; border-radius: 4px; }
         .controls { background: #f5f5f5; padding: 15px; border-radius: 4px; margin-bottom: 20px; }
         .form-group { margin-bottom: 10px; }
+        .form-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 10px; }
+        .form-row > * { flex: 1 1 220px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; }
-        input[type="text"], input[type="number"] { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background: #0056b3; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        textarea { min-height: 100px; }
+        input[type="checkbox"] { margin-right: 5px; }
+        button { background: #0056b3; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-right: 8px; }
         button:disabled { background: #ccc; cursor: not-allowed; }
+        button.stop { background: #d32f2f; }
+        .pill { display: inline-block; padding: 4px 12px; border: 1px solid #ccc; border-radius: 999px; font-size: 14px; }
+        .pill.idle { background: #e0e0e0; }
+        .pill.loading { background: #fff3cd; color: #856404; }
+        .pill.scanning { background: #d1ecf1; color: #0c5460; }
+        .pill.ok { background: #d4edda; color: #155724; }
+        .pill.error { background: #f8d7da; color: #721c24; }
         #status { margin: 20px 0; font-weight: bold; }
+        #log { white-space: pre-wrap; background: #f7f7f7; border: 1px solid #ddd; padding: 10px; height: 180px; overflow: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; }
         #results { margin-top: 30px; }
-        .error { color: red; }
-        .success { color: green; }
-        
-        /* Report Styles */
-        .violation { border: 1px solid #ddd; margin-bottom: 10px; padding: 10px; border-radius: 4px; }
-        .violation h4 { margin: 0 0 5px 0; color: #d32f2f; }
-        pre { background: #333; color: white; padding: 5px; overflow-x: auto; }
-        
+        .progress-stats { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 10px; }
+        .stat { font-weight: bold; }
+        .stat-value { color: #0056b3; }
+        .error { color: #d32f2f; }
+        .success { color: #2e7d32; }
+        .warning { color: #f57c00; }
+
+        table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; vertical-align: top; text-align: left; }
+        th { background: #f2f2f2; font-weight: bold; }
+        details { margin: 4px 0; }
+        summary { cursor: pointer; font-weight: bold; }
+        .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; }
+        pre { background: #2d2d2d; color: #f8f8f2; padding: 8px; overflow-x: auto; border-radius: 4px; }
+
         #gate-screen { position: fixed; top:0; left:0; width:100%; height:100%; background:white; display:flex; justify-content:center; align-items:center; z-index: 1000; }
         .hidden { display: none !important; }
+        iframe { width: 1px; height: 1px; position: absolute; left: -99999px; top: 0; border: 0; }
     </style>
 </head>
 <body>
@@ -31,7 +52,8 @@
 <div id="gate-screen">
     <div style="text-align:center;">
         <h2>Access Denied</h2>
-        <p>Please provide a valid password parameter.</p>
+        <p>Please provide a valid token parameter.</p>
+        <p style="font-size: 14px; color: #666;">Example: ?token=A11Y-SECRET</p>
     </div>
 </div>
 
@@ -47,7 +69,7 @@
     
     <div class="controls">
         <div class="form-group">
-            <label>Scan Source</label>
+            <label for="sourceType">Scan Source</label>
             <select id="sourceType">
                 <option value="sitemap">Sitemap (sitemap.xml)</option>
                 <option value="custom">Custom List (below)</option>
@@ -55,265 +77,490 @@
         </div>
         
         <div class="form-group" id="sitemapInputGroup">
-            <label>Sitemap Path</label>
+            <label for="sitemapPath">Sitemap Path</label>
             <input type="text" id="sitemapPath" value="sitemap.xml">
         </div>
 
         <div class="form-group hidden" id="customListGroup">
-             <label>URLs (one per line)</label>
-             <textarea id="customUrlList" style="width:100%; height:100px; padding:8px;"></textarea>
+             <label for="customUrlList">URLs (one per line)</label>
+             <textarea id="customUrlList"></textarea>
         </div>
 
-        <div class="form-group">
-            <label>Path Prefix Filter (optional)</label>
-            <input type="text" id="pathPrefix" placeholder="/blog">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="pathPrefix">Path Prefix Filter (optional)</label>
+                <input type="text" id="pathPrefix" placeholder="/blog">
+            </div>
+
+            <div class="form-group">
+                <label for="excludeStr">Exclude Substrings (comma-separated)</label>
+                <input type="text" id="excludeStr" placeholder="admin, login, logout">
+            </div>
         </div>
 
-        <div class="form-group">
-            <label>Exclude Substring (optional)</label>
-            <input type="text" id="excludeStr" placeholder="admin, login">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="maxPages">Max Pages</label>
+                <input type="number" id="maxPages" value="50" min="1" max="5000">
+            </div>
+
+            <div class="form-group">
+                <label for="delayMs">Delay (ms) - Minimum 1000ms</label>
+                <input type="number" id="delayMs" value="1000" min="1000">
+            </div>
+
+            <div class="form-group">
+                <label for="timeoutMs">Timeout per page (ms)</label>
+                <input type="number" id="timeoutMs" value="20000" min="1000" max="120000">
+            </div>
         </div>
 
-        <div class="form-group">
-            <label>Max Pages</label>
-            <input type="number" id="maxPages" value="50">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="axePath">Axe Script Path</label>
+                <input type="text" id="axePath" value="../assets/axe.min.js">
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="includePasses">
+                    Include passes in results
+                </label>
+                <label>
+                    <input type="checkbox" id="includeIncomplete">
+                    Include incomplete in results
+                </label>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label>Delay (ms) - Minimum 1000ms</label>
-            <input type="number" id="delayMs" value="1000" min="1000">
+        <div style="margin-top: 10px;">
+            <button id="startBtn">Start Scan</button>
+            <button id="stopBtn" class="stop" disabled>Stop</button>
+            <button id="exportBtn" disabled>Export JSON</button>
+            <span id="statusPill" class="pill idle">idle</span>
         </div>
-
-        <div class="form-group">
-            <label>Axe Script Path</label>
-            <input type="text" id="axePath" value="../assets/axe.min.js">
-        </div>
-
-        <button id="startBtn">Start Scan</button>
-        <button id="exportBtn" disabled>Export JSON</button>
     </div>
 
+    <fieldset style="border: 1px solid #ccc; padding: 12px; margin-bottom: 12px;">
+        <legend>Progress</legend>
+        <div class="progress-stats">
+            <div class="stat">Loaded URLs: <span id="loadedCount" class="stat-value">0</span></div>
+            <div class="stat">Scanned: <span id="scannedCount" class="stat-value">0</span></div>
+            <div class="stat">Pages with violations: <span id="pagesWithViolations" class="stat-value">0</span></div>
+            <div class="stat">Total violation instances: <span id="totalViolations" class="stat-value">0</span></div>
+        </div>
+        <div id="log" role="log" aria-live="polite" aria-atomic="false"></div>
+    </fieldset>
+
     <div id="status">Ready</div>
-    <div id="progress"></div>
 
     <div id="results"></div>
 </div>
 
-<iframe id="scanFrame" style="width:1px; height:1px; visibility:hidden;"></iframe>
+<iframe id="scanFrame" aria-hidden="true"></iframe>
 
 <script>
-    // SECURITY CONFIG
-    const VALID_PASSWORD = "A11Y-SECRET"; // Change this or use env replacement
-
-    // Init Access Control
+    const REQUIRED_TOKEN = "A11Y-SECRET";
+    const TOKEN_PARAM = "token";
     const params = new URLSearchParams(window.location.search);
-    const password = params.get('password');
-    
-    if (password === VALID_PASSWORD) {
+    const token = params.get(TOKEN_PARAM);
+    if (token === REQUIRED_TOKEN) {
         document.getElementById('gate-screen').classList.add('hidden');
         document.getElementById('app').classList.remove('hidden');
     }
 
-    // UI Logic
-    const sourceType = document.getElementById('sourceType');
-    sourceType.addEventListener('change', () => {
-        if(sourceType.value === 'custom') {
-            document.getElementById('customListGroup').classList.remove('hidden');
-            document.getElementById('sitemapInputGroup').classList.add('hidden');
-        } else {
-             document.getElementById('customListGroup').classList.add('hidden');
-             document.getElementById('sitemapInputGroup').classList.remove('hidden');
-        }
-    });
+    const els = {
+        sourceType: document.getElementById('sourceType'),
+        sitemapPath: document.getElementById('sitemapPath'),
+        customList: document.getElementById('customUrlList'),
+        sitemapGroup: document.getElementById('sitemapInputGroup'),
+        customGroup: document.getElementById('customListGroup'),
+        pathPrefix: document.getElementById('pathPrefix'),
+        excludeStr: document.getElementById('excludeStr'),
+        maxPages: document.getElementById('maxPages'),
+        delayMs: document.getElementById('delayMs'),
+        timeoutMs: document.getElementById('timeoutMs'),
+        axePath: document.getElementById('axePath'),
+        includePasses: document.getElementById('includePasses'),
+        includeIncomplete: document.getElementById('includeIncomplete'),
+        startBtn: document.getElementById('startBtn'),
+        stopBtn: document.getElementById('stopBtn'),
+        exportBtn: document.getElementById('exportBtn'),
+        statusPill: document.getElementById('statusPill'),
+        status: document.getElementById('status'),
+        loadedCount: document.getElementById('loadedCount'),
+        scannedCount: document.getElementById('scannedCount'),
+        pagesWithViolations: document.getElementById('pagesWithViolations'),
+        totalViolations: document.getElementById('totalViolations'),
+        log: document.getElementById('log'),
+        results: document.getElementById('results'),
+        iframe: document.getElementById('scanFrame')
+    };
 
-    const startBtn = document.getElementById('startBtn');
-    const exportBtn = document.getElementById('exportBtn');
-    const statusEl = document.getElementById('status');
-    const resultsEl = document.getElementById('results');
-    const iframe = document.getElementById('scanFrame');
+    let urlList = [];
+    let stopRequested = false;
+    let runData = null;
 
-    let allResults = {};
-    let runMetadata = {};
-
-    startBtn.addEventListener('click', async () => {
-        startBtn.disabled = true;
-        exportBtn.disabled = true;
-        resultsEl.innerHTML = '';
-        allResults = {};
-        
-        try {
-            await runScan();
-        } catch (e) {
-            statusEl.innerHTML = `<span class="error">Error: ${e.message}</span>`;
-            console.error(e);
-        } finally {
-            startBtn.disabled = false;
-        }
-    });
-
-    exportBtn.addEventListener('click', () => {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(runMetadata, null, 2));
-        const downloadAnchorNode = document.createElement('a');
-        downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", "scan-results.json");
-        document.body.appendChild(downloadAnchorNode);
-        downloadAnchorNode.click();
-        downloadAnchorNode.remove();
-    });
-
-    async function runScan() {
-        const config = {
-            maxPages: parseInt(document.getElementById('maxPages').value, 10),
-            delay: parseInt(document.getElementById('delayMs').value, 10),
-            prefix: document.getElementById('pathPrefix').value,
-            exclude: document.getElementById('excludeStr').value,
-            axePath: document.getElementById('axePath').value
-        };
-
-        statusEl.innerText = "Fetching URLs...";
-        
-        let urls = [];
-        if (sourceType.value === 'sitemap') {
-            urls = await fetchSitemap(document.getElementById('sitemapPath').value);
-        } else {
-            urls = document.getElementById('customUrlList').value.split('\n').map(u=>u.trim()).filter(u=>u);
-        }
-
-        // Filtering
-        if (config.prefix) {
-            urls = urls.filter(u => new URL(u, window.location.origin).pathname.startsWith(config.prefix));
-        }
-        if (config.exclude) {
-            const excludes = config.exclude.split(',').map(s=>s.trim());
-            urls = urls.filter(u => !excludes.some(ex => u.includes(ex)));
-        }
-
-        // Slice
-        urls = urls.slice(0, config.maxPages);
-        
-        if (urls.length === 0) {
-            throw new Error("No URLs found to scan.");
-        }
-
-        statusEl.innerText = `Starting scan of ${urls.length} pages...`;
-
-        // Create Metadata
-        runMetadata = {
-            runId: "manual-" + Date.now(),
-            startedAt: new Date().toISOString(),
-            toolVersion: "standalone-1.0",
-            mode: "standalone",
-            config: config,
-            targets: urls,
-            resultsByUrl: {}
-        };
-
-        // Sequential Scan
-        const MIN_DELAY = 1000;
-        const safeDelay = Math.max(config.delay, MIN_DELAY);
-
-        for (let i = 0; i < urls.length; i++) {
-            const url = urls[i];
-            statusEl.innerText = `Scanning ${i+1}/${urls.length}: ${url}`;
-            
-            try {
-                if (i > 0) {
-                    await new Promise(r => setTimeout(r, safeDelay));
-                }
-
-                const axeResult = await scanPage(url, config.axePath);
-                
-                runMetadata.resultsByUrl[url] = {
-                    title: axeResult.title,
-                    violations: axeResult.violations,
-                    passes: axeResult.passes,
-                    incomplete: axeResult.incomplete
-                };
-
-                const vCount = axeResult.violations.length;
-                const div = document.createElement('div');
-                div.innerHTML = `<strong>${url}</strong>: ${vCount > 0 ? `<span class="error">${vCount} violations</span>` : '<span class="success">Pass</span>'}`;
-                resultsEl.appendChild(div);
-
-            } catch (err) {
-                console.error(err);
-                runMetadata.resultsByUrl[url] = { error: err.message, violations: [] };
-                const div = document.createElement('div');
-                div.innerHTML = `<strong>${url}</strong>: <span class="error">Error: ${err.message}</span>`;
-                resultsEl.appendChild(div);
-            }
-        }
-
-        runMetadata.finishedAt = new Date().toISOString();
-        statusEl.innerText = "Scan Complete.";
-        exportBtn.disabled = false;
+    function setPill(text, cls) {
+        els.statusPill.textContent = text;
+        els.statusPill.className = `pill ${cls || ""}`.trim();
     }
 
-    async function fetchSitemap(path) {
-        const resp = await fetch(path);
-        if (!resp.ok) throw new Error("Failed to fetch sitemap: " + resp.status);
-        const text = await resp.text();
+    function log(line) {
+        const t = new Date().toISOString().replace("T", " ").replace("Z", "");
+        els.log.textContent += `[${t}] ${line}\n`;
+        els.log.scrollTop = els.log.scrollHeight;
+    }
+
+    function setStatus(text, pill) {
+        els.status.textContent = text;
+        if (pill) setPill(text, pill);
+    }
+
+    function sleep(ms) {
+        return new Promise(r => setTimeout(r, ms));
+    }
+
+    function sameOrigin(url) {
+        const u = new URL(url, window.location.href);
+        return u.origin === window.location.origin;
+    }
+
+    async function fetchSitemapUrls(path) {
+        const res = await fetch(path, { credentials: "include" });
+        if (!res.ok) throw new Error(`Failed to fetch sitemap: ${res.status} ${res.statusText}`);
+        const xmlText = await res.text();
         const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(text, "text/xml");
-        const locs = xmlDoc.getElementsByTagName("loc");
-        const urls = [];
-        for (let i = 0; i < locs.length; i++) {
-            urls.push(locs[i].textContent);
-        }
+        const doc = parser.parseFromString(xmlText, "application/xml");
+        const locNodes = [...doc.getElementsByTagName("loc")];
+        const urls = locNodes.map(n => n.textContent?.trim()).filter(Boolean);
+        if (!urls.length) throw new Error("No <loc> entries found in sitemap.");
         return urls;
     }
 
-    function scanPage(url, axePath) {
-        return new Promise((resolve, reject) => {
-            // Check origin
-            const targetOrigin = new URL(url, window.location.origin).origin;
-            if (targetOrigin !== window.location.origin) {
-                reject(new Error("Skipping cross-origin URL: " + url));
-                return;
+    function parseCustomList() {
+        return els.customList.value.split('\n').map(u => u.trim()).filter(Boolean);
+    }
+
+    function applyFilters(urls) {
+        const prefix = (els.pathPrefix.value || "").trim();
+        const maxPages = parseInt(els.maxPages.value, 10) || 50;
+        const excludes = (els.excludeStr.value || "").split(',').map(s => s.trim()).filter(Boolean);
+        const filtered = [];
+
+        for (const raw of urls) {
+            const u = new URL(raw, window.location.href);
+            if (prefix && !u.pathname.startsWith(prefix)) continue;
+            let blocked = false;
+            for (const ex of excludes) {
+                if (u.href.includes(ex)) { blocked = true; break; }
             }
+            if (blocked) continue;
+            filtered.push(u.href);
+            if (filtered.length >= maxPages) break;
+        }
+        return filtered;
+    }
 
-            // Cleanup prev
-            iframe.src = 'about:blank';
-            
-            // Set timeout
-            const timeout = setTimeout(() => {
-                reject(new Error("Timeout loading page"));
-            }, 15000);
+    function summarize(resultsByUrl) {
+        let pagesWithViolations = 0;
+        let totalViolations = 0;
+        for (const res of Object.values(resultsByUrl)) {
+            const violations = res.violations || [];
+            if (violations.length > 0) pagesWithViolations++;
+            for (const v of violations) totalViolations += (v.nodes || []).length;
+        }
+        return { pagesWithViolations, totalViolations };
+    }
 
+    function esc(s) {
+        return String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+    }
+
+    function renderUrlDetails(res) {
+        if (res.error) {
+            return `<span class="error">${esc(res.error)}</span>`;
+        }
+        const violations = res.violations || [];
+        if (!violations.length) return '<span class="success">No violations</span>';
+        let html = '';
+        for (const v of violations) {
+            const nodeCount = v.nodes?.length || 0;
+            html += `<details>
+                <summary><span class="error">${esc(v.id)}</span> (${nodeCount}) - ${esc(v.help || "")}</summary>
+                <div class="mono">Impact: ${esc(v.impact || "unknown")}</div>
+                ${v.helpUrl ? `<div><a href="${esc(v.helpUrl)}" target="_blank" rel="noopener">rule help</a></div>` : ""}
+                <ul>`;
+            for (const n of (v.nodes || [])) {
+                const target = (n.target || []).join(', ');
+                const summary = n.failureSummary ? esc(n.failureSummary) : '';
+                const htmlSnippet = n.html ? esc(n.html) : '';
+                html += `<li>
+                    <div class="mono">Target: ${esc(target)}</div>
+                    ${summary ? `<div>${summary}</div>` : ""}
+                    ${htmlSnippet ? `<pre class="mono">${htmlSnippet}</pre>` : ""}
+                </li>`;
+            }
+            html += '</ul></details>';
+        }
+        return html;
+    }
+
+    function renderResults(resultsByUrl) {
+        const entries = Object.entries(resultsByUrl);
+        if (!entries.length) {
+            els.results.innerHTML = '<p>No results yet.</p>';
+            return;
+        }
+
+        const rows = entries.map(([url, res]) => {
+            const violations = res.violations || [];
+            const nodeCount = violations.reduce((acc, v) => acc + (v.nodes?.length || 0), 0);
+            return { url, ruleCount: violations.length, nodeCount, res };
+        }).sort((a, b) => b.nodeCount - a.nodeCount);
+
+        let html = `<table>
+            <thead><tr>
+                <th>URL</th>
+                <th>Violation rules</th>
+                <th>Violation instances</th>
+                <th>Details</th>
+            </tr></thead><tbody>`;
+
+        for (const r of rows) {
+            const cls = r.res.error ? "error" : (r.nodeCount === 0 ? "success" : "error");
+            html += `<tr>
+                <td class="mono"><a href="${r.url}" target="_blank" rel="noopener">${r.url}</a></td>
+                <td class="${cls}">${r.ruleCount}</td>
+                <td class="${cls}">${r.nodeCount}</td>
+                <td>${renderUrlDetails(r.res)}</td>
+            </tr>`;
+        }
+        html += '</tbody></table>';
+        els.results.innerHTML = html;
+    }
+
+    function makeIframe(url) {
+        const iframe = els.iframe;
+        iframe.src = 'about:blank';
+        iframe.removeAttribute('style');
+        return iframe;
+    }
+
+    function waitForLoad(iframe, timeoutMs) {
+        return new Promise((resolve, reject) => {
+            let done = false;
+            const t = setTimeout(() => {
+                if (done) return;
+                done = true;
+                reject(new Error('Timed out waiting for iframe load.'));
+            }, timeoutMs);
             iframe.onload = () => {
-                clearTimeout(timeout);
-                // Inject Axe
-                try {
-                    const doc = iframe.contentDocument;
-                    if (!doc) {
-                        reject(new Error("Cannot access contentDocument (Cross-origin?)"));
-                        return;
-                    }
-
-                    const script = doc.createElement('script');
-                    script.src = new URL(axePath, window.location.origin).toString();
-                    script.onload = () => {
-                        // Run Axe
-                        // @ts-ignore
-                        iframe.contentWindow.axe.run(doc, (err, results) => {
-                            if (err) reject(err);
-                            else {
-                                results.title = doc.title;
-                                resolve(results);
-                            }
-                        });
-                    };
-                    script.onerror = () => reject(new Error("Failed to load axe script"));
-                    doc.head.appendChild(script);
-
-                } catch (e) {
-                    reject(e);
-                }
+                if (done) return;
+                done = true;
+                clearTimeout(t);
+                resolve();
             };
-            
-            iframe.src = url;
         });
     }
+
+    function injectScript(iframe, src) {
+        return new Promise((resolve, reject) => {
+            const doc = iframe.contentDocument;
+            if (!doc) return reject(new Error('No iframe.contentDocument available (blocked or not loaded).'));
+            if (iframe.contentWindow && iframe.contentWindow.axe) return resolve();
+            const s = doc.createElement('script');
+            s.src = src;
+            s.onload = () => resolve();
+            s.onerror = () => reject(new Error('Failed to load axe script in iframe.'));
+            doc.head.appendChild(s);
+        });
+    }
+
+    async function runAxeInFrame(iframe, options) {
+        const w = iframe.contentWindow;
+        const d = iframe.contentDocument;
+        if (!w || !d) throw new Error('iframe window/document not accessible.');
+        if (!w.axe) throw new Error('axe not present in iframe.');
+        return await w.axe.run(d, options);
+    }
+
+    async function loadUrls() {
+        setStatus('Loading URLs...', 'loading');
+        els.startBtn.disabled = true;
+        els.exportBtn.disabled = true;
+        els.results.innerHTML = '';
+        els.log.textContent = '';
+
+        let urls = [];
+        if (els.sourceType.value === 'sitemap') {
+            urls = await fetchSitemapUrls(els.sitemapPath.value.trim() || 'sitemap.xml');
+        } else {
+            urls = parseCustomList();
+        }
+
+        const filtered = applyFilters(urls);
+        urlList = filtered;
+        els.loadedCount.textContent = String(urlList.length);
+        log(`URLs discovered: ${urls.length}, after filters: ${urlList.length}`);
+
+        if (!urlList.length) {
+            setStatus('No URLs to scan.', 'error');
+            return;
+        }
+
+        setStatus('Ready', 'idle');
+        els.startBtn.disabled = false;
+    }
+
+    async function startScan() {
+        stopRequested = false;
+        els.startBtn.disabled = true;
+        els.stopBtn.disabled = false;
+        els.exportBtn.disabled = true;
+
+        // Refresh URLs from current inputs so the user does not need to pre-load.
+        await loadUrls();
+        if (!urlList.length) return;
+
+        runData = {
+            runId: `manual-${Date.now()}`,
+            startedAt: new Date().toISOString(),
+            toolVersion: 'standalone-1.0',
+            mode: 'standalone',
+            config: {
+                sitemapPath: els.sitemapPath.value.trim(),
+                pathPrefix: els.pathPrefix.value.trim(),
+                excludeStr: els.excludeStr.value.trim(),
+                maxPages: parseInt(els.maxPages.value, 10) || 50,
+                delayMs: Math.max(parseInt(els.delayMs.value, 10) || 0, 1000),
+                timeoutMs: parseInt(els.timeoutMs.value, 10) || 20000,
+                axePath: els.axePath.value.trim(),
+                includePasses: !!els.includePasses.checked,
+                includeIncomplete: !!els.includeIncomplete.checked
+            },
+            targets: [...urlList],
+            resultsByUrl: {}
+        };
+
+        window.__lastRun = runData;
+
+        els.scannedCount.textContent = '0';
+        els.pagesWithViolations.textContent = '0';
+        els.totalViolations.textContent = '0';
+        setStatus('Scanning...', 'scanning');
+        log('Starting scan.');
+
+        const axeOptions = {
+            resultTypes: ['violations']
+                .concat(runData.config.includePasses ? ['passes'] : [])
+                .concat(runData.config.includeIncomplete ? ['incomplete'] : [])
+        };
+
+        let scanned = 0;
+        for (const url of urlList) {
+            if (stopRequested) break;
+
+            if (!sameOrigin(url)) {
+                runData.resultsByUrl[url] = { error: 'Skipping cross-origin URL', violations: [] };
+                scanned++;
+                els.scannedCount.textContent = String(scanned);
+                const { pagesWithViolations, totalViolations } = summarize(runData.resultsByUrl);
+                els.pagesWithViolations.textContent = String(pagesWithViolations);
+                els.totalViolations.textContent = String(totalViolations);
+                renderResults(runData.resultsByUrl);
+                log(`SKIP cross-origin: ${url}`);
+                continue;
+            }
+
+            log(`Scanning: ${url}`);
+            const iframe = makeIframe(url);
+            iframe.src = url;
+            try {
+                await waitForLoad(iframe, runData.config.timeoutMs);
+                await sleep(250); // small settle time for SPAs
+                await injectScript(iframe, new URL(runData.config.axePath, window.location.origin).toString());
+                const res = await runAxeInFrame(iframe, axeOptions);
+                runData.resultsByUrl[url] = res;
+                scanned++;
+                els.scannedCount.textContent = String(scanned);
+                const { pagesWithViolations, totalViolations } = summarize(runData.resultsByUrl);
+                els.pagesWithViolations.textContent = String(pagesWithViolations);
+                els.totalViolations.textContent = String(totalViolations);
+                renderResults(runData.resultsByUrl);
+                log(`Done: ${url} (rules: ${(res.violations || []).length})`);
+            } catch (e) {
+                runData.resultsByUrl[url] = { error: String(e), violations: [] };
+                scanned++;
+                els.scannedCount.textContent = String(scanned);
+                renderResults(runData.resultsByUrl);
+                log(`ERROR: ${url} -> ${e}`);
+            } finally {
+                iframe.src = 'about:blank';
+            }
+
+            if (stopRequested) break;
+            if (runData.config.delayMs > 0) await sleep(runData.config.delayMs);
+        }
+
+        runData.finishedAt = new Date().toISOString();
+        window.__lastRun = runData;
+
+        if (stopRequested) {
+            setStatus('Stopped by user.', 'error');
+            log('Stopped by user.');
+        } else {
+            setStatus('Scan Complete', 'ok');
+            log('Scan finished.');
+        }
+
+        els.stopBtn.disabled = true;
+        els.exportBtn.disabled = false;
+        els.startBtn.disabled = false;
+    }
+
+    function stopScan() {
+        stopRequested = true;
+        els.stopBtn.disabled = true;
+        log('Stop requested. Will finish current page.');
+    }
+
+    function exportJson() {
+        if (!runData) return;
+        const blob = new Blob([JSON.stringify(runData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `axe-scan-${new Date().toISOString().replaceAll(':', '-')}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    els.sourceType.addEventListener('change', () => {
+        if (els.sourceType.value === 'custom') {
+            els.customGroup.classList.remove('hidden');
+            els.sitemapGroup.classList.add('hidden');
+        } else {
+            els.customGroup.classList.add('hidden');
+            els.sitemapGroup.classList.remove('hidden');
+        }
+    });
+
+    els.startBtn.addEventListener('click', () => startScan().catch(err => {
+        setStatus('Error', 'error');
+        log(String(err));
+        els.stopBtn.disabled = true;
+        els.startBtn.disabled = false;
+    }));
+
+    els.stopBtn.addEventListener('click', stopScan);
+    els.exportBtn.addEventListener('click', exportJson);
+
+    // Auto-load URLs on open for convenience
+    loadUrls().catch(err => {
+        setStatus('Error loading URLs', 'error');
+        log(String(err));
+    });
 </script>
 
 </body>
