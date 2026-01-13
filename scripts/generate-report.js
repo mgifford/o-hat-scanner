@@ -53,42 +53,126 @@ function generateMainIndex(summaries) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>A11y Scan Reports</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>O-Hat Scanner - Accessibility Reports</title>
     <style>
-        body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; color: #222; }
+        a { color: #1976d2; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        header { background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%); color: #fff; padding: 3rem 1rem; }
+        .header-content { max-width: 1000px; margin: 0 auto; }
+        h1 { font-size: 32px; font-weight: 700; margin: 0 0 0.5rem 0; }
+        .tagline { font-size: 18px; color: #e3f2fd; margin: 0; }
+        
+        main { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+        .intro { background: #fff; padding: 2rem; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+        .intro h2 { margin-top: 0; color: #0d47a1; }
+        .intro p { line-height: 1.6; margin: 1rem 0; }
+        
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin: 2rem 0; }
+        .feature { background: #fff; padding: 1.5rem; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .feature h3 { color: #0d47a1; margin-top: 0; }
+        .feature p { margin: 0.5rem 0; line-height: 1.5; }
+        
+        .reports-section { background: #fff; padding: 2rem; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin: 2rem 0; }
+        .reports-section h2 { color: #0d47a1; margin-top: 0; }
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th, td { text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd; }
-        th { background: #f4f4f4; }
+        th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid #ddd; }
+        th { background: #f4f4f4; font-weight: 600; }
         .status-pass { color: green; }
         .status-fail { color: red; font-weight: bold; }
+        
+        footer { text-align: center; padding: 2rem 1rem; color: #666; font-size: 14px; }
     </style>
 </head>
 <body>
-    <h1>Accessibility Scan Reports</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Run ID</th>
-                <th>Date</th>
-                <th>Pages Scanned</th>
-                <th>Violations (Pages)</th>
-                <th>Total Issues</th>
-                <th>Link</th>
-            </tr>
-        </thead>
-        <tbody>
-            ${summaries.map(s => `
-                <tr>
-                    <td>${s.runId}</td>
-                    <td>${new Date(s.startedAt).toLocaleString()}</td>
-                    <td>${s.pagesScanned}</td>
-                    <td>${s.pagesWithViolations}</td>
-                    <td class="${s.totalViolations > 0 ? 'status-fail' : 'status-pass'}">${s.totalViolations}</td>
-                    <td><a href="runs/${s.runId}/index.html">View Report</a></td>
-                </tr>
-            `).join('')}
-        </tbody>
-    </table>
+    <header>
+        <div class="header-content">
+            <h1>🎩 O-Hat Scanner</h1>
+            <p class="tagline">Oobee-style accessibility reports powered by GitHub Actions & Pages</p>
+        </div>
+    </header>
+    
+    <main>
+        <div class="intro">
+            <h2>Automated Accessibility Scanning</h2>
+            <p>O-Hat Scanner provides <strong>professional accessibility reports in GitHub Pages</strong> using GitHub Actions. It combines the power of <strong>axe-core</strong> testing with <strong>Oobee-inspired reporting</strong> to deliver clear, actionable insights into web accessibility.</p>
+            <p>Scan reports feature:</p>
+            <ul>
+                <li>Professional, searchable HTML reports with severity grouping</li>
+                <li>WCAG 2.2 automation coverage tracking</li>
+                <li>Top affected pages ranking</li>
+                <li>CSV export for integration with spreadsheets</li>
+                <li>Collapsible severity sections with detailed violation info</li>
+            </ul>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>🤖 CI Scanner</h3>
+                <p>Runs in GitHub Actions against a list of URLs. Automatically scans on push, generates reports, and deploys to GitHub Pages.</p>
+            </div>
+            <div class="feature">
+                <h3>🏠 Standalone Scanner</h3>
+                <p>Deploy a single HTML file to your site for same-origin scanning. Perfect for local testing, VPNs, or staging environments.</p>
+                <p><a href="#standalone">Learn more →</a></p>
+            </div>
+            <div class="feature">
+                <h3>📊 Oobee Reports</h3>
+                <p>Beautiful, professional reports inspired by GovTechSG's Oobee. Search issues, filter by severity, view top pages.</p>
+            </div>
+        </div>
+        
+        <div class="reports-section">
+            <h2>Recent Scan Reports</h2>
+            ${summaries.length === 0 ? '<p>No scan reports yet. Check back after the first scan completes.</p>' : `
+            <p>View detailed accessibility reports from recent scans:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Run ID</th>
+                        <th>Date</th>
+                        <th>Pages</th>
+                        <th>Pages with Issues</th>
+                        <th>Total Issues</th>
+                        <th>Report</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${summaries.map(s => `
+                        <tr>
+                            <td><code>${s.runId}</code></td>
+                            <td>${new Date(s.startedAt).toLocaleString()}</td>
+                            <td>${s.pagesScanned}</td>
+                            <td>${s.pagesWithViolations}</td>
+                            <td class="${s.totalViolations > 0 ? 'status-fail' : 'status-pass'}">${s.totalViolations}</td>
+                            <td><a href="runs/${s.runId}/index.html">View →</a></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            `}
+        </div>
+        
+        <div class="intro" id="standalone">
+            <h2>📦 Standalone Scanner</h2>
+            <p>The O-Hat Scanner includes a standalone HTML file that runs accessibility scans directly in your browser (same-origin only).</p>
+            <p><strong>Features:</strong></p>
+            <ul>
+                <li>No server required—runs entirely in the browser</li>
+                <li>Discovers pages via sitemap.xml</li>
+                <li>Real-time progress tracking</li>
+                <li>JSON + CSV export with Oobee schema</li>
+                <li>Token-based access control</li>
+            </ul>
+            <p><strong>Learn more:</strong> See the <a href="https://github.com/mgifford/o-hat-scanner">GitHub repository</a> for setup and configuration.</p>
+        </div>
+    </main>
+    
+    <footer>
+        <p>O-Hat Scanner | <a href="https://github.com/mgifford/o-hat-scanner">GitHub</a> | Built with <a href="https://github.com/dequelabs/axe-core">axe-core</a></p>
+    </footer>
 </body>
 </html>`;
 
