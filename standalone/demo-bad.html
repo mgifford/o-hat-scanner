@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inaccessible Demo Page</title>
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #eeeeee; /* Low contrast */
+        }
+        .bad-button {
+            /* No focus styles, bad contrast */
+            background-color: red;
+            color: black; 
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to the Bad Page</h1>
+    
+    <!-- Missing alt text -->
+    <img src="fake-image.jpg" />
+
+    <!-- Empty button -->
+    <button class="bad-button"></button>
+
+    <!-- Empty link -->
+    <a href="#"></a>
+
+    <!-- Form missing label -->
+    <input type="text" />
+
+    <!-- Skipped heading level -->
+    <h3>Skipped to H3</h3>
+
+    <!-- Duplicate ID -->
+    <div id="duplicate">First</div>
+    <div id="duplicate">Second</div>
+
+    <!-- Table without headers -->
+    <table>
+        <tr>
+            <td>Row 1, Col 1</td>
+            <td>Row 1, Col 2</td>
+        </tr>
+        <tr>
+            <td>Row 2, Col 1</td>
+            <td>Row 2, Col 2</td>
+        </tr>
+    </table>
+</body>
+</html>
