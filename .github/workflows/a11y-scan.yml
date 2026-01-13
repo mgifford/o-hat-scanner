@@ -68,26 +68,72 @@ jobs:
       - name: Generate Report
         run: npm run report
 
-      - name: Trim old runs (keep last 52)
+      - name: Archive older runs (keep last 52)
+        env:
+          KEEP: 52
         run: |
           set -euo pipefail
           RUNS_DIR=site/runs
-          KEEP=52
-          if [ -d "$RUNS_DIR" ]; then
-            echo "Listing run dirs in $RUNS_DIR"
-            # Find directories only, sort by modification time (newest first), skip first $KEEP, delete the rest
-            to_delete=$(ls -1t "$RUNS_DIR" | tail -n +$(($KEEP + 1)) || true)
-            if [ -n "$to_delete" ]; then
-              echo "Deleting old runs:\n$to_delete"
-              for d in $to_delete; do
-                rm -rf "$RUNS_DIR/$d"
-              done
+          KEEP=${KEEP}
+          ARCHIVE_DIR=/tmp/old-runs-archives
+          mkdir -p "$ARCHIVE_DIR"
+
+          if [ ! -d "$RUNS_DIR" ]; then
+            echo "$RUNS_DIR does not exist; skipping archival step"
+            exit 0
+          fi
+
+          # Determine older runs to archive (older than the newest $KEEP)
+          old_runs=$(ls -1t "$RUNS_DIR" | tail -n +$(($KEEP + 1)) || true)
+          if [ -z "$old_runs" ]; then
+            echo "No older runs to archive; total <= $KEEP"
+            exit 0
+          fi
+
+          TAR_PATH="$ARCHIVE_DIR/old-runs-$(date +%Y%m%d%H%M%S).tar.gz"
+          echo "Archiving the following runs to $TAR_PATH:\n$old_runs"
+          # Create a tarball of the old run directories
+          tar -czf "$TAR_PATH" -C "$RUNS_DIR" $old_runs
+
+          # If S3 bucket env provided and aws cli available, upload there
+          if [ -n "${AWS_S3_BUCKET:-}" ]; then
+            if command -v aws >/dev/null 2>&1; then
+              echo "Uploading $TAR_PATH to s3://${AWS_S3_BUCKET}/archives/"
+              aws s3 cp "$TAR_PATH" "s3://${AWS_S3_BUCKET}/archives/" \
+                --acl private
+              uploaded=true
             else
-              echo "No old runs to delete; total <= $KEEP"
+              echo "AWS CLI not available; will upload tarball as artifact instead"
+              uploaded=false
             fi
           else
-            echo "$RUNS_DIR does not exist; skipping trim step"
+            echo "AWS_S3_BUCKET not set; will upload tarball as artifact"
+            uploaded=false
           fi
+
+          if [ "$uploaded" = false ]; then
+            # Move tar into workspace to be picked up by upload-artifact step below
+            mv "$TAR_PATH" "$GITHUB_WORKSPACE/old-runs-archive.tar.gz"
+            echo "Tarball moved to $GITHUB_WORKSPACE/old-runs-archive.tar.gz"
+          fi
+
+          # Remove the archived run directories
+          echo "Removing archived run directories..."
+          for d in $old_runs; do
+            rm -rf "$RUNS_DIR/$d"
+          done
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'site'
+
+      - name: Upload old runs archive (workflow artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: old-runs-archive
+          path: old-runs-archive.tar.gz
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
