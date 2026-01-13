@@ -20,6 +20,31 @@ This repository provides two accessibility scanning modes:
    # View report at site/index.html
    ```
 
+## 🧪 Local Testing
+
+Test the scanner against local test pages:
+
+```bash
+# Start a local HTTP server
+npx http-server -p 8082 -c-1
+
+# In another terminal, run the local scan script
+node scripts/scan-local.js
+
+# Generate reports from the scan results
+node scripts/generate-report.js
+
+# View report at site/index.html
+```
+
+The repo includes test pages in `standalone/` with intentional accessibility issues:
+- `page1.html` - Missing image alt text, color contrast
+- `page2.html` - Form inputs without labels
+- `page3.html` - Icon buttons without accessible names, heading hierarchy
+- `page4.html` - Missing lang attribute, incorrect ARIA
+- `blog/post1.html` - Multiple issue types
+- `auth/login.html` - Form accessibility issues
+
 3. **Deploy to GitHub**:
    - Push this code to a repository.
    - **CRITICAL STEP**: Go to **Settings > Pages** in your repository.
@@ -31,6 +56,14 @@ This repository provides two accessibility scanning modes:
 ## 🛡️ Standalone Scanner Setup
 
 The standalone scanner (`standalone/a11y-scan.html`) runs entirely in the browser. It is useful for testing behind VPNs or on local servers.
+
+**Features:**
+- Same-origin scanning via sitemap.xml or custom URL list
+- Real-time progress tracking with live log
+- JSON export of raw axe-core results
+- **CSV export** with Oobee-compatible schema (14 columns)
+- Path prefix filtering and URL exclusions
+- Configurable timeouts and delays
 
 ## 🔐 Security
 Please read [SECURITY.md](SECURITY.md) for important details about access control and risk.
@@ -71,6 +104,33 @@ Visit:
 ## 📊 Reports
 
 Both scanners produce compatible JSON data in `results.json`. The GitHub Actions workflow aggregates these into a static HTML site in the `/site` directory.
+
+### Report Features (Oobee-Inspired)
+
+The generated reports follow professional accessibility reporting standards:
+
+- **Professional Layout**: 2-column design with sidebar and main content area
+- **Search Functionality**: Real-time filtering of issues by ID, description, or page URL
+- **Summary Dashboard**: 
+  - Pages scanned count
+  - Pages with issues count
+  - Severity breakdown (Must Fix, Good to Fix, Manual Review)
+  - WCAG compliance automation coverage chart
+- **Top Pages**: Ranked list of the 5 most affected pages
+- **Severity Grouping**: Issues organized by impact level (critical, moderate, manual review)
+- **Collapsible Sections**: Click severity headers to expand/collapse issue details
+- **CSV Export**: Download results in spreadsheet format with 14 columns matching Oobee schema
+- **Per-Issue Details**: Violation ID, help text, impact level, affected pages, selectors, HTML snippets
+
+### Report Files
+
+Each scan run generates:
+- `index.html` - Interactive HTML report with search and severity grouping
+- `report.csv` - CSV export with columns: customFlowLabel, deviceChosen, scanCompletedAt, severity, issueId, issueDescription, wcagConformance, url, pageTitle, context, howToFix, axeImpact, xpath, learnMore
+- `results.json` - Raw axe-core results
+- `summary.json` - Scan metadata
+
+### Schema
 
 - **Results Schema**: See `scripts/shared-schema.js`.
 - **Violations**: Uses `axe-core` standard output.
