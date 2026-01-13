@@ -65,16 +65,28 @@ async function main() {
 
         try {
             const urlObj = new URL(target);
+            
+            // Check for explicit sitemap (ends in .xml)
+            if (urlObj.pathname.endsWith('.xml')) {
+                console.log(`Processing sitemap: ${target}`);
+                const sitemapUrls = await fetchSitemap(target);
+                if (sitemapUrls.length > 0) {
+                    console.log(`Found ${sitemapUrls.length} URLs in sitemap.`);
+                    sitemapUrls.forEach(u => scanQueue.add(u));
+                } else {
+                    console.log(`No URLs found in sitemap: ${target}`);
+                }
+            }
             // If it's a root domain, try sitemap
-            if (urlObj.pathname === '/' || urlObj.pathname === '' || DISCOVER) {
+            else if (urlObj.pathname === '/' || urlObj.pathname === '' || DISCOVER) {
                 const sitemapUrl = new URL('/sitemap.xml', urlObj.origin).toString();
-                console.log(`Checking for sitemap at ${sitemapUrl}...`);
+                console.log(`Checking for default sitemap at ${sitemapUrl}...`);
                 const sitemapUrls = await fetchSitemap(sitemapUrl);
                 if (sitemapUrls.length > 0) {
                     console.log(`Found ${sitemapUrls.length} URLs in sitemap.`);
                     sitemapUrls.forEach(u => scanQueue.add(u));
                 } else {
-                    console.log('No sitemap found.');
+                    console.log('No sitemap found. Adding root to scan queue.');
                     if (!visited.has(target)) scanQueue.add(target);
                 }
             } else {
@@ -157,16 +169,21 @@ async function fetchSitemap(url) {
         const result = await parseStringPromise(text);
         
         let urls = [];
-        // Handle sitemap index
+        // Handle sitemap index (recursive)
         if (result.sitemapindex && result.sitemapindex.sitemap) {
-             // simplify: just warn or fetch first level. For now return empty or implement recursion if needed.
-             // Usually sitemap.xml is a urlset.
+             const childSitemaps = result.sitemapindex.sitemap.map(s => s.loc[0]);
+             console.log(`Found sitemap index with ${childSitemaps.length} sitemaps. Fetching...`);
+             for (const childUrl of childSitemaps) {
+                 const childUrls = await fetchSitemap(childUrl);
+                 urls = urls.concat(childUrls);
+             }
         }
         if (result.urlset && result.urlset.url) {
             urls = result.urlset.url.map(u => u.loc[0]);
         }
         return urls;
     } catch (e) {
+        console.error(`Sitemap fetch failed for ${url}: ${e.message}`);
         return [];
     }
 }
