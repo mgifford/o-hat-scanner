@@ -68,6 +68,27 @@ jobs:
       - name: Generate Report
         run: npm run report
 
+      - name: Trim old runs (keep last 52)
+        run: |
+          set -euo pipefail
+          RUNS_DIR=site/runs
+          KEEP=52
+          if [ -d "$RUNS_DIR" ]; then
+            echo "Listing run dirs in $RUNS_DIR"
+            # Find directories only, sort by modification time (newest first), skip first $KEEP, delete the rest
+            to_delete=$(ls -1t "$RUNS_DIR" | tail -n +$(($KEEP + 1)) || true)
+            if [ -n "$to_delete" ]; then
+              echo "Deleting old runs:\n$to_delete"
+              for d in $to_delete; do
+                rm -rf "$RUNS_DIR/$d"
+              done
+            else
+              echo "No old runs to delete; total <= $KEEP"
+            fi
+          else
+            echo "$RUNS_DIR does not exist; skipping trim step"
+          fi
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
