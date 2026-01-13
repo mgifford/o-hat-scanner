@@ -61,6 +61,7 @@ All scans produce this shape:
       "violations": [ "axe violation objects" ],
       "passes": [ "optional" ],
       "incomplete": [ "optional" ],
+      "title": "optional string",
       "error": "optional string"
     }
   }

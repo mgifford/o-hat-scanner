@@ -224,6 +224,7 @@
                 const axeResult = await scanPage(url, config.axePath);
                 
                 runMetadata.resultsByUrl[url] = {
+                    title: axeResult.title,
                     violations: axeResult.violations,
                     passes: axeResult.passes,
                     incomplete: axeResult.incomplete
@@ -296,7 +297,10 @@
                         // @ts-ignore
                         iframe.contentWindow.axe.run(doc, (err, results) => {
                             if (err) reject(err);
-                            else resolve(results);
+                            else {
+                                results.title = doc.title;
+                                resolve(results);
+                            }
                         });
                     };
                     script.onerror = () => reject(new Error("Failed to load axe script"));

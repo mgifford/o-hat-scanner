@@ -161,9 +161,11 @@ async function scanPage(context, url, visited, queue) {
     const page = await context.newPage();
     let axeResults = null;
     let error = null;
+    let title = '';
 
     try {
         await page.goto(url, { timeout: TIMEOUT_MS, waitUntil: 'domcontentloaded' });
+        title = await page.title();
         
         // Crawl if queuing is active and we need more pages
         if (queue.length < MAX_PAGES) {
@@ -194,6 +196,7 @@ async function scanPage(context, url, visited, queue) {
     }
 
     return {
+        title: title,
         violations: axeResults ? axeResults.violations : [],
         passes: axeResults ? axeResults.passes : [],
         incomplete: axeResults ? axeResults.incomplete : [],
