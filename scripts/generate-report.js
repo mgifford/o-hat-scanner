@@ -14,8 +14,13 @@ const SEVERITY_MAP = {
 };
 
 function main() {
+    if (!fs.existsSync(SITE_DIR)) {
+        fs.mkdirSync(SITE_DIR, { recursive: true });
+    }
     if (!fs.existsSync(RUNS_DIR)) {
-        console.log('No runs found.');
+        fs.mkdirSync(RUNS_DIR, { recursive: true });
+        console.log('No runs found. Generating empty index.');
+        generateMainIndex([]);
         return;
     }
 
