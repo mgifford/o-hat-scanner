@@ -21,6 +21,7 @@ const COLOR_SCHEME = process.env.INPUT_COLOR_SCHEME || 'light'; // light | dark
 const SITEMAP_SAMPLE_STRATEGY = (process.env.INPUT_SITEMAP_SAMPLE_STRATEGY || 'shuffle').toLowerCase(); // shuffle | sequential
 const SITEMAP_SAMPLE_SEED = process.env.INPUT_SITEMAP_SAMPLE_SEED || '';
 const SKIP_EXTENSIONS = (process.env.INPUT_SKIP_EXTENSIONS || '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.gz,.tgz,.tar,.rar,.7z').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+const SITEMAP_FALLBACK_TO_CRAWL = process.env.INPUT_SITEMAP_FALLBACK_TO_CRAWL !== 'false';
 
 // Input URLs (newline separated)
 const RAW_URLS = process.env.INPUT_URLS || ''; 
@@ -75,6 +76,10 @@ async function main() {
             strategy: SITEMAP_SAMPLE_STRATEGY,
             seed: SITEMAP_SAMPLE_SEED || null,
             size: MAX_PAGES
+        },
+        crawlFallback: {
+            enabled: SITEMAP_FALLBACK_TO_CRAWL,
+            used: false
         }
     }, urls, LABEL);
 
@@ -91,6 +96,7 @@ async function main() {
     // Queue of URLs to scan
     let scanQueue = new Set();
     const visited = new Set();
+    let crawlFallbackUsed = false;
 
     // 1. Discovery Phase
     if (MODE === 'list') {
@@ -124,6 +130,11 @@ async function main() {
                         sitemapUrls.forEach(u => scanQueue.add(u));
                     } else {
                         console.log(`No URLs found in sitemap: ${target}`);
+                        if (SITEMAP_FALLBACK_TO_CRAWL) {
+                            console.log('Falling back to crawl mode for this target.');
+                            crawlFallbackUsed = true;
+                            if (!visited.has(target)) scanQueue.add(target);
+                        }
                     }
                 } else {
                     const sitemapUrl = new URL('/sitemap.xml', urlObj.origin).toString();
@@ -139,6 +150,10 @@ async function main() {
                     } else {
                         console.log('No sitemap found. Adding root to scan queue.');
                         if (!visited.has(target)) scanQueue.add(target);
+                        if (SITEMAP_FALLBACK_TO_CRAWL) {
+                            crawlFallbackUsed = true;
+                            console.log('Crawl fallback enabled for this run.');
+                        }
                     }
                 }
             } catch (e) {
@@ -150,6 +165,11 @@ async function main() {
     // Convert Set to Array for processing
     let queueArray = Array.from(scanQueue);
     let results = {};
+
+    const allowDiscovery = shouldAllowDiscovery(MODE, crawlFallbackUsed);
+    if (crawlFallbackUsed) {
+        runResult.config.crawlFallback.used = true;
+    }
 
     // 2. Scanning Phase
     let processedCount = 0;
@@ -166,7 +186,7 @@ async function main() {
             console.log(`Scanning [${processedCount}/${MAX_PAGES}] ${url}...`);
             
             try {
-                const result = await scanPage(context, url, visited, queueArray);
+                const result = await scanPage(context, url, visited, queueArray, allowDiscovery);
                 results[url] = result;
             } catch (err) {
                 console.error(`Error scanning ${url}:`, err);
@@ -249,7 +269,7 @@ async function fetchSitemap(url, options = {}) {
     }
 }
 
-async function scanPage(context, url, visited, queue) {
+async function scanPage(context, url, visited, queue, allowDiscovery = false) {
     const page = await context.newPage();
     let axeResults = null;
     let error = null;
@@ -260,7 +280,7 @@ async function scanPage(context, url, visited, queue) {
         title = await page.title();
         
         // Crawl if queuing is active and mode allows discovery
-        if (MODE === 'crawl' && queue.length < MAX_PAGES) {
+        if (allowDiscovery && queue.length < MAX_PAGES) {
              const links = await page.$$eval('a', as => as.map(a => a.href));
              // Filter internal, not visited
              const origin = new URL(url).origin;
@@ -360,8 +380,12 @@ function sampleSitemapUrls(urls, { maxPages, strategy = 'shuffle', seed = 'sitem
     return shuffled.slice(0, limit);
 }
 
+function shouldAllowDiscovery(mode, crawlFallbackUsed) {
+    return mode === 'crawl' || crawlFallbackUsed;
+}
+
 if (process.env.NODE_ENV !== 'test') {
     main().catch(console.error);
 }
 
-export { sampleSitemapUrls, seededShuffle, stringToSeed, isLikelyHtmlUrl, fetchSitemap };
+export { sampleSitemapUrls, seededShuffle, stringToSeed, isLikelyHtmlUrl, fetchSitemap, shouldAllowDiscovery };

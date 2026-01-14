@@ -192,6 +192,7 @@ Each scan run generates:
 - `INPUT_SITEMAP_SAMPLE_STRATEGY`: `shuffle` (default) randomly shuffles sitemap URLs before capping; `sequential` keeps the first entries.
 - `INPUT_SITEMAP_SAMPLE_SEED`: Optional seed for deterministic sampling when using `shuffle` (helpful for reproducible manual runs).
 - `INPUT_SKIP_EXTENSIONS`: Comma-separated extensions to skip during sitemap discovery (default: .pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.gz,.tgz,.tar,.rar,.7z).
+- `INPUT_SITEMAP_FALLBACK_TO_CRAWL`: When `true` (default), if a sitemap is missing/empty, the scanner falls back to crawling same-origin links starting from the base URL.
 - `DISCOVER`: Set `true` to crawl links beyond sitemap (used with care).
 
 **Manual workflow inputs:**
