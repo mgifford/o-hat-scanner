@@ -121,6 +121,18 @@ jobs:
           echo "Resolved targets:"
           cat /tmp/due-sites.json | jq '.'
           count=$(cat /tmp/due-sites.json | jq 'length')
+
+          # If a manual site was requested but not found in targets.yml, create an ad-hoc entry
+          if [ "$count" -eq 0 ] && [ -n "$MANUAL_SITE" ]; then
+            echo "No matching site found for '$MANUAL_SITE'; creating ad-hoc target."
+            adhoc_label=${MANUAL_LABEL:-$MANUAL_SITE}
+            jq -n --arg name "$MANUAL_SITE" \
+                  --arg base "https://$MANUAL_SITE" \
+                  --arg label "$adhoc_label" \
+                  '{name:$name, baseUrl:$base, mode:"sitemap", maxPages:50, schedule:[], label:$label}' > /tmp/due-sites.json
+            count=1
+          fi
+
           echo "count=$count" >> "$GITHUB_OUTPUT"
           echo "sites=$(cat /tmp/due-sites.json | jq -c '.')" >> "$GITHUB_OUTPUT"
 
