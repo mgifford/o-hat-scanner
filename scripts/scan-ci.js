@@ -7,7 +7,8 @@ import * as cheerio from 'cheerio';
 import { validateSchema, createEmptyResult } from './shared-schema.js';
 
 // Configuration
-const MAX_PAGES = parseInt(process.env.INPUT_MAX_PAGES || '50', 10);
+const REQUESTED_MAX = parseInt(process.env.INPUT_MAX_PAGES || '50', 10);
+const MAX_PAGES = Math.min(Math.max(REQUESTED_MAX, 1), 200); // clamp to [1, 200]
 const TIMEOUT_MS = parseInt(process.env.INPUT_TIMEOUT_MS || '30000', 10);
 const CONCURRENCY = parseInt(process.env.INPUT_CONCURRENCY || '2', 10);
 const DISCOVER = process.env.DISCOVER === 'true'; // Set to true to enable discovery for raw URLs
@@ -52,7 +53,10 @@ async function main() {
         }
     }
 
-    console.log(`Starting scan with config: MODE=${MODE}, MAX_PAGES=${MAX_PAGES}, CONCURRENCY=${CONCURRENCY}, LABEL=${LABEL || 'none'}`);
+    if (REQUESTED_MAX > MAX_PAGES) {
+        console.log(`Requested max pages ${REQUESTED_MAX} exceeds cap; clamped to ${MAX_PAGES}`);
+    }
+    console.log(`Starting scan with config: MODE=${MODE}, MAX_PAGES=${MAX_PAGES}, CONCURRENCY=${CONCURRENCY}, LABEL=${LABEL || 'none'}, VIEWPORT=${VIEWPORT_PROFILE}, COLOR=${COLOR_SCHEME}`);
     // Helpful debug log: show final list of URLs that will be scanned
     console.log('Final targets to scan:', JSON.stringify(urls, null, 2));
 

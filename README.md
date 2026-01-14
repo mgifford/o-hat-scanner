@@ -187,7 +187,7 @@ Each scan run generates:
 - `INPUT_LABEL`: Optional label appended to the run folder/report name.
 - `INPUT_VIEWPORT_PROFILE`: `desktop` (default) or `mobile`.
 - `INPUT_COLOR_SCHEME`: `light` (default) or `dark`.
-- `INPUT_MAX_PAGES`: Max pages per run (default 50).
+- `INPUT_MAX_PAGES`: Max pages per run (default 50, capped at 200).
 - `INPUT_CONCURRENCY`: Parallel tabs (default 2).
 - `DISCOVER`: Set `true` to crawl links beyond sitemap (used with care).
 
@@ -197,11 +197,13 @@ Each scan run generates:
 - `viewport_profile`: `desktop` | `mobile` | `both` (creates separate runs when `both`).
 - `color_scheme`: `light` | `dark` | `both` (creates separate runs when `both`).
 - If both are `both`, four runs are produced: desktop-light, desktop-dark, mobile-light, mobile-dark.
+- `max_pages`: overrides per-site max for that dispatch (default 50), capped at 200.
 
 **Scheduled runs:**
 - Add sites to `targets.yml` with `mode`, `maxPages`, and `schedule` crons (UTC).
 - GitHub Actions resolves due sites each tick and runs only those, keeping runtime/energy lower.
 - Manual dispatch can filter by `site` input or supply an ad-hoc `urls` list.
+- targets.txt is optional and only used as a fallback if no URLs/targets.yml inputs are provided.
 
 **Standalone Scanner UI:**
 

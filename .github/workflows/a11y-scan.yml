@@ -143,6 +143,7 @@ jobs:
           set -euo pipefail
           vp_input="${{ steps.resolve.outputs.viewport_profile }}"
           cs_input="${{ steps.resolve.outputs.color_scheme }}"
+          dispatch_max="${{ github.event.inputs.max_pages }}"
           vp_list="${vp_input:-desktop}"
           cs_list="${cs_input:-light}"
           if [ "$vp_list" = "both" ]; then vp_list="desktop mobile"; fi
@@ -152,6 +153,7 @@ jobs:
             mode=$(echo "$site" | jq -r '.mode // "sitemap"')
             label=$(echo "$site" | jq -r '.label // ""')
             maxPages=$(echo "$site" | jq -r '.maxPages // "50"')
+            if [ -n "$dispatch_max" ]; then maxPages="$dispatch_max"; fi
             baseUrl=$(echo "$site" | jq -r '.baseUrl // ""')
             urls=$(echo "$site" | jq -r '.urls | join("\n") // ""')
             for vp in $vp_list; do
