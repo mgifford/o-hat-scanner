@@ -73,4 +73,20 @@ describe('generate-report run page', () => {
         expect(html).toContain('clickable-elements');
         expect(html).toContain('image-alt');
     });
+
+    test('renders clickable URLs and correct crawled count', () => {
+        const stats = analyzeResults(results);
+        generateRunPage(runId, results, stats);
+        const htmlPath = path.join(runDir, 'index.html');
+        const html = fs.readFileSync(htmlPath, 'utf-8');
+
+        // Top pages links should be anchors opening new tabs
+        expect(html).toContain('<a href="http://example.com/page1" target="_blank" rel="noopener">');
+
+        // Pages crawled should reflect processed results count (2), not targets length (1)
+        expect(html).toContain('Pages crawled: 2');
+
+        // Node URLs should also be clickable
+        expect(html).toContain('<a href="http://example.com/page1" target="_blank" rel="noopener">http://example.com/page1</a>');
+    });
 });

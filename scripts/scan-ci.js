@@ -364,4 +364,4 @@ if (process.env.NODE_ENV !== 'test') {
     main().catch(console.error);
 }
 
-export { sampleSitemapUrls, seededShuffle, stringToSeed, isLikelyHtmlUrl };
+export { sampleSitemapUrls, seededShuffle, stringToSeed, isLikelyHtmlUrl, fetchSitemap };
