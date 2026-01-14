@@ -18,6 +18,14 @@ on:
         required: false
         default: '50'
         type: string
+      site:
+        description: 'Run only the named site from targets.yml (optional)'
+        required: false
+        type: string
+      override_label:
+        description: 'Override label for the selected site (manual runs)'
+        required: false
+        type: string
   schedule:
     - cron: '0 3 * * *'
 
@@ -46,22 +54,63 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Resolve scheduled targets
+        id: resolve
+        env:
+          MANUAL_SITE: ${{ github.event.inputs.site }}
+          MANUAL_URLS: ${{ github.event.inputs.urls }}
+          MANUAL_LABEL: ${{ github.event.inputs.override_label }}
+        run: |
+          set -euo pipefail
+          node scripts/resolve-targets.js --file targets.yml --output /tmp/due-sites.json $([ -n "$MANUAL_SITE" ] && echo "--filter" "$MANUAL_SITE")
+
+          if [ -n "$MANUAL_URLS" ]; then
+            manual_urls=$(printf "%s" "$MANUAL_URLS" | jq -R -s 'split("\n") | map(select(length>0))')
+            manual_site=$(jq -n --argjson urls "$manual_urls" '{name:"manual-input", mode:"list", urls:$urls, maxPages:50, schedule:[], label:"manual-input"}')
+            jq --argjson manual "$manual_site" '. + [$manual]' /tmp/due-sites.json > /tmp/due-sites.with-manual.json
+            mv /tmp/due-sites.with-manual.json /tmp/due-sites.json
+          fi
+
+          if [ -n "$MANUAL_LABEL" ]; then
+            count=$(cat /tmp/due-sites.json | jq 'length')
+            if [ "$count" -eq 1 ]; then
+              jq --arg label "$MANUAL_LABEL" 'map(.label = $label)' /tmp/due-sites.json > /tmp/due-sites.tmp.json
+            elif [ -n "$MANUAL_SITE" ]; then
+              jq --arg site "$MANUAL_SITE" --arg label "$MANUAL_LABEL" 'map(if .name == $site or .label == $site then .label = $label else . end)' /tmp/due-sites.json > /tmp/due-sites.tmp.json
+            else
+              jq '. as $in | $in' /tmp/due-sites.json > /tmp/due-sites.tmp.json
+            fi
+            mv /tmp/due-sites.tmp.json /tmp/due-sites.json
+          fi
+
+          echo "Resolved targets:"
+          cat /tmp/due-sites.json | jq '.'
+          count=$(cat /tmp/due-sites.json | jq 'length')
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          echo "sites=$(cat /tmp/due-sites.json | jq -c '.')" >> "$GITHUB_OUTPUT"
+
+      - name: No targets due, skip scans
+        if: steps.resolve.outputs.count == '0'
+        run: echo "No targets scheduled for this window; continuing to report generation."
+
       - name: Install Playwright Browsers
+        if: steps.resolve.outputs.count != '0'
         run: npx playwright install --with-deps
 
-      - name: "Debug: show inputs and targets"
+      - name: Run per-site scans
+        if: steps.resolve.outputs.count != '0'
         run: |
-          echo "--- workflow input 'urls' (github.event.inputs.urls) ---"
-          echo "${{ github.event.inputs.urls }}"
-          echo "--- contents of targets.txt (if present) ---"
-          if [ -f targets.txt ]; then cat targets.txt; else echo "(no targets.txt)"; fi
-
-      - name: Run CI Scan
-        env:
-          INPUT_URLS: ${{ github.event.inputs.urls }}
-          INPUT_MAX_PAGES: ${{ github.event.inputs.max_pages }}
-          INPUT_CONCURRENCY: '2'
-        run: npm run scan:ci
+          set -euo pipefail
+          jq -c '.[]' /tmp/due-sites.json | while read -r site; do
+            name=$(echo "$site" | jq -r '.name')
+            mode=$(echo "$site" | jq -r '.mode // "sitemap"')
+            label=$(echo "$site" | jq -r '.label // ""')
+            maxPages=$(echo "$site" | jq -r '.maxPages // "50"')
+            baseUrl=$(echo "$site" | jq -r '.baseUrl // ""')
+            urls=$(echo "$site" | jq -r '.urls | join("\n") // ""')
+            echo "--- Running $name (mode=$mode, maxPages=$maxPages, label=$label) ---"
+            INPUT_MODE="$mode" INPUT_LABEL="$label" INPUT_MAX_PAGES="$maxPages" INPUT_BASE_URL="$baseUrl" INPUT_URLS="$urls" npm run scan:ci
+          done
 
       - name: Generate Report
         run: npm run report

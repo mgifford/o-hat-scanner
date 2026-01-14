@@ -12,12 +12,19 @@ const TIMEOUT_MS = parseInt(process.env.INPUT_TIMEOUT_MS || '30000', 10);
 const CONCURRENCY = parseInt(process.env.INPUT_CONCURRENCY || '2', 10);
 const DISCOVER = process.env.DISCOVER === 'true'; // Set to true to enable discovery for raw URLs
 const USER_AGENT = process.env.INPUT_USER_AGENT || 'a11y-dual-scanner/1.0';
+const MODE = process.env.INPUT_MODE || 'sitemap'; // sitemap | crawl | list
+const LABEL = process.env.INPUT_LABEL || '';
+const BASE_URL = process.env.INPUT_BASE_URL || '';
 
 // Input URLs (newline separated)
 const RAW_URLS = process.env.INPUT_URLS || ''; 
 
 async function main() {
     let urls = RAW_URLS.split('\n').map(u => u.trim()).filter(u => u);
+
+    if (MODE !== 'list' && BASE_URL) {
+        urls.unshift(BASE_URL);
+    }
 
     // Legacy/Manual fallback: Check targets.txt if no env provided
     if (urls.length === 0) {
@@ -34,7 +41,7 @@ async function main() {
     }
     
     if (urls.length === 0) {
-        console.log('No URLs provided. Set INPUT_URLS env var or add to targets.txt.');
+        console.log('No URLs provided. Set INPUT_URLS env var, INPUT_BASE_URL, or add to targets.txt.');
         // For testing locally without env var
         if (process.argv[2]) {
              urls.push(process.argv[2]);
@@ -43,15 +50,17 @@ async function main() {
         }
     }
 
-    console.log(`Starting scan with config: MAX_PAGES=${MAX_PAGES}, CONCURRENCY=${CONCURRENCY}`);
+    console.log(`Starting scan with config: MODE=${MODE}, MAX_PAGES=${MAX_PAGES}, CONCURRENCY=${CONCURRENCY}, LABEL=${LABEL || 'none'}`);
     // Helpful debug log: show final list of URLs that will be scanned
     console.log('Final targets to scan:', JSON.stringify(urls, null, 2));
 
     const runResult = createEmptyResult('ci', { 
         maxPages: MAX_PAGES, 
         timeout: TIMEOUT_MS,
-        concurrency: CONCURRENCY 
-    }, urls);
+        concurrency: CONCURRENCY,
+        mode: MODE,
+        baseUrl: BASE_URL || null
+    }, urls, LABEL);
 
     const browser = await chromium.launch();
     const context = await browser.newContext({ userAgent: USER_AGENT });
@@ -61,41 +70,49 @@ async function main() {
     const visited = new Set();
 
     // 1. Discovery Phase
-    for (const inputUrl of urls) {
-        let target = inputUrl;
-        if (!target.startsWith('http')) target = 'https://' + target;
+    if (MODE === 'list') {
+        urls.forEach(u => {
+            const target = normalizeUrl(u);
+            if (target) scanQueue.add(target);
+        });
+    } else {
+        for (const inputUrl of urls) {
+            const target = normalizeUrl(inputUrl);
+            if (!target) continue;
 
-        try {
-            const urlObj = new URL(target);
-            
-            // Check for explicit sitemap (ends in .xml)
-            if (urlObj.pathname.endsWith('.xml')) {
-                console.log(`Processing sitemap: ${target}`);
-                const sitemapUrls = await fetchSitemap(target);
-                if (sitemapUrls.length > 0) {
-                    console.log(`Found ${sitemapUrls.length} URLs in sitemap.`);
-                    sitemapUrls.forEach(u => scanQueue.add(u));
-                } else {
-                    console.log(`No URLs found in sitemap: ${target}`);
+            try {
+                const urlObj = new URL(target);
+
+                if (MODE === 'crawl') {
+                    scanQueue.add(urlObj.toString());
+                    continue;
                 }
-            }
-            // If it's a root domain, try sitemap
-            else if (urlObj.pathname === '/' || urlObj.pathname === '' || DISCOVER) {
-                const sitemapUrl = new URL('/sitemap.xml', urlObj.origin).toString();
-                console.log(`Checking for default sitemap at ${sitemapUrl}...`);
-                const sitemapUrls = await fetchSitemap(sitemapUrl);
-                if (sitemapUrls.length > 0) {
-                    console.log(`Found ${sitemapUrls.length} URLs in sitemap.`);
-                    sitemapUrls.forEach(u => scanQueue.add(u));
+
+                // MODE === 'sitemap'
+                if (urlObj.pathname.endsWith('.xml')) {
+                    console.log(`Processing sitemap: ${target}`);
+                    const sitemapUrls = await fetchSitemap(target);
+                    if (sitemapUrls.length > 0) {
+                        console.log(`Found ${sitemapUrls.length} URLs in sitemap.`);
+                        sitemapUrls.forEach(u => scanQueue.add(u));
+                    } else {
+                        console.log(`No URLs found in sitemap: ${target}`);
+                    }
                 } else {
-                    console.log('No sitemap found. Adding root to scan queue.');
-                    if (!visited.has(target)) scanQueue.add(target);
+                    const sitemapUrl = new URL('/sitemap.xml', urlObj.origin).toString();
+                    console.log(`Checking for default sitemap at ${sitemapUrl}...`);
+                    const sitemapUrls = await fetchSitemap(sitemapUrl);
+                    if (sitemapUrls.length > 0) {
+                        console.log(`Found ${sitemapUrls.length} URLs in sitemap.`);
+                        sitemapUrls.forEach(u => scanQueue.add(u));
+                    } else {
+                        console.log('No sitemap found. Adding root to scan queue.');
+                        if (!visited.has(target)) scanQueue.add(target);
+                    }
                 }
-            } else {
-                scanQueue.add(target);
+            } catch (e) {
+                console.error(`Invalid URL ${inputUrl}: ${e.message}`);
             }
-        } catch (e) {
-            console.error(`Invalid URL ${inputUrl}: ${e.message}`);
         }
     }
 
@@ -200,8 +217,8 @@ async function scanPage(context, url, visited, queue) {
         await page.goto(url, { timeout: TIMEOUT_MS, waitUntil: 'domcontentloaded' });
         title = await page.title();
         
-        // Crawl if queuing is active and we need more pages
-        if (queue.length < MAX_PAGES) {
+        // Crawl if queuing is active and mode allows discovery
+        if (MODE === 'crawl' && queue.length < MAX_PAGES) {
              const links = await page.$$eval('a', as => as.map(a => a.href));
              // Filter internal, not visited
              const origin = new URL(url).origin;
@@ -235,6 +252,14 @@ async function scanPage(context, url, visited, queue) {
         incomplete: axeResults ? axeResults.incomplete : [],
         error: error
     };
+}
+
+function normalizeUrl(input) {
+    if (!input) return '';
+    let target = input.trim();
+    if (!target) return '';
+    if (!/^https?:\/\//i.test(target)) target = 'https://' + target;
+    return target;
 }
 
 main().catch(console.error);

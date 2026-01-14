@@ -14,14 +14,30 @@ export function validateSchema(data) {
     return true;
 }
 
-export function createEmptyResult(mode, config, targets) {
+export function sanitizeLabel(label = '') {
+    const clean = label
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .replace(/-+/g, '-');
+    return clean || 'run';
+}
+
+export function buildRunId(label) {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    if (!label) return timestamp;
+    return `${timestamp}--${sanitizeLabel(label)}`;
+}
+
+export function createEmptyResult(mode, config, targets, label) {
+    const runLabel = label || (config && config.label) || null;
     return {
-        runId: new Date().toISOString().replace(/[:.]/g, '-'), // Simple ID based on time
+        runId: buildRunId(runLabel),
         startedAt: new Date().toISOString(),
         finishedAt: null,
         toolVersion: '1.0.0',
         mode: mode,
-        config: config || {},
+        config: { ...(config || {}), label: runLabel },
         targets: targets || [],
         resultsByUrl: {}
     };
