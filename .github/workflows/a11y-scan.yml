@@ -115,6 +115,9 @@ jobs:
       - name: Generate Report
         run: npm run report
 
+      - name: Ensure site directory exists
+        run: mkdir -p site
+
       - name: Archive older runs (keep last 52)
         env:
           KEEP: 52
