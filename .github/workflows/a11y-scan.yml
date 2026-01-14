@@ -152,6 +152,27 @@ jobs:
           fi
           echo "artifact_name=old-runs-archive-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-$uid" >> $GITHUB_OUTPUT
 
+      - name: Debug: show artifact info and files
+        if: always()
+        run: |
+          echo "--- Debug artifact env ---"
+          echo "GITHUB_RUN_ID=${GITHUB_RUN_ID}"
+          echo "GITHUB_RUN_NUMBER=${GITHUB_RUN_NUMBER}"
+          echo "GITHUB_RUN_ATTEMPT=${GITHUB_RUN_ATTEMPT}"
+          echo "Generated artifact name: ${{ steps.make_artifact_name.outputs.artifact_name }}"
+          echo "Contents of workspace root (top-level)"
+          ls -la || true
+          echo "Looking for archive files:"
+          ls -la old-runs-archive-*.tar.gz || echo "(no tar.gz)"
+          ls -la old-runs-archive-*-manifest.json || echo "(no manifest.json)"
+          echo "Print a sample of the tar listing (if present):"
+          for f in old-runs-archive-*.tar.gz; do
+            if [ -f "$f" ]; then
+              echo "--- tar listing for $f ---";
+              tar -tzf "$f" | sed -n '1,20p' || true
+            fi
+          done
+
       - name: Upload old runs archive (workflow artifact)
         if: always()
         uses: actions/upload-artifact@v4
