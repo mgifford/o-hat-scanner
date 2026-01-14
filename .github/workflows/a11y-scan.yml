@@ -137,11 +137,6 @@ jobs:
             rm -rf "$RUNS_DIR/$d"
           done
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: 'site'
-
       - name: Make unique artifact name
         id: make_artifact_name
         run: |
