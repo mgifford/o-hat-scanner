@@ -62,7 +62,11 @@ jobs:
           MANUAL_LABEL: ${{ github.event.inputs.override_label }}
         run: |
           set -euo pipefail
-          node scripts/resolve-targets.js --file targets.yml --output /tmp/due-sites.json $([ -n "$MANUAL_SITE" ] && echo "--filter" "$MANUAL_SITE")
+          FLAGS=""
+          if [ -n "$MANUAL_SITE" ] || [ -n "$MANUAL_URLS" ]; then
+            FLAGS="--ignore-schedule"
+          fi
+          node scripts/resolve-targets.js --file targets.yml --output /tmp/due-sites.json $FLAGS $([ -n "$MANUAL_SITE" ] && echo "--filter" "$MANUAL_SITE")
 
           if [ -n "$MANUAL_URLS" ]; then
             manual_urls=$(printf "%s" "$MANUAL_URLS" | jq -R -s 'split("\n") | map(select(length>0))')
