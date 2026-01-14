@@ -22,7 +22,46 @@ This repository provides two accessibility scanning modes:
    # View report at site/index.html
    ```
 
-Note: The CI scanner reads `INPUT_URLS` from the workflow input when provided. If the workflow `urls` input is left blank, the scanner falls back to `targets.txt` in the repository root. Comment out lines in `targets.txt` with `#` to exclude them from scans.
+Note: The CI scanner now reads structured targets from `targets.yml` for scheduled runs. Manual dispatch can still accept a URL list input, but the preferred flow is to add sites to `targets.yml` with modes and schedules.
+
+## ⏱️ Scheduled runs via `targets.yml`
+
+Define the sites, modes, and cron schedules in `targets.yml` (UTC times). Example:
+
+```yaml
+sites:
+   - name: va.gov
+      baseUrl: https://www.va.gov
+      mode: sitemap
+      maxPages: 50
+      schedule:
+         - "0 6 * * TUE" # 1am ET Tuesday
+      label: va-weekly
+   - name: cms.gov
+      baseUrl: https://www.cms.gov
+      mode: sitemap
+      maxPages: 50
+      schedule:
+         - "0 7 * * WED" # 2am ET Wednesday
+      label: cms-random-sitemap
+   - name: civicactions-list
+      mode: list
+      urls:
+         - https://www.civicactions.com/
+         - https://www.civicactions.com/blog
+      schedule:
+         - "0 5 * * MON" # 12am ET Monday
+      maxPages: 10
+      label: civicactions-list
+```
+
+- `mode`: `sitemap` (default), `crawl`, or `list`.
+- `maxPages`: per-site cap (default 50).
+- `schedule`: cron expressions (UTC). If omitted, the site is eligible on any manual run.
+- `label`: appended to run folders/reports (`<timestamp>--<label>`).
+- Manual dispatch can also pass a `site` filter and `override_label` input to rename that run without editing `targets.yml`.
+
+The workflow resolves which sites are “due” for the current cron tick and runs them sequentially (low concurrency, capped pages) for efficiency. If no sites are due, it skips browser install and just regenerates the static site.
 
 ## 🧪 Local Testing
 
@@ -142,10 +181,19 @@ Each scan run generates:
 ## Configuration
 
 **CI Scanner Env Vars:**
-- `INPUT_URLS`: Newline separated list of URLs.
-- `INPUT_MAX_PAGES`: Max pages to crawl (default 50).
+- `INPUT_URLS`: Newline separated list of URLs (used for `mode=list` or manual runs).
+- `INPUT_BASE_URL`: Base origin for `mode=sitemap`/`crawl` runs.
+- `INPUT_MODE`: `sitemap` (default), `crawl`, or `list`.
+- `INPUT_LABEL`: Optional label appended to the run folder/report name.
+- Manual workflow inputs: `site` (filter a single target) and `override_label` (rename that run instance).
+- `INPUT_MAX_PAGES`: Max pages per run (default 50).
 - `INPUT_CONCURRENCY`: Parallel tabs (default 2).
-- `DISCOVER`: Set `true` to crawl links beyond sitemap.
+- `DISCOVER`: Set `true` to crawl links beyond sitemap (used with care).
+
+**Scheduled runs:**
+- Add sites to `targets.yml` with `mode`, `maxPages`, and `schedule` crons (UTC).
+- GitHub Actions resolves due sites each tick and runs only those, keeping runtime/energy lower.
+- Manual dispatch can filter by `site` input or supply an ad-hoc `urls` list.
 
 **Standalone Scanner UI:**
 - Configure max pages, path prefixes, and exclusions directly in the browser interface.

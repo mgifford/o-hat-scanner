@@ -1,6 +1,8 @@
-const { chromium } = require('playwright');
-const path = require('path');
-const { spawn } = require('child_process');
+import { chromium } from 'playwright';
+import path from 'path';
+import { spawn } from 'child_process';
+
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 // Integration test that:
 // 1. Starts a local server (simulating GitHub Pages)

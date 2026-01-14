@@ -1,0 +1,51 @@
+sites:
+  - name: civicactions.com
+    baseUrl: https://www.civicactions.com
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "0 6 * * MON" # 1am ET Monday
+    label: civicactions-weekly
+    notes: Weekly sitemap sample of civicactions.com
+
+  - name: va.gov
+    baseUrl: https://www.va.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "0 6 * * TUE" # 1am ET Tuesday
+    label: va-weekly
+    notes: Weekly sitemap sample of VA.gov
+
+  - name: cms.gov
+    baseUrl: https://www.cms.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "0 7 * * WED" # 2am ET Wednesday
+    label: cms-random-sitemap
+    notes: Midweek sitemap sample; adjust to crawl if needed
+
+  - name: medicare.gov
+    baseUrl: https://www.medicare.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "0 6 * * THU" # 1am ET Thursday
+    label: medicare-weekly
+
+  - name: healthcare.gov
+    baseUrl: https://www.healthcare.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "0 6 * * FRI" # 1am ET Friday
+    label: healthcare-weekly
+
+  - name: nsf.gov
+    baseUrl: https://www.nsf.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "0 6 * * SAT" # 1am ET Saturday
+    label: nsf-weekly
