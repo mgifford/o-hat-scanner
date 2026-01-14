@@ -194,7 +194,10 @@ function generateRunPage(runId, results, pageStats) {
     const runDate = results.startedAt ? new Date(results.startedAt) : new Date();
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const primaryTarget = (results.targets && results.targets[0]) || urls[0] || 'N/A';
-    const runDir = path.join(SITE_DIR, 'runs', runId);
+        const runDir = path.join(SITE_DIR, 'runs', runId);
+        const cfg = results.config || {};
+        const viewportLabel = cfg.viewport === 'mobile' ? 'Mobile' : 'Desktop';
+        const colorLabel = cfg.colorScheme === 'dark' ? 'Dark' : 'Light';
     fs.mkdirSync(runDir, { recursive: true });
 
     const html = `<!DOCTYPE html>
@@ -281,7 +284,7 @@ function generateRunPage(runId, results, pageStats) {
             <a href="../../index.html" class="back-link">← Back to all runs</a>
             <h1>Accessibility Scan Report</h1>
             <p class="meta">
-                <strong>Scan ID:</strong> ${esc(runId)} · <strong>Date:</strong> ${runDate.toLocaleString()} · <strong>Mode:</strong> ${esc(results.mode || 'unknown')}
+                <strong>Scan ID:</strong> ${esc(runId)} · <strong>Date:</strong> ${runDate.toLocaleString()} · <strong>Mode:</strong> ${esc(results.mode || 'unknown')} · <strong>Viewport:</strong> ${viewportLabel} · <strong>Color:</strong> ${colorLabel}
             </p>
             <a href="report.csv" class="download-link" download>Download CSV</a>
         </div>
@@ -393,11 +396,27 @@ function generateRunPage(runId, results, pageStats) {
                 <h3>About this scan</h3>
                 <div style="margin-bottom: 0.5rem; font-weight: 600;">${runDate.toLocaleString()} (${timezone})</div>
                 <div style="margin-bottom: 0.25rem;">Target: ${esc(primaryTarget)}</div>
-                <div style="margin-bottom: 0.25rem;">Viewport: Desktop</div>
+                <div style="margin-bottom: 0.25rem;">Viewport: ${viewportLabel}</div>
+                <div style="margin-bottom: 0.25rem;">Color scheme: ${colorLabel}</div>
                 <div style="margin-bottom: 0.25rem;">Mode: ${esc(results.mode || 'ci')}</div>
                 <div style="margin-top: 0.5rem;">Pages crawled: ${urls.length}</div>
                 <div>Total occurrences: ${totalIssues}</div>
             </div>
+        </div>
+    </div>
+
+    <div class="container" aria-label="Debug information" style="margin-top: 0;">
+        <div class="panel" style="margin-top: 1rem;">
+            <h3>Debug info (run config)</h3>
+            <ul style="margin-top: 0.5rem; padding-left: 1.25rem; line-height: 1.5;">
+                <li>Max pages: ${esc(cfg.maxPages ?? 'N/A')}</li>
+                <li>Concurrency: ${esc(cfg.concurrency ?? 'N/A')}</li>
+                <li>Base URL: ${esc(cfg.baseUrl || 'N/A')}</li>
+                <li>Targets: ${esc((results.targets || []).join(', ') || 'N/A')}</li>
+                <li>Results URLs: ${urls.length}</li>
+                <li>Finished: ${results.finishedAt ? esc(results.finishedAt) : 'N/A'}</li>
+            </ul>
+            ${renderErrors(results)}
         </div>
     </div>
 
@@ -576,6 +595,19 @@ function countTotalNodes(groupIssues) {
     return groupIssues.reduce((sum, issue) => {
         return sum + Array.from(issue.pages.values()).reduce((s, page) => s + page.nodes.length, 0);
     }, 0);
+}
+
+function renderErrors(results) {
+    const entries = Object.entries(results.resultsByUrl || {}).filter(([_, data]) => data?.error);
+    if (!entries.length) return '';
+
+    return `
+            <div style="margin-top: 1rem;">
+                <h4 style="margin-bottom: 0.5rem;">Errors</h4>
+                <ul style="padding-left: 1.25rem; line-height: 1.5;">
+                    ${entries.map(([url, data]) => `<li><strong>${esc(url)}</strong>: ${esc(data.error)}</li>`).join('')}
+                </ul>
+            </div>`;
 }
 
 function esc(s) {
