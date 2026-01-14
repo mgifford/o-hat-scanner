@@ -24,6 +24,7 @@ const mapBXml = `<?xml version="1.0" encoding="UTF-8"?>
 describe('fetchSitemap', () => {
   beforeEach(() => {
     process.env.NODE_ENV = 'test';
+    jest.spyOn(console, 'log').mockImplementation(() => {});
     global.fetch = jest.fn(async (url) => {
       if (url.endsWith('map-a.xml')) {
         return { ok: true, text: async () => mapAXml };
@@ -36,6 +37,7 @@ describe('fetchSitemap', () => {
   });
 
   afterEach(() => {
+    console.log.mockRestore();
     delete global.fetch;
   });
 
