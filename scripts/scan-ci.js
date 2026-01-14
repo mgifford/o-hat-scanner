@@ -15,6 +15,8 @@ const USER_AGENT = process.env.INPUT_USER_AGENT || 'a11y-dual-scanner/1.0';
 const MODE = process.env.INPUT_MODE || 'sitemap'; // sitemap | crawl | list
 const LABEL = process.env.INPUT_LABEL || '';
 const BASE_URL = process.env.INPUT_BASE_URL || '';
+const VIEWPORT_PROFILE = process.env.INPUT_VIEWPORT_PROFILE || 'desktop'; // desktop | mobile
+const COLOR_SCHEME = process.env.INPUT_COLOR_SCHEME || 'light'; // light | dark
 
 // Input URLs (newline separated)
 const RAW_URLS = process.env.INPUT_URLS || ''; 
@@ -59,11 +61,20 @@ async function main() {
         timeout: TIMEOUT_MS,
         concurrency: CONCURRENCY,
         mode: MODE,
-        baseUrl: BASE_URL || null
+        baseUrl: BASE_URL || null,
+        viewport: VIEWPORT_PROFILE,
+        colorScheme: COLOR_SCHEME
     }, urls, LABEL);
 
     const browser = await chromium.launch();
-    const context = await browser.newContext({ userAgent: USER_AGENT });
+    const context = await browser.newContext({ 
+        userAgent: USER_AGENT,
+        colorScheme: COLOR_SCHEME === 'dark' ? 'dark' : 'light',
+        viewport: VIEWPORT_PROFILE === 'mobile' ? { width: 390, height: 844 } : { width: 1280, height: 720 },
+        isMobile: VIEWPORT_PROFILE === 'mobile',
+        deviceScaleFactor: VIEWPORT_PROFILE === 'mobile' ? 3 : 1,
+        hasTouch: VIEWPORT_PROFILE === 'mobile'
+    });
 
     // Queue of URLs to scan
     let scanQueue = new Set();
