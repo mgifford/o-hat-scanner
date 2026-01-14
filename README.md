@@ -185,10 +185,18 @@ Each scan run generates:
 - `INPUT_BASE_URL`: Base origin for `mode=sitemap`/`crawl` runs.
 - `INPUT_MODE`: `sitemap` (default), `crawl`, or `list`.
 - `INPUT_LABEL`: Optional label appended to the run folder/report name.
-- Manual workflow inputs: `site` (filter a single target) and `override_label` (rename that run instance).
+- `INPUT_VIEWPORT_PROFILE`: `desktop` (default) or `mobile`.
+- `INPUT_COLOR_SCHEME`: `light` (default) or `dark`.
 - `INPUT_MAX_PAGES`: Max pages per run (default 50).
 - `INPUT_CONCURRENCY`: Parallel tabs (default 2).
 - `DISCOVER`: Set `true` to crawl links beyond sitemap (used with care).
+
+**Manual workflow inputs:**
+- `site` to pick one target from `targets.yml`.
+- `override_label` to rename that run instance.
+- `viewport_profile`: `desktop` | `mobile` | `both` (creates separate runs when `both`).
+- `color_scheme`: `light` | `dark` | `both` (creates separate runs when `both`).
+- If both are `both`, four runs are produced: desktop-light, desktop-dark, mobile-light, mobile-dark.
 
 **Scheduled runs:**
 - Add sites to `targets.yml` with `mode`, `maxPages`, and `schedule` crons (UTC).
@@ -196,7 +204,6 @@ Each scan run generates:
 - Manual dispatch can filter by `site` input or supply an ad-hoc `urls` list.
 
 **Standalone Scanner UI:**
-- Configure max pages, path prefixes, and exclusions directly in the browser interface.
 
 ## License
 

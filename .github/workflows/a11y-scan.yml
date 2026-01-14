@@ -26,6 +26,16 @@ on:
         description: 'Override label for the selected site (manual runs)'
         required: false
         type: string
+      viewport_profile:
+        description: 'desktop | mobile | both'
+        required: false
+        default: 'desktop'
+        type: string
+      color_scheme:
+        description: 'light | dark | both'
+        required: false
+        default: 'light'
+        type: string
   schedule:
     - cron: '0 3 * * *'
 
@@ -45,6 +55,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Restore previous Pages site (gh-pages)
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code origin gh-pages; then
+            git fetch origin gh-pages:gh-pages
+            mkdir -p /tmp/gh-pages
+            git --work-tree=/tmp/gh-pages checkout gh-pages -- site || true
+            rsync -a /tmp/gh-pages/site/ site/ || true
+            echo "Restored previous site content."
+          else
+            echo "gh-pages branch not found; skipping restore"
+          fi
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -60,6 +83,8 @@ jobs:
           MANUAL_SITE: ${{ github.event.inputs.site }}
           MANUAL_URLS: ${{ github.event.inputs.urls }}
           MANUAL_LABEL: ${{ github.event.inputs.override_label }}
+          VIEWPORT_PROFILE: ${{ github.event.inputs.viewport_profile }}
+          COLOR_SCHEME: ${{ github.event.inputs.color_scheme }}
         run: |
           set -euo pipefail
           FLAGS=""
@@ -87,6 +112,9 @@ jobs:
             mv /tmp/due-sites.tmp.json /tmp/due-sites.json
           fi
 
+          echo "viewport_profile=${VIEWPORT_PROFILE:-desktop}" >> "$GITHUB_OUTPUT"
+          echo "color_scheme=${COLOR_SCHEME:-light}" >> "$GITHUB_OUTPUT"
+
           echo "Resolved targets:"
           cat /tmp/due-sites.json | jq '.'
           count=$(cat /tmp/due-sites.json | jq 'length')
@@ -105,6 +133,12 @@ jobs:
         if: steps.resolve.outputs.count != '0'
         run: |
           set -euo pipefail
+          vp_input="${{ steps.resolve.outputs.viewport_profile }}"
+          cs_input="${{ steps.resolve.outputs.color_scheme }}"
+          vp_list="${vp_input:-desktop}"
+          cs_list="${cs_input:-light}"
+          if [ "$vp_list" = "both" ]; then vp_list="desktop mobile"; fi
+          if [ "$cs_list" = "both" ]; then cs_list="light dark"; fi
           jq -c '.[]' /tmp/due-sites.json | while read -r site; do
             name=$(echo "$site" | jq -r '.name')
             mode=$(echo "$site" | jq -r '.mode // "sitemap"')
@@ -112,8 +146,18 @@ jobs:
             maxPages=$(echo "$site" | jq -r '.maxPages // "50"')
             baseUrl=$(echo "$site" | jq -r '.baseUrl // ""')
             urls=$(echo "$site" | jq -r '.urls | join("\n") // ""')
-            echo "--- Running $name (mode=$mode, maxPages=$maxPages, label=$label) ---"
-            INPUT_MODE="$mode" INPUT_LABEL="$label" INPUT_MAX_PAGES="$maxPages" INPUT_BASE_URL="$baseUrl" INPUT_URLS="$urls" npm run scan:ci
+            for vp in $vp_list; do
+              for cs in $cs_list; do
+                run_label="$label"
+                if [ -n "$run_label" ]; then
+                  run_label="$run_label-$vp-$cs"
+                else
+                  run_label="$name-$vp-$cs"
+                fi
+                echo "--- Running $name (mode=$mode, maxPages=$maxPages, label=$run_label, viewport=$vp, color=$cs) ---"
+                INPUT_MODE="$mode" INPUT_LABEL="$run_label" INPUT_MAX_PAGES="$maxPages" INPUT_BASE_URL="$baseUrl" INPUT_URLS="$urls" INPUT_VIEWPORT_PROFILE="$vp" INPUT_COLOR_SCHEME="$cs" npm run scan:ci
+              done
+            done
           done
 
       - name: Generate Report
