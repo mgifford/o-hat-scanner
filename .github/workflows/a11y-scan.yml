@@ -145,23 +145,27 @@ jobs:
       - name: Make unique artifact name
         id: make_artifact_name
         run: |
+          set -euo pipefail
           if command -v uuidgen >/dev/null 2>&1; then
             uid=$(uuidgen)
+          elif [ -r /proc/sys/kernel/random/uuid ]; then
+            uid=$(cat /proc/sys/kernel/random/uuid)
           else
-            uid=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || echo "$(date -u +%s%N)-$RANDOM")
+            uid=$(date -u +%s%N)-$RANDOM
           fi
-          echo "artifact_name=old-runs-archive-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-$uid" >> $GITHUB_OUTPUT
+          echo "artifact_name=old-runs-archive-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-$uid" >> "$GITHUB_OUTPUT"
 
       - name: Debug: show artifact info and files
         if: always()
         run: |
+          set -euo pipefail
           echo "--- Debug artifact env ---"
           echo "GITHUB_RUN_ID=${GITHUB_RUN_ID}"
           echo "GITHUB_RUN_NUMBER=${GITHUB_RUN_NUMBER}"
           echo "GITHUB_RUN_ATTEMPT=${GITHUB_RUN_ATTEMPT}"
           echo "Generated artifact name: ${{ steps.make_artifact_name.outputs.artifact_name }}"
-          echo "Contents of workspace root (top-level)"
-          ls -la || true
+          echo "Contents of workspace root (top-level):"
+          ls -la . || true
           echo "Looking for archive files:"
           ls -la old-runs-archive-*.tar.gz || echo "(no tar.gz)"
           ls -la old-runs-archive-*-manifest.json || echo "(no manifest.json)"
