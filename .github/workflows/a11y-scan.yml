@@ -54,6 +54,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Restore previous Pages site (gh-pages)
         run: |
@@ -121,6 +123,12 @@ jobs:
           echo "count=$count" >> "$GITHUB_OUTPUT"
           echo "sites=$(cat /tmp/due-sites.json | jq -c '.')" >> "$GITHUB_OUTPUT"
 
+          # If manual inputs were provided but nothing matched, fail fast so we don't deploy an empty site
+          if [ "$count" -eq 0 ] && { [ -n "$MANUAL_SITE" ] || [ -n "$MANUAL_URLS" ]; }; then
+            echo "No targets resolved for manual inputs; aborting." >&2
+            exit 1
+          fi
+
       - name: No targets due, skip scans
         if: steps.resolve.outputs.count == '0'
         run: echo "No targets scheduled for this window; continuing to report generation."
@@ -159,6 +167,11 @@ jobs:
               done
             done
           done
+
+      - name: Show run artifacts
+        run: |
+          echo "Contents of site/runs (if any):"
+          find site/runs -maxdepth 2 -type f || true
 
       - name: Generate Report
         run: npm run report
