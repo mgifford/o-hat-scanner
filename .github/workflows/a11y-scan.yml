@@ -62,10 +62,11 @@ jobs:
           set -euo pipefail
           if git ls-remote --exit-code origin gh-pages; then
             git fetch origin gh-pages:gh-pages
-            mkdir -p /tmp/gh-pages
-            git --work-tree=/tmp/gh-pages checkout gh-pages -- site || true
-            rsync -a /tmp/gh-pages/site/ site/ || true
-            echo "Restored previous site content."
+            mkdir -p /tmp/gh-pages site
+            # gh-pages branch stores the built site at repo root (not inside a site/ folder)
+            git --work-tree=/tmp/gh-pages checkout gh-pages -- . || true
+            rsync -a /tmp/gh-pages/ site/ || true
+            echo "Restored previous site content from gh-pages."
           else
             echo "gh-pages branch not found; skipping restore"
           fi
