@@ -18,6 +18,8 @@ const LABEL = process.env.INPUT_LABEL || '';
 const BASE_URL = process.env.INPUT_BASE_URL || '';
 const VIEWPORT_PROFILE = process.env.INPUT_VIEWPORT_PROFILE || 'desktop'; // desktop | mobile
 const COLOR_SCHEME = process.env.INPUT_COLOR_SCHEME || 'light'; // light | dark
+const SITEMAP_SAMPLE_STRATEGY = (process.env.INPUT_SITEMAP_SAMPLE_STRATEGY || 'shuffle').toLowerCase(); // shuffle | sequential
+const SITEMAP_SAMPLE_SEED = process.env.INPUT_SITEMAP_SAMPLE_SEED || '';
 
 // Input URLs (newline separated)
 const RAW_URLS = process.env.INPUT_URLS || ''; 
@@ -67,7 +69,12 @@ async function main() {
         mode: MODE,
         baseUrl: BASE_URL || null,
         viewport: VIEWPORT_PROFILE,
-        colorScheme: COLOR_SCHEME
+        colorScheme: COLOR_SCHEME,
+        sitemapSample: {
+            strategy: SITEMAP_SAMPLE_STRATEGY,
+            seed: SITEMAP_SAMPLE_SEED || null,
+            size: MAX_PAGES
+        }
     }, urls, LABEL);
 
     const browser = await chromium.launch();
@@ -106,7 +113,11 @@ async function main() {
                 // MODE === 'sitemap'
                 if (urlObj.pathname.endsWith('.xml')) {
                     console.log(`Processing sitemap: ${target}`);
-                    const sitemapUrls = await fetchSitemap(target);
+                    const sitemapUrls = await fetchSitemap(target, {
+                        maxPages: MAX_PAGES,
+                        strategy: SITEMAP_SAMPLE_STRATEGY,
+                        seed: SITEMAP_SAMPLE_SEED || LABEL || BASE_URL || urlObj.hostname || 'sitemap'
+                    });
                     if (sitemapUrls.length > 0) {
                         console.log(`Found ${sitemapUrls.length} URLs in sitemap.`);
                         sitemapUrls.forEach(u => scanQueue.add(u));
@@ -116,7 +127,11 @@ async function main() {
                 } else {
                     const sitemapUrl = new URL('/sitemap.xml', urlObj.origin).toString();
                     console.log(`Checking for default sitemap at ${sitemapUrl}...`);
-                    const sitemapUrls = await fetchSitemap(sitemapUrl);
+                    const sitemapUrls = await fetchSitemap(sitemapUrl, {
+                        maxPages: MAX_PAGES,
+                        strategy: SITEMAP_SAMPLE_STRATEGY,
+                        seed: SITEMAP_SAMPLE_SEED || LABEL || BASE_URL || urlObj.hostname || 'sitemap'
+                    });
                     if (sitemapUrls.length > 0) {
                         console.log(`Found ${sitemapUrls.length} URLs in sitemap.`);
                         sitemapUrls.forEach(u => scanQueue.add(u));
@@ -195,7 +210,11 @@ async function main() {
     console.log(`Run ${runResult.runId} complete. Results saved.`);
 }
 
-async function fetchSitemap(url) {
+async function fetchSitemap(url, options = {}) {
+    const maxPages = options.maxPages || MAX_PAGES;
+    const strategy = options.strategy || 'shuffle';
+    const seed = options.seed || 'sitemap';
+
     try {
         const resp = await fetch(url);
         if (!resp.ok) return [];
@@ -208,14 +227,21 @@ async function fetchSitemap(url) {
              const childSitemaps = result.sitemapindex.sitemap.map(s => s.loc[0]);
              console.log(`Found sitemap index with ${childSitemaps.length} sitemaps. Fetching...`);
              for (const childUrl of childSitemaps) {
-                 const childUrls = await fetchSitemap(childUrl);
+                 const childUrls = await fetchSitemap(childUrl, { maxPages, strategy, seed });
                  urls = urls.concat(childUrls);
              }
         }
         if (result.urlset && result.urlset.url) {
             urls = result.urlset.url.map(u => u.loc[0]);
         }
-        return urls;
+
+        urls = Array.from(new Set(urls));
+
+        const sampled = sampleSitemapUrls(urls, { maxPages, strategy, seed });
+        if (sampled.length < urls.length) {
+            console.log(`Sampling ${sampled.length} of ${urls.length} URLs from sitemap using ${strategy} (seed=${seed || 'auto'})`);
+        }
+        return sampled;
     } catch (e) {
         console.error(`Sitemap fetch failed for ${url}: ${e.message}`);
         return [];
@@ -277,4 +303,49 @@ function normalizeUrl(input) {
     return target;
 }
 
-main().catch(console.error);
+function stringToSeed(input) {
+    const str = input || 'sitemap';
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+    }
+    return hash || 1; // avoid zero seed
+}
+
+function mulberry32(seed) {
+    let t = seed >>> 0;
+    return function() {
+        t = (t + 0x6D2B79F5) | 0;
+        let r = Math.imul(t ^ (t >>> 15), 1 | t);
+        r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
+        return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+    };
+}
+
+function seededShuffle(list, seed) {
+    const arr = list.slice();
+    const rand = mulberry32(seed);
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(rand() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+function sampleSitemapUrls(urls, { maxPages, strategy = 'shuffle', seed = 'sitemap' } = {}) {
+    if (!Array.isArray(urls)) return [];
+    const limit = Math.max(0, Math.min(maxPages ?? urls.length, urls.length));
+    if (limit === 0) return [];
+    if (strategy === 'sequential') {
+        return urls.slice(0, limit);
+    }
+    const seeded = stringToSeed(seed);
+    const shuffled = seededShuffle(urls, seeded);
+    return shuffled.slice(0, limit);
+}
+
+if (process.env.NODE_ENV !== 'test') {
+    main().catch(console.error);
+}
+
+export { sampleSitemapUrls, seededShuffle, stringToSeed };
