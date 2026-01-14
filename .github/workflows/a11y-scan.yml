@@ -145,8 +145,12 @@ jobs:
       - name: Make unique artifact name
         id: make_artifact_name
         run: |
-          ts=$(date -u +%s)
-          echo "artifact_name=old-runs-archive-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-$ts" >> $GITHUB_OUTPUT
+          if command -v uuidgen >/dev/null 2>&1; then
+            uid=$(uuidgen)
+          else
+            uid=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || echo "$(date -u +%s%N)-$RANDOM")
+          fi
+          echo "artifact_name=old-runs-archive-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-$uid" >> $GITHUB_OUTPUT
 
       - name: Upload old runs archive (workflow artifact)
         if: always()
