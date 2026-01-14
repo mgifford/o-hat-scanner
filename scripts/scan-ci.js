@@ -20,6 +20,7 @@ const VIEWPORT_PROFILE = process.env.INPUT_VIEWPORT_PROFILE || 'desktop'; // des
 const COLOR_SCHEME = process.env.INPUT_COLOR_SCHEME || 'light'; // light | dark
 const SITEMAP_SAMPLE_STRATEGY = (process.env.INPUT_SITEMAP_SAMPLE_STRATEGY || 'shuffle').toLowerCase(); // shuffle | sequential
 const SITEMAP_SAMPLE_SEED = process.env.INPUT_SITEMAP_SAMPLE_SEED || '';
+const SKIP_EXTENSIONS = (process.env.INPUT_SKIP_EXTENSIONS || '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.gz,.tgz,.tar,.rar,.7z').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
 
 // Input URLs (newline separated)
 const RAW_URLS = process.env.INPUT_URLS || ''; 
@@ -235,7 +236,7 @@ async function fetchSitemap(url, options = {}) {
             urls = result.urlset.url.map(u => u.loc[0]);
         }
 
-        urls = Array.from(new Set(urls));
+        urls = Array.from(new Set(urls)).filter(u => isLikelyHtmlUrl(u));
 
         const sampled = sampleSitemapUrls(urls, { maxPages, strategy, seed });
         if (sampled.length < urls.length) {
@@ -271,7 +272,7 @@ async function scanPage(context, url, visited, queue) {
                     linkUrl.hash = '';
                     const cleanLink = linkUrl.toString();
                     
-                    if (linkUrl.origin === origin && !visited.has(cleanLink) && !queue.includes(cleanLink)) {
+                    if (linkUrl.origin === origin && isLikelyHtmlUrl(cleanLink) && !visited.has(cleanLink) && !queue.includes(cleanLink)) {
                          queue.push(cleanLink);
                     }
                  } catch(e) {}
@@ -301,6 +302,20 @@ function normalizeUrl(input) {
     if (!target) return '';
     if (!/^https?:\/\//i.test(target)) target = 'https://' + target;
     return target;
+}
+
+function isLikelyHtmlUrl(target) {
+    try {
+        const url = new URL(target);
+        const pathname = url.pathname || '';
+        const idx = pathname.lastIndexOf('.');
+        if (idx === -1) return true; // no extension, assume HTML route
+        const ext = pathname.slice(idx).toLowerCase();
+        if (SKIP_EXTENSIONS.includes(ext)) return false;
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 function stringToSeed(input) {
@@ -334,13 +349,14 @@ function seededShuffle(list, seed) {
 
 function sampleSitemapUrls(urls, { maxPages, strategy = 'shuffle', seed = 'sitemap' } = {}) {
     if (!Array.isArray(urls)) return [];
-    const limit = Math.max(0, Math.min(maxPages ?? urls.length, urls.length));
+    const filtered = urls.filter(isLikelyHtmlUrl);
+    const limit = Math.max(0, Math.min(maxPages ?? filtered.length, filtered.length));
     if (limit === 0) return [];
     if (strategy === 'sequential') {
-        return urls.slice(0, limit);
+        return filtered.slice(0, limit);
     }
     const seeded = stringToSeed(seed);
-    const shuffled = seededShuffle(urls, seeded);
+    const shuffled = seededShuffle(filtered, seeded);
     return shuffled.slice(0, limit);
 }
 
@@ -348,4 +364,4 @@ if (process.env.NODE_ENV !== 'test') {
     main().catch(console.error);
 }
 
-export { sampleSitemapUrls, seededShuffle, stringToSeed };
+export { sampleSitemapUrls, seededShuffle, stringToSeed, isLikelyHtmlUrl };

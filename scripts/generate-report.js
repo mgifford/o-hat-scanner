@@ -188,6 +188,7 @@ function generateMainIndex(summaries) {
 
 function generateRunPage(runId, results, pageStats) {
     const urls = Object.keys(results.resultsByUrl);
+    const processedUrls = urls;
     const { mustFixCount, goodToFixCount, reviewCount, pagesWithIssues, automationCoverage } = pageStats;
     const totalIssues = mustFixCount + goodToFixCount + reviewCount;
     const topPages = getTopPages(results);
@@ -341,7 +342,7 @@ function generateRunPage(runId, results, pageStats) {
                     <div class="top-pages">
                         ${topPages.map(({ url, count, severity }) => `
                             <div class="page-row">
-                                <div class="url">${esc(url)}</div>
+                                <div class="url"><a href="${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a></div>
                                 <span class="pill ${severity === 'critical' ? 'pill-critical' : severity === 'moderate' ? 'pill-warning' : 'pill-info'}">${count} issues</span>
                             </div>
                         `).join('')}
@@ -372,7 +373,7 @@ function generateRunPage(runId, results, pageStats) {
                                         <div class="node-list">
                                             ${[...pages.values()].slice(0, 5).map(({ url, nodes }) => `
                                                 <div class="node-item">
-                                                    <div class="node-url">${esc(url)} (${nodes.length} node${nodes.length !== 1 ? 's' : ''})</div>
+                                                    <div class="node-url"><a href="${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a> (${nodes.length} node${nodes.length !== 1 ? 's' : ''})</div>
                                                     ${nodes.slice(0, 1).map(node => `
                                                         <div class="node-selector">Selector: ${esc(node.target?.join(', ') || 'N/A')}</div>
                                                         ${node.html ? `<div class="node-html">${esc(node.html.substring(0, 200))}</div>` : ''}
@@ -399,24 +400,33 @@ function generateRunPage(runId, results, pageStats) {
                 <div style="margin-bottom: 0.25rem;">Viewport: ${viewportLabel}</div>
                 <div style="margin-bottom: 0.25rem;">Color scheme: ${colorLabel}</div>
                 <div style="margin-bottom: 0.25rem;">Mode: ${esc(results.mode || 'ci')}</div>
-                <div style="margin-top: 0.5rem;">Pages crawled: ${urls.length}</div>
+                <div style="margin-top: 0.5rem;">Pages crawled: ${processedUrls.length}</div>
                 <div>Total occurrences: ${totalIssues}</div>
             </div>
         </div>
     </div>
 
     <div class="container" aria-label="Debug information" style="margin-top: 0;">
-        <div class="panel" style="margin-top: 1rem;">
-            <h3>Debug info (run config)</h3>
-            <ul style="margin-top: 0.5rem; padding-left: 1.25rem; line-height: 1.5;">
-                <li>Max pages: ${esc(cfg.maxPages ?? 'N/A')}</li>
-                <li>Concurrency: ${esc(cfg.concurrency ?? 'N/A')}</li>
-                <li>Base URL: ${esc(cfg.baseUrl || 'N/A')}</li>
-                <li>Targets: ${esc((results.targets || []).join(', ') || 'N/A')}</li>
-                <li>Results URLs: ${urls.length}</li>
-                <li>Finished: ${results.finishedAt ? esc(results.finishedAt) : 'N/A'}</li>
-            </ul>
-            ${renderErrors(results)}
+        <div class="panel" style="margin-top: 1rem; background-color: #f5f0d9; border: 1px solid #d8cfa3;">
+            <details class="debug-accordion">
+                <summary style="cursor: pointer; font-weight: 600; outline: none;">Debug info (run config)</summary>
+                <div style="margin-top: 0.75rem;">
+                    <ul style="margin-top: 0.25rem; padding-left: 1.25rem; line-height: 1.5;">
+                        <li>Mode: ${esc(results.mode || cfg.mode || 'ci')}</li>
+                        <li>Viewport: ${esc(cfg.viewport || 'desktop')}</li>
+                        <li>Color scheme: ${esc(cfg.colorScheme || 'light')}</li>
+                        <li>Max pages: ${esc(cfg.maxPages ?? 'N/A')}</li>
+                        <li>Concurrency: ${esc(cfg.concurrency ?? 'N/A')}</li>
+                        <li>Timeout (ms): ${esc(cfg.timeout ?? 'N/A')}</li>
+                        <li>Base URL: ${esc(cfg.baseUrl || 'N/A')}</li>
+                        <li>Targets: ${esc((results.targets || []).join(', ') || 'N/A')}</li>
+                        <li>Sampling: ${esc(cfg.sitemapSample?.strategy || 'shuffle')} ${cfg.sitemapSample?.seed ? `(seed ${esc(cfg.sitemapSample.seed)})` : ''}</li>
+                        <li>Results URLs: ${processedUrls.length}</li>
+                        <li>Finished: ${results.finishedAt ? esc(results.finishedAt) : 'N/A'}</li>
+                    </ul>
+                    ${renderErrors(results)}
+                </div>
+            </details>
         </div>
     </div>
 

@@ -191,6 +191,7 @@ Each scan run generates:
 - `INPUT_CONCURRENCY`: Parallel tabs (default 2).
 - `INPUT_SITEMAP_SAMPLE_STRATEGY`: `shuffle` (default) randomly shuffles sitemap URLs before capping; `sequential` keeps the first entries.
 - `INPUT_SITEMAP_SAMPLE_SEED`: Optional seed for deterministic sampling when using `shuffle` (helpful for reproducible manual runs).
+- `INPUT_SKIP_EXTENSIONS`: Comma-separated extensions to skip during sitemap discovery (default: .pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.gz,.tgz,.tar,.rar,.7z).
 - `DISCOVER`: Set `true` to crawl links beyond sitemap (used with care).
 
 **Manual workflow inputs:**
