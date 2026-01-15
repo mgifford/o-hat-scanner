@@ -9,7 +9,9 @@ let analyzeResults;
 
 describe('generate-report run page', () => {
     const runId = 'test-run-report';
-    const runDir = path.join(ROOT, 'site', 'runs', runId);
+    const domainSlug = 'example-com';
+    const runRelPath = path.join(domainSlug, runId);
+    const runDir = path.join(ROOT, 'site', 'runs', runRelPath);
     const results = {
         startedAt: '2024-01-01T00:00:00Z',
         mode: 'ci',
@@ -59,7 +61,7 @@ describe('generate-report run page', () => {
 
     test('renders run page with search, top pages, and severity groups', () => {
         const stats = analyzeResults(results);
-        generateRunPage(runId, results, stats);
+        generateRunPage(runId, runRelPath, results, stats);
         const htmlPath = path.join(runDir, 'index.html');
         expect(fs.existsSync(htmlPath)).toBe(true);
         const html = fs.readFileSync(htmlPath, 'utf-8');
@@ -76,7 +78,7 @@ describe('generate-report run page', () => {
 
     test('renders clickable URLs and correct crawled count', () => {
         const stats = analyzeResults(results);
-        generateRunPage(runId, results, stats);
+        generateRunPage(runId, runRelPath, results, stats);
         const htmlPath = path.join(runDir, 'index.html');
         const html = fs.readFileSync(htmlPath, 'utf-8');
 
@@ -91,5 +93,15 @@ describe('generate-report run page', () => {
 
         // Browser is surfaced in sidebar/debug (default chromium)
         expect(html.toLowerCase()).toContain('browser: chromium');
+    });
+
+    test('includes a mini trend chart placeholder', () => {
+        const stats = analyzeResults(results);
+        generateRunPage(runId, runRelPath, results, stats);
+        const html = fs.readFileSync(path.join(runDir, 'index.html'), 'utf-8');
+
+        expect(html).toContain('id="miniTrendChart"');
+        expect(html).toContain('aggregate.csv');
+        expect(html).toContain('Trend (total occurrences)');
     });
 });

@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { parseStringPromise } from 'xml2js';
 import * as cheerio from 'cheerio';
-import { validateSchema, createEmptyResult } from './shared-schema.js';
+import { validateSchema, createEmptyResult, domainSlugFromUrl } from './shared-schema.js';
 
 // Configuration
 const REQUESTED_MAX = parseInt(process.env.INPUT_MAX_PAGES || '50', 10);
@@ -237,11 +237,16 @@ async function main() {
 
     await browser.close();
 
-    runResult.finishedAt = new Date().toISOString();
+    const finishedAt = process.env.RUN_TIMESTAMP && !Number.isNaN(Date.parse(process.env.RUN_TIMESTAMP))
+        ? new Date(process.env.RUN_TIMESTAMP).toISOString()
+        : new Date().toISOString();
+    runResult.finishedAt = finishedAt;
     runResult.resultsByUrl = results;
 
     // Save outputs
-    const runDir = path.join('site', 'runs', runResult.runId);
+    const domainSlug = domainSlugFromUrl(BASE_URL || runResult.targets?.[0]) || 'run';
+    const runRelPath = path.join(domainSlug, runResult.runId);
+    const runDir = path.join('site', 'runs', runRelPath);
     fs.mkdirSync(runDir, { recursive: true });
     
     fs.writeFileSync(path.join(runDir, 'results.json'), JSON.stringify(runResult, null, 2));
@@ -249,6 +254,8 @@ async function main() {
     // Create summary
     const summary = {
         runId: runResult.runId,
+        domain: domainSlug,
+        runRelPath: runRelPath,
         startedAt: runResult.startedAt,
         pagesScanned: Object.keys(results).length,
         pagesWithViolations: Object.values(results).filter(r => r.violations && r.violations.length > 0).length,
@@ -282,8 +289,15 @@ async function fetchSitemap(url, options = {}) {
         // Handle sitemap index (recursive)
         if (result.sitemapindex && result.sitemapindex.sitemap) {
              const childSitemaps = result.sitemapindex.sitemap.map(s => s.loc[0]);
-             console.log(`Found sitemap index with ${childSitemaps.length} sitemaps. Fetching...`);
-             for (const childUrl of childSitemaps) {
+             let toProcess = childSitemaps;
+             if (childSitemaps.length > 15) {
+                 const sampled = seededShuffle(childSitemaps, stringToSeed(`${seed}-sitemapindex`)).slice(0, 10);
+                 console.log(`Sitemap index has ${childSitemaps.length} entries; sampling ${sampled.length} child sitemaps using ${strategy} (seed=${seed})`);
+                 toProcess = sampled;
+             } else {
+                 console.log(`Found sitemap index with ${childSitemaps.length} sitemaps. Fetching...`);
+             }
+             for (const childUrl of toProcess) {
                  const childUrls = await fetchSitemap(childUrl, { maxPages, strategy, seed });
                  urls = urls.concat(childUrls);
              }

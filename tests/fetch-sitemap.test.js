@@ -21,6 +21,21 @@ const mapBXml = `<?xml version="1.0" encoding="UTF-8"?>
   <url><loc>https://example.com/page-4</loc></url>
 </urlset>`;
 
+function makeLargeIndex(count = 20) {
+  const items = Array.from({ length: count }, (_, i) => `<sitemap><loc>https://example.com/map-${i + 1}.xml</loc></sitemap>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  ${items}
+</sitemapindex>`;
+}
+
+function makeMapXml(id) {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://example.com/page-${id}</loc></url>
+</urlset>`;
+}
+
 describe('fetchSitemap', () => {
   beforeEach(() => {
     process.env.NODE_ENV = 'test';
@@ -64,5 +79,33 @@ describe('fetchSitemap', () => {
       seed: 'seed-1'
     });
     expect(first).toEqual(second);
+  });
+
+  test('sitemap index sampling limits child sitemaps when large', async () => {
+    const bigIndex = makeLargeIndex(20);
+    const fetched = [];
+    global.fetch.mockImplementation(async (url) => {
+      fetched.push(url);
+      if (url.includes('sitemap.xml') && !url.includes('map-')) {
+        return { ok: true, text: async () => bigIndex, headers: () => ({}) };
+      }
+      if (url.includes('map-')) {
+        const id = url.match(/map-(\d+)/)?.[1] || 'x';
+        return { ok: true, text: async () => makeMapXml(id), headers: () => ({}) };
+      }
+      return { ok: false, text: async () => '' };
+    });
+
+    const urls = await fetchSitemap('https://example.com/sitemap.xml', {
+      maxPages: 5,
+      strategy: 'shuffle',
+      seed: 'sample-seed'
+    });
+
+    const childFetches = fetched.filter(u => u.includes('map-')).length;
+    expect(childFetches).toBeLessThanOrEqual(10);
+    expect(childFetches).toBeGreaterThan(0);
+    expect(fetched.length).toBeLessThanOrEqual(11); // index + sampled children
+    expect(urls.length).toBeLessThanOrEqual(5);
   });
 });
