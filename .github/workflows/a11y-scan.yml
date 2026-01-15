@@ -41,6 +41,11 @@ on:
         required: false
         default: 'chromium'
         type: string
+      ignore_schedule:
+        description: 'true to bypass cron windows and run all configured targets now'
+        required: false
+        default: 'true'
+        type: boolean
   schedule:
     - cron: '0 3 * * *'
 
@@ -106,9 +111,15 @@ jobs:
           MANUAL_LABEL: ${{ github.event.inputs.override_label }}
           VIEWPORT_PROFILE: ${{ github.event.inputs.viewport_profile }}
           COLOR_SCHEME: ${{ github.event.inputs.color_scheme }}
+          IGNORE_SCHEDULE: ${{ github.event.inputs.ignore_schedule }}
         run: |
           set -euo pipefail
           FLAGS=""
+          # If manual dispatch or explicit input, ignore schedule windows so runs always happen.
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] || [ "${IGNORE_SCHEDULE:-false}" = "true" ]; then
+            FLAGS="--ignore-schedule"
+          fi
+          # Manual URL/site inputs also imply ignore schedule.
           if [ -n "$MANUAL_SITE" ] || [ -n "$MANUAL_URLS" ]; then
             FLAGS="--ignore-schedule"
           fi
@@ -232,98 +243,18 @@ jobs:
       - name: Ensure site directory exists
         run: mkdir -p site
 
-      - name: Archive older runs (keep last 52)
+      - name: Prune runs older than 365 days
         env:
-          KEEP: 52
+          DAYS: 365
         run: |
           set -euo pipefail
           RUNS_DIR=site/runs
-          KEEP=${KEEP}
-          ARCHIVE_DIR=/tmp/old-runs-archives
-          mkdir -p "$ARCHIVE_DIR"
-
           if [ ! -d "$RUNS_DIR" ]; then
-            echo "$RUNS_DIR does not exist; skipping archival step"
+            echo "$RUNS_DIR does not exist; skipping prune"
             exit 0
           fi
-
-          # Determine older runs to archive (older than the newest $KEEP)
-          old_runs=$(ls -1t "$RUNS_DIR" | tail -n +$(($KEEP + 1)) || true)
-          if [ -z "$old_runs" ]; then
-            echo "No older runs to archive; total <= $KEEP"
-            exit 0
-          fi
-
-          TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          TAR_PATH="$ARCHIVE_DIR/old-runs-${TIMESTAMP}.tar.gz"
-          MANIFEST_PATH="$ARCHIVE_DIR/old-runs-${TIMESTAMP}-manifest.json"
-          echo "Archiving the following runs to $TAR_PATH:\n$old_runs"
-          # Create a tarball of the old run directories
-          tar -czf "$TAR_PATH" -C "$RUNS_DIR" $old_runs
-
-          # Create a small manifest JSON with archived run names and counts
-          archived_count=$(echo "$old_runs" | wc -w | tr -d ' ')
-          # Build JSON array of run names
-          runs_json=$(printf '%s\n' $old_runs | jq -R -s -c 'split("\n")[:-1]')
-          cat > "$MANIFEST_PATH" <<EOF
-          {
-            "timestamp": "${TIMESTAMP}",
-            "archived_count": ${archived_count},
-            "runs": ${runs_json}
-          }
-          EOF
-          echo "Manifest written to $MANIFEST_PATH"
-
-          # If S3 bucket env provided and aws cli available, upload there
-          if [ -n "${AWS_S3_BUCKET:-}" ]; then
-            if command -v aws >/dev/null 2>&1; then
-              echo "Uploading $TAR_PATH to s3://${AWS_S3_BUCKET}/archives/"
-              aws s3 cp "$TAR_PATH" "s3://${AWS_S3_BUCKET}/archives/" \
-                --acl private
-              uploaded=true
-            else
-              echo "AWS CLI not available; will upload tarball as artifact instead"
-              uploaded=false
-            fi
-          else
-            echo "AWS_S3_BUCKET not set; will upload tarball as artifact"
-            uploaded=false
-          fi
-
-          if [ "$uploaded" = false ]; then
-            # Move tar and manifest into workspace to be picked up by upload-artifact step below
-            mv "$TAR_PATH" "$GITHUB_WORKSPACE/old-runs-archive-${TIMESTAMP}.tar.gz"
-            mv "$MANIFEST_PATH" "$GITHUB_WORKSPACE/old-runs-archive-${TIMESTAMP}-manifest.json"
-            echo "Tarball and manifest moved to workspace: old-runs-archive-${TIMESTAMP}.*"
-          fi
-
-          # Remove the archived run directories
-          echo "Removing archived run directories..."
-          for d in $old_runs; do
-            rm -rf "$RUNS_DIR/$d"
-          done
-
-      - name: Make unique artifact name
-        id: make_artifact_name
-        run: |
-          set -euo pipefail
-          if command -v uuidgen >/dev/null 2>&1; then
-            uid=$(uuidgen)
-          elif [ -r /proc/sys/kernel/random/uuid ]; then
-            uid=$(cat /proc/sys/kernel/random/uuid)
-          else
-            uid=$(date -u +%s%N)-$RANDOM
-          fi
-          echo "artifact_name=old-runs-archive-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-$uid" >> "$GITHUB_OUTPUT"
-
-      - name: Upload old runs archive (workflow artifact)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.make_artifact_name.outputs.artifact_name }}
-          path: |
-            old-runs-archive-*.tar.gz
-            old-runs-archive-*-manifest.json
+          echo "Removing run folders older than ${DAYS} days to keep gh-pages lean..."
+          find "$RUNS_DIR" -maxdepth 1 -mindepth 1 -type d -mtime +${DAYS} -print -exec rm -rf {} +
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
