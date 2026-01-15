@@ -51,164 +51,128 @@ function main() {
 }
 
 function generateMainIndex(summaries) {
+    summaries.sort((a, b) => new Date(b.startedAt) - new Date(a.startedAt));
     const html = `<!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>O-Hat Scanner | Runs</title>
+    <title>O-Hat Scanner - Accessibility Reports</title>
     <style>
-        :root {
-            color-scheme: light;
-            --bg: #f5f5f5;
-            --panel-bg: #fff;
-            --panel-border: #e0e0e0;
-            --text: #222;
-            --muted: #666;
-            --link: #1976d2;
-            --link-visited: #5e35b1;
-            --header-grad-start: #0d47a1;
-            --header-grad-end: #1976d2;
-            --header-text: #fff;
-            --focus: #90caf9;
-        }
-        [data-theme="dark"] {
-            color-scheme: dark;
-            --bg: #0f141a;
-            --panel-bg: #121826;
-            --panel-border: #1f2937;
-            --text: #e5e7eb;
-            --muted: #9ca3af;
-            --link: #7cb7ff;
-            --link-visited: #c4b5fd;
-            --header-grad-start: #0b1f3a;
-            --header-grad-end: #163c6b;
-            --header-text: #e5e7eb;
-            --focus: #7cb7ff;
-        }
         * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; background: var(--bg); color: var(--text); }
-        a { color: var(--link); }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; color: #222; }
+        a { color: #1976d2; text-decoration: none; }
         a:hover { text-decoration: underline; }
-        a:visited { color: var(--link-visited); }
-        header { background: linear-gradient(135deg, var(--header-grad-start), var(--header-grad-end)); color: var(--header-text); padding: 2rem 1rem; }
-        .header-content { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 0.5rem; }
-        .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        .container { max-width: 1100px; margin: -40px auto 0 auto; padding: 0 1rem 2rem 1rem; }
-        .panel { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,0.06); padding: 1.25rem; }
-        .search-row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-bottom: 1rem; }
-        label { font-weight: 600; }
-        .search-input { flex: 1 1 260px; padding: 10px 12px; border: 1px solid var(--panel-border); border-radius: 4px; font-size: 14px; background: var(--panel-bg); color: var(--text); }
-        .search-input:focus { outline: 2px solid var(--focus); border-color: var(--focus); }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--panel-border); }
-        th { font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
-        tr:hover td { background: rgba(0,0,0,0.02); }
-        .status-pass { color: #2e7d32; font-weight: 700; }
-        .status-fail { color: #c62828; font-weight: 700; }
-        .theme-toggle { background: var(--panel-bg); color: var(--text); border: 1px solid var(--panel-border); border-radius: 4px; padding: 8px 12px; cursor: pointer; font-weight: 600; }
-        .theme-toggle:focus,
-        .search-input:focus,
-        .header-content a:focus { outline: 2px solid var(--focus); outline-offset: 2px; }
+        header { background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%); color: #fff; padding: 3rem 1rem; }
+        .header-content { max-width: 1000px; margin: 0 auto; }
+        h1 { font-size: 32px; font-weight: 700; margin: 0 0 0.5rem 0; }
+        .tagline { font-size: 18px; color: #e3f2fd; margin: 0; }
+        main { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+        .intro { background: #fff; padding: 2rem; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+        .intro h2 { margin-top: 0; color: #0d47a1; }
+        .intro p { line-height: 1.6; margin: 1rem 0; }
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin: 2rem 0; }
+        .feature { background: #fff; padding: 1.5rem; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .feature h3 { color: #0d47a1; margin-top: 0; }
+        .feature p { margin: 0.5rem 0; line-height: 1.5; }
+        .reports-section { background: #fff; padding: 2rem; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin: 2rem 0; }
+        .reports-section h2 { color: #0d47a1; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid #ddd; }
+        th { background: #f4f4f4; font-weight: 600; }
+        .status-pass { color: green; }
+        .status-fail { color: red; font-weight: bold; }
+        footer { text-align: center; padding: 2rem 1rem; color: #666; font-size: 14px; }
     </style>
 </head>
 <body>
-    <a href="#main" style="position:absolute;left:-999px;top:-999px;">Skip to main content</a>
     <header>
         <div class="header-content">
-            <div class="actions">
-                <h1 style="margin:0; font-size: 26px;">Accessibility Scan Runs</h1>
-                <button class="theme-toggle" type="button" aria-label="Toggle light or dark mode">Toggle light/dark</button>
-            </div>
-            <div>History of generated reports. Latest runs appear first.</div>
+            <h1>🎩 O-Hat Scanner</h1>
+            <p class="tagline">Oobee-style accessibility reports powered by GitHub Actions & Pages</p>
+            <p style="margin-top: 1rem;"><a href="https://github.com/mgifford/o-hat-scanner" style="color: #bbdefb; font-weight: 600;">View on GitHub →</a></p>
         </div>
     </header>
-    <main class="container" id="main">
-        <div class="panel">
-            <div class="search-row">
-                <label for="runSearch">Filter runs</label>
-                <input id="runSearch" class="search-input" type="search" placeholder="Search by run ID or label" aria-label="Filter runs">
+    
+    <main>
+        <div class="intro">
+            <h2>Automated Accessibility Scanning</h2>
+            <p>O-Hat Scanner provides <strong>professional accessibility reports in GitHub Pages</strong> using GitHub Actions. It combines the power of <strong>axe-core</strong> testing with <strong>Oobee-inspired reporting</strong> to deliver clear, actionable insights into web accessibility.</p>
+            <p>Scan reports feature:</p>
+            <ul>
+                <li>Professional, searchable HTML reports with severity grouping</li>
+                <li>WCAG 2.2 automation coverage tracking</li>
+                <li>Top affected pages ranking</li>
+                <li>CSV export for integration with spreadsheets</li>
+                <li>Collapsible severity sections with detailed violation info</li>
+            </ul>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>🤖 CI Scanner</h3>
+                <p>Runs in GitHub Actions against a list of URLs. Automatically scans on push, generates reports, and deploys to GitHub Pages.</p>
             </div>
-            ${summaries.length === 0 ? `<div role="status" style="line-height:1.6;">
-                <p><strong>No runs found to display.</strong></p>
-                <p>Possible reasons:</p>
-                <ul>
-                    <li>First deploy: gh-pages restore skipped because the branch does not exist yet.</li>
-                    <li>No targets were due or a manual dispatch did not include any sites/URLs.</li>
-                    <li>Pages is not pointed at GitHub Actions (Settings → Pages).</li>
-                </ul>
-                <p>Next steps: run the <em>a11y-scan</em> workflow manually (pick a site like civicactions.com), then re-open this page. You can also run locally with <code>npm run scan:ci</code> followed by <code>npm run report</code> to inspect <code>site/index.html</code>.</p>
-            </div>` : `
-            <table aria-label="Scan runs">
+            <div class="feature">
+                <h3>🏠 Standalone Scanner</h3>
+                <p>Deploy a single HTML file to your site for same-origin scanning. Perfect for local testing, VPNs, or staging environments.</p>
+                <p><a href="#standalone">Learn more →</a></p>
+            </div>
+            <div class="feature">
+                <h3>📊 Oobee Reports</h3>
+                <p>Beautiful, professional reports inspired by GovTechSG's Oobee. Search issues, filter by severity, view top pages.</p>
+            </div>
+        </div>
+        
+        <div class="reports-section">
+            <h2>Recent Scan Reports</h2>
+            ${summaries.length === 0 ? '<p>No scan reports yet. Check back after the first scan completes.</p>' : `
+            <p>View detailed accessibility reports from recent scans:</p>
+            <table>
                 <thead>
                     <tr>
-                        <th scope="col">Run ID</th>
-                        <th scope="col">Started</th>
-                        <th scope="col">Pages</th>
-                        <th scope="col">With issues</th>
-                        <th scope="col">Violations</th>
-                        <th scope="col">Report</th>
+                        <th>Run ID</th>
+                        <th>Date</th>
+                        <th>Pages</th>
+                        <th>Pages with Issues</th>
+                        <th>Total Issues</th>
+                        <th>Report</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${summaries.sort((a,b) => new Date(b.startedAt) - new Date(a.startedAt)).map(s => `
-                        <tr data-run="${esc(s.runId)} ${esc(s.label || '')}">
-                            <td><span style="font-family: ui-monospace;">${esc(s.runId)}</span></td>
-                            <td>${s.startedAt ? new Date(s.startedAt).toLocaleString() : 'N/A'}</td>
-                            <td>${s.pagesScanned ?? 'N/A'}</td>
-                            <td>${s.pagesWithViolations ?? 'N/A'}</td>
-                            <td class="${(s.totalViolations || 0) > 0 ? 'status-fail' : 'status-pass'}">${s.totalViolations ?? 0}</td>
-                            <td><a href="runs/${esc(s.runId)}/index.html">View →</a></td>
+                    ${summaries.map(s => `
+                        <tr>
+                            <td><code>${s.runId}</code></td>
+                            <td>${new Date(s.startedAt).toLocaleString()}</td>
+                            <td>${s.pagesScanned}</td>
+                            <td>${s.pagesWithViolations}</td>
+                            <td class="${s.totalViolations > 0 ? 'status-fail' : 'status-pass'}">${s.totalViolations}</td>
+                            <td><a href="runs/${s.runId}/index.html">View →</a></td>
                         </tr>
                     `).join('')}
                 </tbody>
-            </table>`}
+            </table>
+            `}
         </div>
-
-        <div class="panel" style="margin-top: 1rem;" aria-labelledby="about-heading">
-            <h2 id="about-heading" style="margin-top:0;">About the dual scanner</h2>
-            <p style="line-height:1.6;">O-Hat Scanner ships two modes that share the same result schema: a CI scanner (Playwright + axe-core) and a single-file standalone scanner for same-origin use. Both emit JSON/CSV and render static, client-only reports under <code>site/</code> for GitHub Pages.</p>
+        
+        <div class="intro" id="standalone">
+            <h2>📦 Standalone Scanner</h2>
+            <p>The O-Hat Scanner includes a standalone HTML file that runs accessibility scans directly in your browser (same-origin only).</p>
+            <p><strong>Features:</strong></p>
             <ul>
-                <li>CI: runs in GitHub Actions, bounded sitemap/crawl, configurable viewport/color/browser.</li>
-                <li>Reports: static HTML + CSV (Oobee columns), no backend; restored from gh-pages on each run.</li>
-                <li>Schema: see <code>scripts/shared-schema.js</code>; mode is <code>ci</code> or <code>standalone</code>.</li>
+                <li>No server required—runs entirely in the browser</li>
+                <li>Discovers pages via sitemap.xml</li>
+                <li>Real-time progress tracking</li>
+                <li>JSON + CSV export with Oobee schema</li>
+                <li>Token-based access control</li>
             </ul>
-        </div>
-
-        <div class="panel" style="margin-top: 1rem;" aria-labelledby="standalone-heading">
-            <h2 id="standalone-heading" style="margin-top:0;">Standalone scanner (browser-based)</h2>
-            <p style="line-height:1.6;">Use <code>standalone/a11y-scan.html</code> (same-origin only). It discovers via <code>sitemap.xml</code> or a custom list, scans sequentially in hidden iframes with axe, and exports JSON/CSV matching the CI schema.</p>
-            <ul>
-                <li>Gate it: requires token query param; do not expose publicly.</li>
-                <li>Vendor axe: uses <code>assets/axe.min.js</code> (no CDN).</li>
-                <li>Controls: maxPages, delay, timeout, prefix filter, exclude substrings.</li>
-                <li>Outputs: CSV with Oobee headers and in-browser JSON download.</li>
-            </ul>
-            <p style="line-height:1.6;">Test pages live under <code>standalone/</code> (page1-4, blog/, auth/) with intentional issues for validation.</p>
+            <p><strong>Learn more:</strong> See the <a href="https://github.com/mgifford/o-hat-scanner">GitHub repository</a> for setup and configuration.</p>
         </div>
     </main>
-    <script>
-        const themeToggle = document.querySelector('.theme-toggle');
-        const root = document.documentElement;
-        const saved = localStorage.getItem('report-theme');
-        if (saved === 'dark' || (saved === null && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            root.setAttribute('data-theme', 'dark');
-        }
-        themeToggle?.addEventListener('click', () => {
-            const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            root.setAttribute('data-theme', next);
-            localStorage.setItem('report-theme', next);
-        });
-
-        const runSearch = document.getElementById('runSearch');
-        runSearch?.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            document.querySelectorAll('tbody tr').forEach(row => {
-                const text = row.dataset.run.toLowerCase();
-                row.style.display = text.includes(term) ? '' : 'none';
-            });
-        });
-    </script>
+    
+    <footer>
+        <p>O-Hat Scanner | <a href="https://github.com/mgifford/o-hat-scanner">GitHub</a> | Built with <a href="https://github.com/dequelabs/axe-core">axe-core</a></p>
+    </footer>
 </body>
 </html>`;
 
