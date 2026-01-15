@@ -61,7 +61,23 @@ async function main() {
     if (REQUESTED_MAX > MAX_PAGES) {
         console.log(`Requested max pages ${REQUESTED_MAX} exceeds cap; clamped to ${MAX_PAGES}`);
     }
+    const resolvedSeed = resolveSitemapSeed({ providedSeed: SITEMAP_SAMPLE_SEED, label: LABEL, baseUrl: BASE_URL });
     console.log(`Starting scan with config: MODE=${MODE}, MAX_PAGES=${MAX_PAGES}, CONCURRENCY=${CONCURRENCY}, LABEL=${LABEL || 'none'}, VIEWPORT=${VIEWPORT_PROFILE}, COLOR=${COLOR_SCHEME}, BROWSER=${BROWSER_NAME}`);
+    console.log('Scan inputs:', JSON.stringify({
+        mode: MODE,
+        maxPages: MAX_PAGES,
+        timeoutMs: TIMEOUT_MS,
+        concurrency: CONCURRENCY,
+        label: LABEL || null,
+        baseUrl: BASE_URL || null,
+        viewport: VIEWPORT_PROFILE,
+        colorScheme: COLOR_SCHEME,
+        browser: BROWSER_NAME,
+        sitemapSample: { strategy: SITEMAP_SAMPLE_STRATEGY, seed: resolvedSeed, size: MAX_PAGES },
+        userAgent: USER_AGENT,
+        skipExtensions: SKIP_EXTENSIONS,
+        crawlFallback: SITEMAP_FALLBACK_TO_CRAWL
+    }, null, 2));
     // Helpful debug log: show final list of URLs that will be scanned
     console.log('Final targets to scan:', JSON.stringify(urls, null, 2));
 
@@ -75,7 +91,7 @@ async function main() {
         colorScheme: COLOR_SCHEME,
         sitemapSample: {
             strategy: SITEMAP_SAMPLE_STRATEGY,
-            seed: SITEMAP_SAMPLE_SEED || null,
+            seed: resolvedSeed || null,
             size: MAX_PAGES
         },
         crawlFallback: {
@@ -126,7 +142,7 @@ async function main() {
                     const sitemapUrls = await fetchSitemap(target, {
                         maxPages: MAX_PAGES,
                         strategy: SITEMAP_SAMPLE_STRATEGY,
-                        seed: SITEMAP_SAMPLE_SEED || LABEL || BASE_URL || urlObj.hostname || 'sitemap'
+                        seed: resolveSitemapSeed({ providedSeed: SITEMAP_SAMPLE_SEED, label: LABEL, baseUrl: BASE_URL, urlObj })
                     });
                     if (sitemapUrls.length > 0) {
                         console.log(`Found ${sitemapUrls.length} URLs in sitemap.`);
@@ -145,7 +161,7 @@ async function main() {
                     const sitemapUrls = await fetchSitemap(sitemapUrl, {
                         maxPages: MAX_PAGES,
                         strategy: SITEMAP_SAMPLE_STRATEGY,
-                        seed: SITEMAP_SAMPLE_SEED || LABEL || BASE_URL || urlObj.hostname || 'sitemap'
+                        seed: resolveSitemapSeed({ providedSeed: SITEMAP_SAMPLE_SEED, label: LABEL, baseUrl: BASE_URL, urlObj })
                     });
                     if (sitemapUrls.length > 0) {
                         console.log(`Found ${sitemapUrls.length} URLs in sitemap.`);
@@ -156,6 +172,11 @@ async function main() {
                         if (SITEMAP_FALLBACK_TO_CRAWL) {
                             crawlFallbackUsed = true;
                             console.log('Crawl fallback enabled for this run.');
+                            const discovered = await discoverLinksFromHtml(target, MAX_PAGES - scanQueue.size);
+                            if (discovered.length) {
+                                console.log(`Discovered ${discovered.length} links from root for crawl fallback.`);
+                                discovered.forEach(u => scanQueue.add(u));
+                            }
                         }
                     }
                 }
@@ -190,7 +211,12 @@ async function main() {
             
             try {
                 const result = await scanPage(context, url, visited, queueArray, allowDiscovery);
-                results[url] = result;
+                const key = result?.finalUrl || url;
+                const sources = [];
+                if (result?.originalUrl && result.originalUrl !== key) {
+                    sources.push(result.originalUrl);
+                }
+                results[key] = { ...result, sources };
             } catch (err) {
                 console.error(`Error scanning ${url}:`, err);
                 results[url] = { 
@@ -232,7 +258,9 @@ async function main() {
         viewport: runResult.config?.viewport,
         colorScheme: runResult.config?.colorScheme,
         browser: runResult.config?.browser,
-        maxPages: runResult.config?.maxPages
+        maxPages: runResult.config?.maxPages,
+        sampleStrategy: runResult.config?.sitemapSample?.strategy,
+        sampleSeed: runResult.config?.sitemapSample?.seed
     };
     
     fs.writeFileSync(path.join(runDir, 'summary.json'), JSON.stringify(summary, null, 2));
@@ -244,7 +272,6 @@ async function fetchSitemap(url, options = {}) {
     const maxPages = options.maxPages || MAX_PAGES;
     const strategy = options.strategy || 'shuffle';
     const seed = options.seed || 'sitemap';
-
     try {
         const resp = await fetch(url);
         if (!resp.ok) return [];
@@ -291,21 +318,83 @@ async function fetchSitemap(url, options = {}) {
     }
 }
 
+async function discoverLinksFromHtml(baseUrl, limit = 50) {
+    try {
+        const resp = await fetch(baseUrl, { headers: { 'User-Agent': USER_AGENT } });
+        const ct = (resp.headers.get('content-type') || '').toLowerCase();
+        if (!resp.ok || (ct && !ct.includes('text/html'))) return [];
+        const html = await resp.text();
+        return extractLinks(baseUrl, html).slice(0, limit);
+    } catch (e) {
+        console.error(`Fallback crawl discovery failed for ${baseUrl}: ${e.message}`);
+        return [];
+    }
+}
+
+function extractLinks(baseUrl, html) {
+    if (!html) return [];
+    let origin;
+    try {
+        origin = new URL(baseUrl).origin;
+    } catch {
+        return [];
+    }
+    const $ = cheerio.load(html);
+    const links = new Set();
+    $('a[href]').each((_, el) => {
+        const href = $(el).attr('href');
+        if (!href) return;
+        try {
+            const resolved = new URL(href, origin);
+            if (resolved.origin !== origin) return;
+            resolved.hash = '';
+            const clean = resolved.toString();
+            if (isLikelyHtmlUrl(clean)) links.add(clean);
+        } catch {}
+    });
+    return Array.from(links);
+}
+
 async function scanPage(context, url, visited, queue, allowDiscovery = false) {
     const page = await context.newPage();
     let axeResults = null;
     let error = null;
     let title = '';
+    let finalUrl = url;
+    let status = null;
+    let contentType = '';
 
     try {
-        await page.goto(url, { timeout: TIMEOUT_MS, waitUntil: 'domcontentloaded' });
+        const response = await page.goto(url, { timeout: TIMEOUT_MS, waitUntil: 'domcontentloaded' });
+        if (response) {
+            finalUrl = typeof response.url === 'function' ? response.url() : finalUrl;
+            status = typeof response.status === 'function' ? response.status() : null;
+            const headers = typeof response.headers === 'function' ? response.headers() : {};
+            contentType = headers['content-type'] || headers['Content-Type'] || '';
+            visited.add(finalUrl);
+        }
         title = await page.title();
+
+        const analysisGate = shouldAnalyzeResponse({ status, contentType });
+        if (!analysisGate.ok) {
+            return {
+                title,
+                violations: [],
+                passes: [],
+                incomplete: [],
+                error: analysisGate.reason,
+                finalUrl,
+                originalUrl: url,
+                status,
+                contentType
+            };
+        }
         
         // Crawl if queuing is active and mode allows discovery
         if (allowDiscovery && queue.length < MAX_PAGES) {
              const links = await page.$$eval('a', as => as.map(a => a.href));
              // Filter internal, not visited
-             const origin = new URL(url).origin;
+             const origin = new URL(finalUrl).origin;
              
              for (const link of links) {
                  try {
@@ -334,7 +423,11 @@ async function scanPage(context, url, visited, queue, allowDiscovery = false) {
         violations: axeResults ? axeResults.violations : [],
         passes: axeResults ? axeResults.passes : [],
         incomplete: axeResults ? axeResults.incomplete : [],
-        error: error
+        error: error,
+        finalUrl,
+        originalUrl: url,
+        status,
+        contentType
     };
 }
 
@@ -349,11 +442,17 @@ function normalizeUrl(input) {
 function isLikelyHtmlUrl(target) {
     try {
         const url = new URL(target);
-        const pathname = url.pathname || '';
-        const idx = pathname.lastIndexOf('.');
+        const pathname = (url.pathname || '').toLowerCase();
+        const trimmedPath = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
         if (isPdfLike(target)) return false;
+        for (const ext of SKIP_EXTENSIONS) {
+            if (trimmedPath.endsWith(ext)) return false;
+            const bare = ext.startsWith('.') ? ext.slice(1) : ext;
+            if (bare && trimmedPath.endsWith(bare)) return false;
+        }
+        const idx = trimmedPath.lastIndexOf('.');
         if (idx === -1) return true; // no dot extension, assume HTML route
-        const ext = pathname.slice(idx).toLowerCase();
+        const ext = trimmedPath.slice(idx);
         if (SKIP_EXTENSIONS.includes(ext)) return false;
         return true;
     } catch {
@@ -371,6 +470,25 @@ function isPdfLike(target) {
     } catch {
         return false;
     }
+}
+
+function resolveSitemapSeed({ providedSeed, label, baseUrl, urlObj } = {}) {
+    if (providedSeed && String(providedSeed).trim()) return String(providedSeed).trim();
+    if (label && String(label).trim()) return String(label).trim();
+    if (baseUrl && String(baseUrl).trim()) return String(baseUrl).trim();
+    if (urlObj && urlObj.hostname) return urlObj.hostname;
+    return 'sitemap';
+}
+
+function shouldAnalyzeResponse({ status, contentType } = {}) {
+    if (typeof status === 'number' && status >= 400) {
+        return { ok: false, reason: `HTTP ${status}` };
+    }
+    const ct = (contentType || '').toLowerCase();
+    if (ct && !ct.includes('text/html')) {
+        return { ok: false, reason: `Skipped non-HTML content (${contentType})` };
+    }
+    return { ok: true };
 }
 
 function stringToSeed(input) {
@@ -437,4 +555,4 @@ if (process.env.NODE_ENV !== 'test') {
     main().catch(console.error);
 }
 
-export { sampleSitemapUrls, seededShuffle, stringToSeed, isLikelyHtmlUrl, fetchSitemap, shouldAllowDiscovery, selectBrowser, normalizeBrowserName };
+export { sampleSitemapUrls, seededShuffle, stringToSeed, isLikelyHtmlUrl, fetchSitemap, shouldAllowDiscovery, selectBrowser, normalizeBrowserName, resolveSitemapSeed, shouldAnalyzeResponse, extractLinks };

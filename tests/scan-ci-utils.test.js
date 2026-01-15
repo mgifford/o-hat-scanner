@@ -35,4 +35,9 @@ describe('shouldAllowDiscovery', () => {
     expect(isLikelyHtmlUrl('https://example.com/foo.PDF')).toBe(false);
     expect(isLikelyHtmlUrl('https://example.com/foo.HTML')).toBe(true);
   });
+
+  test('isLikelyHtmlUrl skips zip downloads including trailing slash', () => {
+    expect(isLikelyHtmlUrl('https://example.com/files/archive.zip')).toBe(false);
+    expect(isLikelyHtmlUrl('https://example.com/files/archive.zip/')).toBe(false);
+  });
 });

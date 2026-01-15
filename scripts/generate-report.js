@@ -272,6 +272,8 @@ function generateRunPage(runId, results, pageStats) {
         const viewportLabel = cfg.viewport === 'mobile' ? 'Mobile' : 'Desktop';
         const colorLabel = cfg.colorScheme === 'dark' ? 'Dark' : 'Light';
         const browserLabel = (cfg.browser || 'chromium').toLowerCase();
+        const samplingLabel = `${cfg.sitemapSample?.strategy || 'shuffle'}${cfg.sitemapSample?.seed ? ` (seed ${cfg.sitemapSample.seed})` : ''}`;
+        const maxPagesLabel = cfg.maxPages ?? 'N/A';
     fs.mkdirSync(runDir, { recursive: true });
 
     const html = `<!DOCTYPE html>
@@ -420,7 +422,7 @@ function generateRunPage(runId, results, pageStats) {
             </div>
             <h1>Accessibility Scan Report</h1>
             <p class="meta">
-                <strong>Scan ID:</strong> ${esc(runId)} · <strong>Date:</strong> ${runDate.toLocaleString()} · <strong>Mode:</strong> ${esc(results.mode || 'unknown')} · <strong>Viewport:</strong> ${viewportLabel} · <strong>Color:</strong> ${colorLabel}
+                <strong>Scan ID:</strong> ${esc(runId)} · <strong>Date:</strong> ${runDate.toLocaleString()} · <strong>Mode:</strong> ${esc(results.mode || 'unknown')} · <strong>Viewport:</strong> ${viewportLabel} · <strong>Color:</strong> ${colorLabel} · <strong>Max pages:</strong> ${esc(maxPagesLabel)} · <strong>Sampling:</strong> ${esc(samplingLabel)}
             </p>
             <a href="report.csv" class="download-link" download>Download CSV</a>
         </div>
@@ -537,6 +539,8 @@ function generateRunPage(runId, results, pageStats) {
                 <div style="margin-bottom: 0.25rem;">Color scheme: ${colorLabel}</div>
                 <div style="margin-bottom: 0.25rem;">Browser: ${esc(browserLabel)}</div>
                 <div style="margin-bottom: 0.25rem;">Mode: ${esc(results.mode || 'ci')}</div>
+                <div style="margin-bottom: 0.25rem;">Max pages: ${esc(maxPagesLabel)}</div>
+                <div style="margin-bottom: 0.25rem;">Sampling: ${esc(samplingLabel)}</div>
                 <div style="margin-top: 0.5rem;">Pages crawled: ${processedUrls.length}</div>
                 <div>Total occurrences: ${totalIssues}</div>
             </div>
