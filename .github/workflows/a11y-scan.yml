@@ -62,13 +62,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Restore previous Pages site (gh-pages)
+      - name: Restore prior Pages site
         run: |
           set -euo pipefail
           if git ls-remote --exit-code origin gh-pages; then
             git fetch origin gh-pages:gh-pages
             mkdir -p /tmp/gh-pages site
-            # gh-pages branch stores the built site at repo root (not inside a site/ folder)
+            # Restore gh-pages content into site/
             git --work-tree=/tmp/gh-pages checkout gh-pages -- . || true
             rsync -a /tmp/gh-pages/ site/ || true
             echo "Restored previous site content from gh-pages."
@@ -76,7 +76,7 @@ jobs:
             echo "gh-pages branch not found; skipping restore"
           fi
 
-      - name: Debug: list restored site (pre-scan)
+      - name: Debug list restored site (pre-scan)
         run: |
           set -euo pipefail
           echo "Listing site/ after restore (if any):"
@@ -214,7 +214,7 @@ jobs:
       - name: Generate Report
         run: npm run report
 
-      - name: Debug: list generated site (post-report)
+      - name: Debug list generated site (post-report)
         run: |
           set -euo pipefail
           echo "Listing site/ after report generation:"
