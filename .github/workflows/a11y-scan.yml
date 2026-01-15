@@ -62,6 +62,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Lint workflow and targets YAML
+        run: |
+          set -euo pipefail
+          ruby -e "require 'yaml'; YAML.load_file('.github/workflows/a11y-scan.yml')"
+          ruby -e "require 'yaml'; YAML.load_file('targets.yml')"
+
       - name: Restore prior Pages site
         run: |
           set -euo pipefail

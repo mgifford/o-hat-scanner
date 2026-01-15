@@ -164,6 +164,28 @@ function generateMainIndex(summaries) {
                 </tbody>
             </table>`}
         </div>
+
+        <div class="panel" style="margin-top: 1rem;" aria-labelledby="about-heading">
+            <h2 id="about-heading" style="margin-top:0;">About the dual scanner</h2>
+            <p style="line-height:1.6;">O-Hat Scanner ships two modes that share the same result schema: a CI scanner (Playwright + axe-core) and a single-file standalone scanner for same-origin use. Both emit JSON/CSV and render static, client-only reports under <code>site/</code> for GitHub Pages.</p>
+            <ul>
+                <li>CI: runs in GitHub Actions, bounded sitemap/crawl, configurable viewport/color/browser.</li>
+                <li>Reports: static HTML + CSV (Oobee columns), no backend; restored from gh-pages on each run.</li>
+                <li>Schema: see <code>scripts/shared-schema.js</code>; mode is <code>ci</code> or <code>standalone</code>.</li>
+            </ul>
+        </div>
+
+        <div class="panel" style="margin-top: 1rem;" aria-labelledby="standalone-heading">
+            <h2 id="standalone-heading" style="margin-top:0;">Standalone scanner (browser-based)</h2>
+            <p style="line-height:1.6;">Use <code>standalone/a11y-scan.html</code> (same-origin only). It discovers via <code>sitemap.xml</code> or a custom list, scans sequentially in hidden iframes with axe, and exports JSON/CSV matching the CI schema.</p>
+            <ul>
+                <li>Gate it: requires token query param; do not expose publicly.</li>
+                <li>Vendor axe: uses <code>assets/axe.min.js</code> (no CDN).</li>
+                <li>Controls: maxPages, delay, timeout, prefix filter, exclude substrings.</li>
+                <li>Outputs: CSV with Oobee headers and in-browser JSON download.</li>
+            </ul>
+            <p style="line-height:1.6;">Test pages live under <code>standalone/</code> (page1-4, blog/, auth/) with intentional issues for validation.</p>
+        </div>
     </main>
     <script>
         const themeToggle = document.querySelector('.theme-toggle');
