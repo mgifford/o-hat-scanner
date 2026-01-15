@@ -88,5 +88,8 @@ describe('generate-report run page', () => {
 
         // Node URLs should also be clickable
         expect(html).toContain('<a href="http://example.com/page1" target="_blank" rel="noopener">http://example.com/page1</a>');
+
+        // Browser is surfaced in sidebar/debug (default chromium)
+        expect(html.toLowerCase()).toContain('browser: chromium');
     });
 });

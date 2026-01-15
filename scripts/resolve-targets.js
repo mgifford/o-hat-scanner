@@ -7,7 +7,8 @@ function parseArgs() {
     output: '',
     now: '',
     filter: '',
-    respectSchedule: true
+    respectSchedule: true,
+    allowAdhoc: false
   };
 
   const argv = process.argv.slice(2);
@@ -29,6 +30,9 @@ function parseArgs() {
       case '--ignore-schedule':
         args.respectSchedule = false;
         break;
+      case '--allow-adhoc':
+        args.allowAdhoc = true;
+        break;
       default:
         break;
     }
@@ -36,18 +40,34 @@ function parseArgs() {
   return args;
 }
 
+export function resolveTargets({ file = 'targets.yml', now = new Date(), filter = '', respectSchedule = true, allowAdhoc = false } = {}) {
+  let sites = loadTargetsFile(file);
+
+  if (filter) {
+    sites = sites.filter(s => s.name === filter || s.label === filter);
+    if (allowAdhoc && sites.length === 0) {
+      sites.push({
+        name: filter,
+        baseUrl: /^https?:\/\//i.test(filter) ? filter : `https://${filter}`,
+        mode: 'sitemap',
+        maxPages: 50,
+        schedule: [],
+        label: filter
+      });
+    }
+  }
+
+  if (respectSchedule) {
+    sites = sitesDueNow(sites, now);
+  }
+
+  return sites;
+}
+
 async function main() {
   const args = parseArgs();
   const now = args.now ? new Date(args.now) : new Date();
-  let sites = loadTargetsFile(args.file);
-
-  if (args.filter) {
-    sites = sites.filter(s => s.name === args.filter || s.label === args.filter);
-  }
-
-  if (args.respectSchedule) {
-    sites = sitesDueNow(sites, now);
-  }
+  const sites = resolveTargets({ file: args.file, now, filter: args.filter, respectSchedule: args.respectSchedule, allowAdhoc: args.allowAdhoc });
 
   if (args.output) {
     fs.writeFileSync(args.output, JSON.stringify(sites, null, 2));
@@ -56,7 +76,9 @@ async function main() {
   console.log(JSON.stringify(sites, null, 2));
 }
 
-main().catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+if (process.env.NODE_ENV !== 'test') {
+  main().catch(err => {
+    console.error(err);
+    process.exit(1);
+  });
+}
