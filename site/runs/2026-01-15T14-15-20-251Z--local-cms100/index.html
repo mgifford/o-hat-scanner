@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Scan Report: 2026-01-15T14-15-20-251Z--local-cms100</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f5f5f5;
+            --panel-bg: #fff;
+            --panel-border: #e0e0e0;
+            --text: #222;
+            --muted: #666;
+            --link: #1976d2;
+            --link-visited: #5e35b1;
+            --header-grad-start: #0d47a1;
+            --header-grad-end: #1976d2;
+            --header-text: #fff;
+            --pill-critical: #d32f2f;
+            --pill-warning: #f57c00;
+            --pill-info: #1976d2;
+            --card-bg: #fafafa;
+            --bar-bg: #e0e0e0;
+            --code-bg: #f5f5f5;
+            --focus: #90caf9;
+        }
+        [data-theme="dark"] {
+            color-scheme: dark;
+            --bg: #0f141a;
+            --panel-bg: #121826;
+            --panel-border: #1f2937;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --link: #7cb7ff;
+            --link-visited: #c4b5fd;
+            --header-grad-start: #0b1f3a;
+            --header-grad-end: #163c6b;
+            --header-text: #e5e7eb;
+            --pill-critical: #ef4444;
+            --pill-warning: #f59e0b;
+            --pill-info: #3b82f6;
+            --card-bg: #1f2937;
+            --bar-bg: #1f2937;
+            --code-bg: #111827;
+            --focus: #7cb7ff;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+        a { color: var(--link); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        a:visited { color: var(--link-visited); }
+        h1, h2, h3, h4 { margin: 0; }
+
+        header { background: linear-gradient(135deg, var(--header-grad-start) 0%, var(--header-grad-end) 100%); color: var(--header-text); padding: 2rem 1rem; }
+        .header-content { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 0.5rem; }
+        .header-actions { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+        .back-link { color: var(--link); font-size: 14px; display: inline-block; }
+        .back-link:hover { color: var(--header-text); }
+        h1 { font-size: 28px; font-weight: 700; }
+        .meta { margin-top: 0.25rem; font-size: 14px; color: var(--header-text); opacity: 0.9; }
+        .meta strong { color: var(--header-text); }
+        .download-link { display: inline-block; margin-top: 0.5rem; padding: 10px 16px; background: var(--panel-bg); color: var(--header-grad-start); border-radius: 4px; font-weight: 600; border: 1px solid var(--panel-border); }
+        .download-link:hover { background: var(--card-bg); text-decoration: none; }
+
+        .container { max-width: 1200px; margin: -40px auto 0 auto; padding: 0 1rem 2rem 1rem; }
+        .layout { display: grid; grid-template-columns: 2fr 0.9fr; gap: 1.5rem; align-items: start; }
+        @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } }
+
+        .panel { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,0.04); padding: 1.5rem; }
+        .panel + .panel { margin-top: 1rem; }
+        .panel h3 { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 0.75rem; }
+        .panel small { color: var(--muted); }
+
+        .search-row { display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+        .search-input { flex: 1 1 260px; padding: 10px 12px; border: 1px solid var(--panel-border); border-radius: 4px; font-size: 14px; background: var(--panel-bg); color: var(--text); }
+        .search-input:focus { outline: 2px solid var(--focus); border-color: var(--focus); }
+
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+        .card { background: var(--card-bg); border: 1px solid var(--panel-border); border-radius: 6px; padding: 1rem; }
+        .card h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 0.35rem; }
+        .card .value { font-size: 30px; font-weight: 700; color: var(--text); }
+        .card.critical .value { color: var(--pill-critical); }
+        .card.warning .value { color: var(--pill-warning); }
+        .card.info .value { color: var(--pill-info); }
+        .card .subtext { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+        .bar { background: var(--bar-bg); height: 22px; border-radius: 4px; overflow: hidden; display: flex; margin: 10px 0; }
+        .bar-segment { height: 100%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 700; }
+        .bar-auto { background: var(--pill-info); }
+
+        .top-pages { display: grid; gap: 0.5rem; }
+        .page-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border: 1px solid var(--panel-border); border-radius: 4px; }
+        .page-row .url { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 13px; overflow-wrap: anywhere; color: var(--text); }
+        .pill { padding: 4px 10px; border-radius: 999px; font-weight: 700; font-size: 12px; white-space: nowrap; color: #fff; }
+
+        .issues-by-severity { margin-top: 1.5rem; }
+        .severity-group { border: 1px solid var(--panel-border); border-radius: 6px; overflow: hidden; margin-bottom: 1rem; }
+        .severity-header { background: var(--card-bg); padding: 1rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: none; width: 100%; text-align: left; color: var(--text); }
+        .severity-header .title { font-weight: 700; }
+        .severity-header .count { background: #e0e0e0; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 700; color: #111; }
+        [data-theme="dark"] .severity-header .count { background: #1f2937; color: var(--text); }
+        .severity-content { padding: 1rem; }
+
+        .violation-item { border-bottom: 1px solid var(--panel-border); padding: 0.75rem 0; }
+        .violation-item:last-child { border-bottom: none; }
+        .violation-id { font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color: var(--text); }
+        .violation-help { color: var(--muted); margin: 4px 0 6px 0; }
+        .violation-meta { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+        .node-list { background: var(--card-bg); border: 1px solid var(--panel-border); border-radius: 4px; padding: 10px; font-size: 13px; }
+        .node-item { margin-bottom: 8px; }
+        .node-item:last-child { margin-bottom: 0; }
+        .node-url { font-weight: 700; color: var(--text); }
+        .node-selector { color: var(--link); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        .node-html { margin-top: 4px; color: var(--text); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; overflow-wrap: anywhere; background: var(--code-bg); padding: 6px; border-radius: 4px; }
+
+        .pill-critical { background: var(--pill-critical); }
+        .pill-warning { background: var(--pill-warning); }
+        .pill-info { background: var(--pill-info); }
+
+        .no-violations { background: #11321b; border: 1px solid #1f5d2f; border-radius: 6px; padding: 1rem; color: #b7f7c0; font-weight: 600; }
+        [data-theme="light"] .no-violations { background: #e8f5e9; border-color: #c8e6c9; color: #2e7d32; }
+
+        .back-link:focus,
+        .download-link:focus,
+        .search-input:focus,
+        .severity-header:focus,
+        .debug-accordion summary:focus,
+        .theme-toggle:focus {
+            outline: 2px solid var(--focus);
+            outline-offset: 2px;
+        }
+
+        .theme-toggle { background: var(--panel-bg); color: var(--text); border: 1px solid var(--panel-border); border-radius: 4px; padding: 8px 12px; cursor: pointer; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <a href="#main" style="position:absolute;left:-999px;top:-999px;">Skip to main content</a>
+    <header>
+        <div class="header-content">
+            <div class="header-actions">
+                <a href="../../index.html" class="back-link">← Back to all runs</a>
+                <button class="theme-toggle" type="button" aria-label="Toggle light or dark mode">Toggle light/dark</button>
+            </div>
+            <h1>Accessibility Scan Report</h1>
+            <p class="meta">
+                <strong>Scan ID:</strong> 2026-01-15T14-15-20-251Z--local-cms100 · <strong>Date:</strong> 1/15/2026, 9:15:20 AM · <strong>Mode:</strong> ci · <strong>Viewport:</strong> Desktop · <strong>Color:</strong> Light
+            </p>
+            <a href="report.csv" class="download-link" download>Download CSV</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="layout">
+            <!-- Main column -->
+            <div class="panel">
+                <div class="search-row">
+                    <label for="issueSearch">Search issues</label>
+                    <input id="issueSearch" class="search-input" type="search" placeholder="Search issues (ID, description, page)..." aria-label="Search issues">
+                </div>
+
+                <div class="summary-grid">
+                    <div class="card">
+                        <h4>Pages scanned</h4>
+                        <div class="value">100</div>
+                        <div class="subtext">Targets from sitemap or config</div>
+                    </div>
+                    <div class="card">
+                        <h4>Pages with issues</h4>
+                        <div class="value">29</div>
+                        <div class="subtext">29% of pages</div>
+                    </div>
+                    <div class="card critical">
+                        <h4>Must Fix</h4>
+                        <div class="value">139</div>
+                        <div class="subtext">Critical / Serious impacts</div>
+                    </div>
+                    <div class="card warning">
+                        <h4>Good to Fix</h4>
+                        <div class="value">6</div>
+                        <div class="subtext">Moderate / Minor impacts</div>
+                    </div>
+                    <div class="card info">
+                        <h4>Manual review</h4>
+                        <div class="value">0</div>
+                        <div class="subtext">Potential false positives</div>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 1rem;">
+                    <h3>WCAG compliance snapshot</h3>
+                    <small>Automated coverage only; manual verification still required.</small>
+                    <div class="bar" aria-label="Automation coverage">
+                        <div class="bar-segment bar-auto" style="width: 33%">33% automation</div>
+                        <div class="bar-segment" style="background:#e0e0e0; width: 67%"></div>
+                    </div>
+                </div>
+
+                
+                <div class="panel" style="margin-top: 1rem;">
+                    <h3>Top pages to review</h3>
+                    <div class="top-pages">
+                        
+                            <div class="page-row">
+                                <div class="url"><a href="https://www.cms.gov/regulations-and-guidance/review-boards/prrbreview/list-of-prrb-decisions-items/2014d28" target="_blank" rel="noopener">https://www.cms.gov/regulations-and-guidance/review-boards/prrbreview/list-of-prrb-decisions-items/2014d28</a></div>
+                                <span class="pill pill-critical">5 issues</span>
+                            </div>
+                        
+                            <div class="page-row">
+                                <div class="url"><a href="https://www.cms.gov/newsroom/press-releases/medicare-trustees-report-shows-hospital-insurance-trust-fund-will-deplete-7-years" target="_blank" rel="noopener">https://www.cms.gov/newsroom/press-releases/medicare-trustees-report-shows-hospital-insurance-trust-fund-will-deplete-7-years</a></div>
+                                <span class="pill pill-critical">5 issues</span>
+                            </div>
+                        
+                            <div class="page-row">
+                                <div class="url"><a href="https://www.cms.gov/regulations-and-guidance/review-boards/prrbreview/list-of-prrb-decisions-items/1998d107" target="_blank" rel="noopener">https://www.cms.gov/regulations-and-guidance/review-boards/prrbreview/list-of-prrb-decisions-items/1998d107</a></div>
+                                <span class="pill pill-critical">5 issues</span>
+                            </div>
+                        
+                            <div class="page-row">
+                                <div class="url"><a href="https://www.cms.gov/medicare/coverage/investigational-device-exemption-ide-studies/approved/g230236-nct06264232" target="_blank" rel="noopener">https://www.cms.gov/medicare/coverage/investigational-device-exemption-ide-studies/approved/g230236-nct06264232</a></div>
+                                <span class="pill pill-critical">5 issues</span>
+                            </div>
+                        
+                            <div class="page-row">
+                                <div class="url"><a href="https://www.cms.gov/regulations-and-guidance/guidance/transmittals/cms-program-memoranda-items/cms025146" target="_blank" rel="noopener">https://www.cms.gov/regulations-and-guidance/guidance/transmittals/cms-program-memoranda-items/cms025146</a></div>
+                                <span class="pill pill-critical">5 issues</span>
+                            </div>
+                        
+                    </div>
+                </div>
+
+                <div class="panel issues-by-severity" style="margin-top: 1rem;">
+                    <h3>Issues grouped by impact</h3>
+                    
+                        <div class="severity-group" data-severity="critical">
+                            <button class="severity-header" type="button" aria-expanded="true">
+                                <span class="title">Must Fix</span>
+                                <span class="count pill-critical">139 occurrences</span>
+                            </button>
+                            <div class="severity-content">
+                                
+                                    <div class="violation-item" data-violation="aria-hidden-focus">
+                                        <div class="violation-id">aria-hidden-focus</div>
+                                        <div class="violation-help">ARIA hidden element must not be focusable or contain focusable elements</div>
+                                        <div class="violation-meta">Impact: serious · Pages with issue: 27</div>
+                                        <div><a href="https://dequeuniversity.com/rules/axe/4.11/aria-hidden-focus?application=playwright" target="_blank" rel="noopener">Learn more</a></div>
+                                        <div class="node-list">
+                                            
+                                                <div class="node-item">
+                                                    <div class="node-url"><a href="https://www.cms.gov/regulations-and-guidance/review-boards/prrbreview/list-of-prrb-decisions-items/2014d28" target="_blank" rel="noopener">https://www.cms.gov/regulations-and-guidance/review-boards/prrbreview/list-of-prrb-decisions-items/2014d28</a> (5 nodes)</div>
+                                                    
+                                                        <div class="node-selector">Selector: #link-list-block-cms-evo-cmshhswebsitescmsglobalfooter-menu</div>
+                                                        <div class="node-html">&lt;div id=&quot;link-list-block-cms-evo-cmshhswebsitescmsglobalfooter-menu&quot; aria-hidden=&quot;true&quot; class=&quot;cms--link-list__links&quot;&gt;</div>
+                                                        <div class="node-html">Fix all of the following:
+  Focusable content should have tabindex=&quot;-1&quot; or be removed from the DOM</div>
+                                                    
+                                                </div>
+                                            
+                                                <div class="node-item">
+                                                    <div class="node-url"><a href="https://www.cms.gov/newsroom/press-releases/medicare-trustees-report-shows-hospital-insurance-trust-fund-will-deplete-7-years" target="_blank" rel="noopener">https://www.cms.gov/newsroom/press-releases/medicare-trustees-report-shows-hospital-insurance-trust-fund-will-deplete-7-years</a> (5 nodes)</div>
+                                                    
+                                                        <div class="node-selector">Selector: #link-list-block-cms-evo-cmshhswebsitescmsglobalfooter-menu</div>
+                                                        <div class="node-html">&lt;div id=&quot;link-list-block-cms-evo-cmshhswebsitescmsglobalfooter-menu&quot; aria-hidden=&quot;true&quot; class=&quot;cms--link-list__links&quot;&gt;</div>
+                                                        <div class="node-html">Fix all of the following:
+  Focusable content should have tabindex=&quot;-1&quot; or be removed from the DOM</div>
+                                                    
+                                                </div>
+                                            
+                                                <div class="node-item">
+                                                    <div class="node-url"><a href="https://www.cms.gov/regulations-and-guidance/review-boards/prrbreview/list-of-prrb-decisions-items/1998d107" target="_blank" rel="noopener">https://www.cms.gov/regulations-and-guidance/review-boards/prrbreview/list-of-prrb-decisions-items/1998d107</a> (5 nodes)</div>
+                                                    
+                                                        <div class="node-selector">Selector: #link-list-block-cms-evo-cmshhswebsitescmsglobalfooter-menu</div>
+                                                        <div class="node-html">&lt;div id=&quot;link-list-block-cms-evo-cmshhswebsitescmsglobalfooter-menu&quot; aria-hidden=&quot;true&quot; class=&quot;cms--link-list__links&quot;&gt;</div>
+                                                        <div class="node-html">Fix all of the following:
+  Focusable content should have tabindex=&quot;-1&quot; or be removed from the DOM</div>
+                                                    
+                                                </div>
+                                            
+                                                <div class="node-item">
+                                                    <div class="node-url"><a href="https://www.cms.gov/medicare/coverage/investigational-device-exemption-ide-studies/approved/g230236-nct06264232" target="_blank" rel="noopener">https://www.cms.gov/medicare/coverage/investigational-device-exemption-ide-studies/approved/g230236-nct06264232</a> (5 nodes)</div>
+                                                    
+                                                        <div class="node-selector">Selector: #link-list-block-cms-evo-cmshhswebsitescmsglobalfooter-menu</div>
+                                                        <div class="node-html">&lt;div id=&quot;link-list-block-cms-evo-cmshhswebsitescmsglobalfooter-menu&quot; aria-hidden=&quot;true&quot; class=&quot;cms--link-list__links&quot;&gt;</div>
+                                                        <div class="node-html">Fix all of the following:
+  Focusable content should have tabindex=&quot;-1&quot; or be removed from the DOM</div>
+                                                    
+                                                </div>
+                                            
+                                                <div class="node-item">
+                                                    <div class="node-url"><a href="https://www.cms.gov/regulations-and-guidance/guidance/transmittals/cms-program-memoranda-items/cms025146" target="_blank" rel="noopener">https://www.cms.gov/regulations-and-guidance/guidance/transmittals/cms-program-memoranda-items/cms025146</a> (5 nodes)</div>
+                                                    
+                                                        <div class="node-selector">Selector: #link-list-block-cms-evo-cmshhswebsitescmsglobalfooter-menu</div>
+                                                        <div class="node-html">&lt;div id=&quot;link-list-block-cms-evo-cmshhswebsitescmsglobalfooter-menu&quot; aria-hidden=&quot;true&quot; class=&quot;cms--link-list__links&quot;&gt;</div>
+                                                        <div class="node-html">Fix all of the following:
+  Focusable content should have tabindex=&quot;-1&quot; or be removed from the DOM</div>
+                                                    
+                                                </div>
+                                            
+                                            <div class="node-item">... 22 more pages</div>
+                                        </div>
+                                    </div>
+                                
+                                    <div class="violation-item" data-violation="document-title">
+                                        <div class="violation-id">document-title</div>
+                                        <div class="violation-help">Documents must have &lt;title&gt; element to aid in navigation</div>
+                                        <div class="violation-meta">Impact: serious · Pages with issue: 2</div>
+                                        <div><a href="https://dequeuniversity.com/rules/axe/4.11/document-title?application=playwright" target="_blank" rel="noopener">Learn more</a></div>
+                                        <div class="node-list">
+                                            
+                                                <div class="node-item">
+                                                    <div class="node-url"><a href="https://www.cms.gov/files/document/2015-mcbs-puf-codebook.txt" target="_blank" rel="noopener">https://www.cms.gov/files/document/2015-mcbs-puf-codebook.txt</a> (1 node)</div>
+                                                    
+                                                        <div class="node-selector">Selector: html</div>
+                                                        <div class="node-html">&lt;html&gt;</div>
+                                                        <div class="node-html">Fix any of the following:
+  Document does not have a non-empty &lt;title&gt; element</div>
+                                                    
+                                                </div>
+                                            
+                                                <div class="node-item">
+                                                    <div class="node-url"><a href="https://www.cms.gov/files/document/2020-hcpcs-noc-codes.txt" target="_blank" rel="noopener">https://www.cms.gov/files/document/2020-hcpcs-noc-codes.txt</a> (1 node)</div>
+                                                    
+                                                        <div class="node-selector">Selector: html</div>
+                                                        <div class="node-html">&lt;html&gt;</div>
+                                                        <div class="node-html">Fix any of the following:
+  Document does not have a non-empty &lt;title&gt; element</div>
+                                                    
+                                                </div>
+                                            
+                                            
+                                        </div>
+                                    </div>
+                                
+                                    <div class="violation-item" data-violation="html-has-lang">
+                                        <div class="violation-id">html-has-lang</div>
+                                        <div class="violation-help">&lt;html&gt; element must have a lang attribute</div>
+                                        <div class="violation-meta">Impact: serious · Pages with issue: 2</div>
+                                        <div><a href="https://dequeuniversity.com/rules/axe/4.11/html-has-lang?application=playwright" target="_blank" rel="noopener">Learn more</a></div>
+                                        <div class="node-list">
+                                            
+                                                <div class="node-item">
+                                                    <div class="node-url"><a href="https://www.cms.gov/files/document/2015-mcbs-puf-codebook.txt" target="_blank" rel="noopener">https://www.cms.gov/files/document/2015-mcbs-puf-codebook.txt</a> (1 node)</div>
+                                                    
+                                                        <div class="node-selector">Selector: html</div>
+                                                        <div class="node-html">&lt;html&gt;</div>
+                                                        <div class="node-html">Fix any of the following:
+  The &lt;html&gt; element does not have a lang attribute</div>
+                                                    
+                                                </div>
+                                            
+                                                <div class="node-item">
+                                                    <div class="node-url"><a href="https://www.cms.gov/files/document/2020-hcpcs-noc-codes.txt" target="_blank" rel="noopener">https://www.cms.gov/files/document/2020-hcpcs-noc-codes.txt</a> (1 node)</div>
+                                                    
+                                                        <div class="node-selector">Selector: html</div>
+                                                        <div class="node-html">&lt;html&gt;</div>
+                                                        <div class="node-html">Fix any of the following:
+  The &lt;html&gt; element does not have a lang attribute</div>
+                                                    
+                                                </div>
+                                            
+                                            
+                                        </div>
+                                    </div>
+                                
+                            </div>
+                        </div>
+                        <div class="severity-group" data-severity="moderate">
+                            <button class="severity-header" type="button" aria-expanded="false">
+                                <span class="title">Good to Fix</span>
+                                <span class="count pill-warning">6 occurrences</span>
+                            </button>
+                            <div class="severity-content">
+                                
+                                    <div class="violation-item" data-violation="landmark-one-main">
+                                        <div class="violation-id">landmark-one-main</div>
+                                        <div class="violation-help">Document should have one main landmark</div>
+                                        <div class="violation-meta">Impact: moderate · Pages with issue: 2</div>
+                                        <div><a href="https://dequeuniversity.com/rules/axe/4.11/landmark-one-main?application=playwright" target="_blank" rel="noopener">Learn more</a></div>
+                                        <div class="node-list">
+                                            
+                                                <div class="node-item">
+                                                    <div class="node-url"><a href="https://www.cms.gov/files/document/2015-mcbs-puf-codebook.txt" target="_blank" rel="noopener">https://www.cms.gov/files/document/2015-mcbs-puf-codebook.txt</a> (1 node)</div>
+                                                    
+                                                        <div class="node-selector">Selector: html</div>
+                                                        <div class="node-html">&lt;html&gt;</div>
+                                                        <div class="node-html">Fix all of the following:
+  Document does not have a main landmark</div>
+                                                    
+                                                </div>
+                                            
+                                                <div class="node-item">
+                                                    <div class="node-url"><a href="https://www.cms.gov/files/document/2020-hcpcs-noc-codes.txt" target="_blank" rel="noopener">https://www.cms.gov/files/document/2020-hcpcs-noc-codes.txt</a> (1 node)</div>
+                                                    
+                                                        <div class="node-selector">Selector: html</div>
+                                                        <div class="node-html">&lt;html&gt;</div>
+                                                        <div class="node-html">Fix all of the following:
+  Document does not have a main landmark</div>
+                                                    
+                                                </div>
+                                            
+                                            
+                                        </div>
+                                    </div>
+                                
+                                    <div class="violation-item" data-violation="page-has-heading-one">
+                                        <div class="violation-id">page-has-heading-one</div>
+                                        <div class="violation-help">Page should contain a level-one heading</div>
+                                        <div class="violation-meta">Impact: moderate · Pages with issue: 2</div>
+                                        <div><a href="https://dequeuniversity.com/rules/axe/4.11/page-has-heading-one?application=playwright" target="_blank" rel="noopener">Learn more</a></div>
+                                        <div class="node-list">
+                                            
+                                                <div class="node-item">
+                                                    <div class="node-url"><a href="https://www.cms.gov/files/document/2015-mcbs-puf-codebook.txt" target="_blank" rel="noopener">https://www.cms.gov/files/document/2015-mcbs-puf-codebook.txt</a> (1 node)</div>
+                                                    
+                                                        <div class="node-selector">Selector: html</div>
+                                                        <div class="node-html">&lt;html&gt;</div>
+                                                        <div class="node-html">Fix all of the following:
+  Page must have a level-one heading</div>
+                                                    
+                                                </div>
+                                            
+                                                <div class="node-item">
+                                                    <div class="node-url"><a href="https://www.cms.gov/files/document/2020-hcpcs-noc-codes.txt" target="_blank" rel="noopener">https://www.cms.gov/files/document/2020-hcpcs-noc-codes.txt</a> (1 node)</div>
+                                                    
+                                                        <div class="node-selector">Selector: html</div>
+                                                        <div class="node-html">&lt;html&gt;</div>
+                                                        <div class="node-html">Fix all of the following:
+  Page must have a level-one heading</div>
+                                                    
+                                                </div>
+                                            
+                                            
+                                        </div>
+                                    </div>
+                                
+                                    <div class="violation-item" data-violation="region">
+                                        <div class="violation-id">region</div>
+                                        <div class="violation-help">All page content should be contained by landmarks</div>
+                                        <div class="violation-meta">Impact: moderate · Pages with issue: 2</div>
+                                        <div><a href="https://dequeuniversity.com/rules/axe/4.11/region?application=playwright" target="_blank" rel="noopener">Learn more</a></div>
+                                        <div class="node-list">
+                                            
+                                                <div class="node-item">
+                                                    <div class="node-url"><a href="https://www.cms.gov/files/document/2015-mcbs-puf-codebook.txt" target="_blank" rel="noopener">https://www.cms.gov/files/document/2015-mcbs-puf-codebook.txt</a> (1 node)</div>
+                                                    
+                                                        <div class="node-selector">Selector: pre</div>
+                                                        <div class="node-html">&lt;pre style=&quot;word-wrap: break-word; white-space: pre-wrap;&quot;&gt;</div>
+                                                        <div class="node-html">Fix any of the following:
+  Some page content is not contained by landmarks</div>
+                                                    
+                                                </div>
+                                            
+                                                <div class="node-item">
+                                                    <div class="node-url"><a href="https://www.cms.gov/files/document/2020-hcpcs-noc-codes.txt" target="_blank" rel="noopener">https://www.cms.gov/files/document/2020-hcpcs-noc-codes.txt</a> (1 node)</div>
+                                                    
+                                                        <div class="node-selector">Selector: pre</div>
+                                                        <div class="node-html">&lt;pre style=&quot;word-wrap: break-word; white-space: pre-wrap;&quot;&gt;</div>
+                                                        <div class="node-html">Fix any of the following:
+  Some page content is not contained by landmarks</div>
+                                                    
+                                                </div>
+                                            
+                                            
+                                        </div>
+                                    </div>
+                                
+                            </div>
+                        </div>
+                    
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="panel">
+                <h3>About this scan</h3>
+                <div style="margin-bottom: 0.5rem; font-weight: 600;">1/15/2026, 9:15:20 AM (America/Toronto)</div>
+                <div style="margin-bottom: 0.25rem;">Target: https://www.cms.gov</div>
+                <div style="margin-bottom: 0.25rem;">Viewport: Desktop</div>
+                <div style="margin-bottom: 0.25rem;">Color scheme: Light</div>
+                <div style="margin-bottom: 0.25rem;">Browser: chromium</div>
+                <div style="margin-bottom: 0.25rem;">Mode: ci</div>
+                <div style="margin-top: 0.5rem;">Pages crawled: 100</div>
+                <div>Total occurrences: 145</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" aria-label="Debug information" style="margin-top: 0;">
+        <div class="panel" style="margin-top: 1rem; background-color: #f5f0d9; border: 1px solid #d8cfa3;">
+            <details class="debug-accordion">
+                <summary style="cursor: pointer; font-weight: 600; outline: none;">Debug info (run config)</summary>
+                <div style="margin-top: 0.75rem;">
+                    <ul style="margin-top: 0.25rem; padding-left: 1.25rem; line-height: 1.5;">
+                        <li>Mode: ci</li>
+                        <li>Viewport: desktop</li>
+                        <li>Color scheme: light</li>
+                        <li>Browser: chromium</li>
+                        <li>Max pages: 100</li>
+                        <li>Concurrency: 2</li>
+                        <li>Timeout (ms): 30000</li>
+                        <li>Base URL: https://www.cms.gov</li>
+                        <li>Targets: https://www.cms.gov</li>
+                        <li>Sampling: shuffle </li>
+                        <li>Results URLs: 100</li>
+                        <li>Finished: 2026-01-15T14:18:51.775Z</li>
+                    </ul>
+                    
+            <div style="margin-top: 1rem;">
+                <h4 style="margin-bottom: 0.5rem;">Errors</h4>
+                <ul style="padding-left: 1.25rem; line-height: 1.5;">
+                    <li><strong>https://www.cms.gov/files/document/korean-article-medicare-open-enrollment-beneficiarypdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/korean-article-medicare-open-enrollment-beneficiarypdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/priorities/innovation/media/document/vbid-cy2023-non-hospice-monitoring</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/priorities/innovation/media/document/vbid-cy2023-non-hospice-monitoring&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/appatemplatefieldcrosswalk-ver2-033015pdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/appatemplatefieldcrosswalk-ver2-033015pdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/ppofactsheetpdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/ppofactsheetpdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/20140123-ep-puf-gendocpdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/20140123-ep-puf-gendocpdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/zip/cy18-formulary-reference-file05-23-17zip</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/zip/cy18-formulary-reference-file05-23-17zip&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/method-technicalpdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/method-technicalpdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/ab-june-2015-newsletterpdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/ab-june-2015-newsletterpdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/2016medicarepartdwb508pdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/2016medicarepartdwb508pdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/cms-20069-comm-sensorypdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/cms-20069-comm-sensorypdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/aco-prev-evaluation-codes-csv.csv</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/aco-prev-evaluation-codes-csv.csv&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/zip/pgpsitevisitreportszip</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/zip/pgpsitevisitreportszip&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/attachment-b-asc.pdf-0</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/attachment-b-asc.pdf-0&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/zip/meetingminuteszip</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/zip/meetingminuteszip&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/bpci-adv-my8-alt-qm-fs</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/bpci-adv-my8-alt-qm-fs&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/dsnpmedicaremedicaidcoordbenefitsfaqs.pdf-0</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/dsnpmedicaremedicaidcoordbenefitsfaqs.pdf-0&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/hcfr-91-supp-035pdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/hcfr-91-supp-035pdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/zip/snffy2012releasefileszip</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/zip/snffy2012releasefileszip&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/prior-authorization-metrics-reporting-overview-template.pdf-1</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/prior-authorization-metrics-reporting-overview-template.pdf-1&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/perm-manual.pdf-0</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/perm-manual.pdf-0&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/regulations-and-guidance/guidance/transmittals/downloads/dwnlds/r320cppdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/regulations-and-guidance/guidance/transmittals/downloads/dwnlds/r320cppdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/research-statistics-data-and-systems/research/healthcarefinancingreview/list-of-past-articles-items/cms1191793</strong>: page.goto: Timeout 30000ms exceeded.
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/research-statistics-data-and-systems/research/healthcarefinancingreview/list-of-past-articles-items/cms1191793&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/nghptech092111pdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/nghptech092111pdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/mdpp-suppliersummit-day2</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/mdpp-suppliersummit-day2&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/zip/2017mod-0getting-started-medicarefinal5083zip</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/zip/2017mod-0getting-started-medicarefinal5083zip&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/zip/2003nondualmozip</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/zip/2003nondualmozip&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/reporting-casepdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/reporting-casepdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/media/548131</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/media/548131&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/genericclaim-worksheet112415pdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/genericclaim-worksheet112415pdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/2001nondualcapdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/2001nondualcapdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/txmodelmaterialsmemocy2024g.pdf-0</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/txmodelmaterialsmemocy2024g.pdf-0&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/maxdod2009updatepdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/maxdod2009updatepdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/hpmsmemocovid-19flexibilitiesreminder08202021.pdf-0</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/hpmsmemocovid-19flexibilitiesreminder08202021.pdf-0&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/i9-form.pdf-0</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/i9-form.pdf-0&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/nov1611nghptranspdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/nov1611nghptranspdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/copy-final-2024-av-calculator.xlsm</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/copy-final-2024-av-calculator.xlsm&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/zip/2003dualarzip</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/zip/2003dualarzip&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/zip/mlnbadgegeneralzip</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/zip/mlnbadgegeneralzip&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/zip/ketchum-registrations-statezip</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/zip/ketchum-registrations-statezip&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/mmsea-111-270271-health-care-eligibility-benefit-inquiry-and-response-companion-guide-mandatory.pdf-1</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/mmsea-111-270271-health-care-eligibility-benefit-inquiry-and-response-companion-guide-mandatory.pdf-1&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/refiningyourversion5010upgradepdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/refiningyourversion5010upgradepdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/2021-medicaid-chip-supplemental-improper-payment-data.pdf-1</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/2021-medicaid-chip-supplemental-improper-payment-data.pdf-1&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/2007nondualdcpdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/2007nondualdcpdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/zip/finalcy2014reportingappendixmaattachmentszip</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/zip/finalcy2014reportingappendixmaattachmentszip&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/zip/jan-1-dec-2024-geographically-adjusted-payment-rates-monoclonal-antibody-administration-zip-claims.zip-0</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/zip/jan-1-dec-2024-geographically-adjusted-payment-rates-monoclonal-antibody-administration-zip-claims.zip-0&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/2023februarypaininterviewcuecardspdf.pdf-2</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/2023februarypaininterviewcuecardspdf.pdf-2&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/april-2013-medicaid-ehr-incentive-paymentspdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/april-2013-medicaid-ehr-incentive-paymentspdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/zip/msn-message-tablezip</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/zip/msn-message-tablezip&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/2003allbeneskypdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/2003allbeneskypdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/zip/july-2024.zip-0</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/zip/july-2024.zip-0&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/march-2015-unique-count-providers-statespdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/march-2015-unique-count-providers-statespdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/april-2013-payments-state-program-and-providerpdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/april-2013-payments-state-program-and-providerpdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/priorities/innovation/media/document/hhvbp-newsletter-july2022</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/priorities/innovation/media/document/hhvbp-newsletter-july2022&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/zip/2004allbenesflzip</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/zip/2004allbenesflzip&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/epcs-frequently-asked-questions.pdf-0</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/epcs-frequently-asked-questions.pdf-0&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/usermanualfimacadminpdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/usermanualfimacadminpdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/approved-attachment-a2016-2017pdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/approved-attachment-a2016-2017pdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/wp02-logicalaccesspdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/wp02-logicalaccesspdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/zip/cms-855izip</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/zip/cms-855izip&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/zip/manufacturer-discount-program-july-2025-phase-eligible-ndc9-zip.zip-0</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/zip/manufacturer-discount-program-july-2025-phase-eligible-ndc9-zip.zip-0&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/mma649dmdataabstractiondefinitionspdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/mma649dmdataabstractiondefinitionspdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/regulations-and-guidance/guidance/transmittals/downloads/dwnlds/r1275cppdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/regulations-and-guidance/guidance/transmittals/downloads/dwnlds/r1275cppdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/macra-funding-opportunity-webinar-slides-2018-03-27pdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/macra-funding-opportunity-webinar-slides-2018-03-27pdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/zip/2020-cms-foia-logs.zip-0</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/zip/2020-cms-foia-logs.zip-0&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/zip/monthly-enrollment-cpsc-march-2025.zip-0</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/zip/monthly-enrollment-cpsc-march-2025.zip-0&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/zip/sascopylibsk05062014zip</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/zip/sascopylibsk05062014zip&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li><li><strong>https://www.cms.gov/files/document/08springpg81pdf</strong>: page.goto: Download is starting
+Call log:
+[2m  - navigating to &quot;https://www.cms.gov/files/document/08springpg81pdf&quot;, waiting until &quot;domcontentloaded&quot;[22m
+</li>
+                </ul>
+            </div>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <script>
+        // Toggle severity blocks (keyboard accessible)
+        document.querySelectorAll('.severity-header').forEach(header => {
+            const content = header.nextElementSibling;
+            if (header.getAttribute('aria-expanded') === 'true') {
+                content.style.display = 'block';
+            }
+            header.addEventListener('click', () => {
+                const expanded = header.getAttribute('aria-expanded') === 'true';
+                header.setAttribute('aria-expanded', String(!expanded));
+                content.style.display = expanded ? 'none' : 'block';
+            });
+        });
+
+        // Simple search filtering across issue text and IDs
+        const searchInput = document.getElementById('issueSearch');
+        searchInput?.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('.violation-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(term) ? 'block' : 'none';
+            });
+        });
+
+        // Theme toggle with persistence
+        const themeToggle = document.querySelector('.theme-toggle');
+        const root = document.documentElement;
+        const saved = localStorage.getItem('report-theme');
+        if (saved === 'dark' || (saved === null && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            root.setAttribute('data-theme', 'dark');
+        }
+        themeToggle?.addEventListener('click', () => {
+            const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            root.setAttribute('data-theme', next);
+            localStorage.setItem('report-theme', next);
+        });
+    </script>
+</body>
+</html>
