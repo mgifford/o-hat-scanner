@@ -68,15 +68,6 @@ sites:
     label: dsc-weekly
     notes: Digital Services Coalition
 
-  - name: energy.gov
-    baseUrl: https://www.energy.gov
-    mode: sitemap
-    maxPages: 50
-    schedule:
-      - "30 5 * * SUN" # 12:30am ET Sunday
-    label: energy-weekly
-    notes: US Department of Energy
-
   - name: canada.ca
     baseUrl: https://www.canada.ca
     mode: sitemap
