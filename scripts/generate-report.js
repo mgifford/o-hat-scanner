@@ -129,7 +129,16 @@ function generateMainIndex(summaries) {
                 <label for="runSearch">Filter runs</label>
                 <input id="runSearch" class="search-input" type="search" placeholder="Search by run ID or label" aria-label="Filter runs">
             </div>
-            ${summaries.length === 0 ? `<p>No runs found yet. Trigger a scan to populate this list.</p>` : `
+            ${summaries.length === 0 ? `<div role="status" style="line-height:1.6;">
+                <p><strong>No runs found to display.</strong></p>
+                <p>Possible reasons:</p>
+                <ul>
+                    <li>First deploy: gh-pages restore skipped because the branch does not exist yet.</li>
+                    <li>No targets were due or a manual dispatch did not include any sites/URLs.</li>
+                    <li>Pages is not pointed at GitHub Actions (Settings → Pages).</li>
+                </ul>
+                <p>Next steps: run the <em>a11y-scan</em> workflow manually (pick a site like civicactions.com), then re-open this page. You can also run locally with <code>npm run scan:ci</code> followed by <code>npm run report</code> to inspect <code>site/index.html</code>.</p>
+            </div>` : `
             <table aria-label="Scan runs">
                 <thead>
                     <tr>

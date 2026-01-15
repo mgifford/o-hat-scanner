@@ -6,6 +6,14 @@ This repository provides two accessibility scanning modes:
 1. **CI Scanner**: Runs in GitHub Actions using Playwright + Axe, producing a static HTML report.
 2. **Standalone Scanner**: A single HTML file you can drop into your website to scan it from the inside (same-origin).
 
+## ℹ️ Where the reports live (GitHub Pages)
+
+- Reports are generated into `site/` during CI and deployed via the **GitHub Pages** workflow artifact (`github-pages`). The `site/` folder is not committed to the repo.
+- The workflow first tries to restore prior runs from a `gh-pages` branch. If that branch does not exist yet, the restore step does nothing; the first successful deploy will create `gh-pages` for you.
+- To view reports: after a successful `a11y-scan` run, open the run logs → **deploy-pages** step → copy the published URL (typically `https://<user>.github.io/<repo>/`).
+- If you see a 404 despite a “Pages deployment reported success”, check **Settings → Pages** and ensure **Source = GitHub Actions**. Then re-run the workflow (or push to trigger) so a fresh artifact is deployed.
+- If you need a local copy, run `npm run report` after scans; open `site/index.html` locally.
+
 ## 🚀 Quick Start (CI Mode)
 
 1. **Install dependencies**:
