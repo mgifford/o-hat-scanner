@@ -77,11 +77,19 @@ function generateMainIndex(summaries) {
         .feature p { margin: 0.5rem 0; line-height: 1.5; }
         .reports-section { background: #fff; padding: 2rem; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin: 2rem 0; }
         .reports-section h2 { color: #0d47a1; margin-top: 0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid #ddd; }
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; min-width: 720px; }
+        th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid #ddd; vertical-align: top; }
         th { background: #f4f4f4; font-weight: 600; }
+        .sort-btn { background: transparent; border: none; font: inherit; color: #0d47a1; cursor: pointer; padding: 0; }
+        .sort-btn:focus { outline: 2px solid #0d47a1; outline-offset: 2px; }
         .status-pass { color: green; }
         .status-fail { color: red; font-weight: bold; }
+        .target-cell { display: flex; flex-direction: column; gap: 4px; }
+        .target-main { font-weight: 700; }
+        .target-meta { font-size: 12px; color: #555; }
+        .run-id { font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; opacity: 0.6; }
+        tr:hover .run-id, tr:focus-within .run-id { opacity: 1; }
         footer { text-align: center; padding: 2rem 1rem; color: #666; font-size: 14px; }
     </style>
 </head>
@@ -128,30 +136,44 @@ function generateMainIndex(summaries) {
             <h2>Recent Scan Reports</h2>
             ${summaries.length === 0 ? '<p>No scan reports yet. Check back after the first scan completes.</p>' : `
             <p>View detailed accessibility reports from recent scans:</p>
-            <table>
+            <div class="table-wrapper">
+            <table aria-live="polite">
                 <thead>
                     <tr>
-                        <th>Run ID</th>
-                        <th>Date</th>
-                        <th>Pages</th>
-                        <th>Pages with Issues</th>
-                        <th>Total Issues</th>
+                        <th><button class="sort-btn" data-sort="startedAt">Date</button></th>
+                        <th><button class="sort-btn" data-sort="target">Target</button></th>
+                        <th><button class="sort-btn" data-sort="viewport">Viewport</button></th>
+                        <th><button class="sort-btn" data-sort="colorScheme">Color</button></th>
+                        <th><button class="sort-btn" data-sort="browser">Browser</button></th>
+                        <th><button class="sort-btn" data-sort="pagesScanned">Pages</button></th>
+                        <th><button class="sort-btn" data-sort="totalViolations">Total occurrences</button></th>
                         <th>Report</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${summaries.map(s => `
-                        <tr>
-                            <td><code>${s.runId}</code></td>
-                            <td>${new Date(s.startedAt).toLocaleString()}</td>
-                            <td>${s.pagesScanned}</td>
-                            <td>${s.pagesWithViolations}</td>
-                            <td class="${s.totalViolations > 0 ? 'status-fail' : 'status-pass'}">${s.totalViolations}</td>
-                            <td><a href="runs/${s.runId}/index.html">View →</a></td>
-                        </tr>
-                    `).join('')}
+                    ${summaries.map((s, i) => {
+                        const started = s.startedAt ? new Date(s.startedAt).toLocaleString() : 'N/A';
+                        const runShort = s.runId ? `${s.runId.slice(0, 8)}…` : 'n/a';
+                        return `
+                        <tr data-started-at="${esc(s.startedAt || '')}" data-target="${esc(s.target || '')}" data-viewport="${esc(s.viewport || '')}" data-color-scheme="${esc(s.colorScheme || '')}" data-browser="${esc(s.browser || '')}" data-pages="${s.pagesScanned ?? ''}" data-total="${s.totalViolations ?? ''}" data-idx="${i}">
+                            <td>${started}</td>
+                            <td>
+                                <div class="target-cell">
+                                    <div class="target-main">${esc(s.target || 'Unknown')}</div>
+                                    <div class="target-meta">Run ID <span class="run-id" title="${esc(s.runId || '')}" aria-label="Run ID ${esc(s.runId || '')}">${esc(runShort)}</span></div>
+                                </div>
+                            </td>
+                            <td>${esc(s.viewport || 'desktop')}</td>
+                            <td>${esc(s.colorScheme || 'light')}</td>
+                            <td>${esc(s.browser || 'chromium')}</td>
+                            <td>${s.pagesScanned ?? '—'}</td>
+                            <td class="${(s.totalViolations || 0) > 0 ? 'status-fail' : 'status-pass'}">${s.totalViolations ?? 0}</td>
+                            <td><a href="runs/${esc(s.runId)}/index.html" aria-label="Open report for ${esc(s.target || 'run')} in new page">View →</a></td>
+                        </tr>`;
+                    }).join('')}
                 </tbody>
             </table>
+            </div>
             `}
         </div>
         
@@ -173,6 +195,62 @@ function generateMainIndex(summaries) {
     <footer>
         <p>O-Hat Scanner | <a href="https://github.com/mgifford/o-hat-scanner">GitHub</a> | Built with <a href="https://github.com/dequelabs/axe-core">axe-core</a></p>
     </footer>
+
+    <script>
+        const tbody = document.querySelector('tbody');
+        const sortButtons = document.querySelectorAll('.sort-btn');
+        let sortState = { key: 'startedAt', dir: 'desc' };
+
+        function valueFor(row, key) {
+            switch (key) {
+                case 'startedAt':
+                    return Date.parse(row.dataset.startedAt || 0) || 0;
+                case 'pagesScanned':
+                    return parseInt(row.dataset.pages || '0', 10) || 0;
+                case 'totalViolations':
+                    return parseInt(row.dataset.total || '0', 10) || 0;
+                default:
+                    return (row.dataset[key] || '').toLowerCase();
+            }
+        }
+
+        function applySort(key) {
+            if (sortState.key === key) {
+                sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortState = { key, dir: key === 'startedAt' ? 'desc' : 'asc' };
+            }
+
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            rows.sort((a, b) => {
+                const va = valueFor(a, sortState.key);
+                const vb = valueFor(b, sortState.key);
+                if (va < vb) return sortState.dir === 'asc' ? -1 : 1;
+                if (va > vb) return sortState.dir === 'asc' ? 1 : -1;
+                // stable fallback to original order
+                const ia = parseInt(a.dataset.idx || '0', 10);
+                const ib = parseInt(b.dataset.idx || '0', 10);
+                return ia - ib;
+            });
+
+            rows.forEach(r => tbody.appendChild(r));
+            updateSortIndicators();
+        }
+
+        function updateSortIndicators() {
+            sortButtons.forEach(btn => {
+                const th = btn.parentElement;
+                const dir = btn.dataset.sort === sortState.key ? (sortState.dir === 'asc' ? 'ascending' : 'descending') : 'none';
+                th.setAttribute('aria-sort', dir);
+            });
+        }
+
+        sortButtons.forEach(btn => {
+            btn.addEventListener('click', () => applySort(btn.dataset.sort));
+        });
+
+        updateSortIndicators();
+    </script>
 </body>
 </html>`;
 

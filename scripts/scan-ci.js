@@ -226,7 +226,13 @@ async function main() {
         startedAt: runResult.startedAt,
         pagesScanned: Object.keys(results).length,
         pagesWithViolations: Object.values(results).filter(r => r.violations && r.violations.length > 0).length,
-        totalViolations: Object.values(results).reduce((acc, r) => acc + (r.violations ? r.violations.reduce((sum, v) => sum + v.nodes.length, 0) : 0), 0)
+        totalViolations: Object.values(results).reduce((acc, r) => acc + (r.violations ? r.violations.reduce((sum, v) => sum + v.nodes.length, 0) : 0), 0),
+        target: runResult.config?.baseUrl || (runResult.targets?.[0] || ''),
+        mode: runResult.mode,
+        viewport: runResult.config?.viewport,
+        colorScheme: runResult.config?.colorScheme,
+        browser: runResult.config?.browser,
+        maxPages: runResult.config?.maxPages
     };
     
     fs.writeFileSync(path.join(runDir, 'summary.json'), JSON.stringify(summary, null, 2));
@@ -256,7 +262,20 @@ async function fetchSitemap(url, options = {}) {
              }
         }
         if (result.urlset && result.urlset.url) {
-            urls = result.urlset.url.map(u => u.loc[0]);
+            let consecutivePdf = 0;
+            for (const entry of result.urlset.url) {
+                const loc = entry.loc[0];
+                if (isPdfLike(loc)) {
+                    consecutivePdf += 1;
+                    if (consecutivePdf >= 5) {
+                        console.log('Skipping remainder of sitemap after 5 pdf-like entries in a row.');
+                        break; // jump to next sitemap
+                    }
+                    continue; // do not include pdf-like URLs
+                }
+                consecutivePdf = 0;
+                urls.push(loc);
+            }
         }
 
         urls = Array.from(new Set(urls)).filter(u => isLikelyHtmlUrl(u));
@@ -332,10 +351,23 @@ function isLikelyHtmlUrl(target) {
         const url = new URL(target);
         const pathname = url.pathname || '';
         const idx = pathname.lastIndexOf('.');
-        if (idx === -1) return true; // no extension, assume HTML route
+        if (isPdfLike(target)) return false;
+        if (idx === -1) return true; // no dot extension, assume HTML route
         const ext = pathname.slice(idx).toLowerCase();
         if (SKIP_EXTENSIONS.includes(ext)) return false;
         return true;
+    } catch {
+        return false;
+    }
+}
+
+function isPdfLike(target) {
+    try {
+        const url = new URL(target);
+        const pathname = (url.pathname || '').toLowerCase();
+        if (pathname.endsWith('.pdf')) return true;
+        if (pathname.endsWith('pdf')) return true; // handles paths without a dot
+        return false;
     } catch {
         return false;
     }
