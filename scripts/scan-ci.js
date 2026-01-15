@@ -1,4 +1,4 @@
-import { chromium } from 'playwright';
+import { chromium, firefox, webkit } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import fs from 'fs';
 import path from 'path';
@@ -22,6 +22,7 @@ const SITEMAP_SAMPLE_STRATEGY = (process.env.INPUT_SITEMAP_SAMPLE_STRATEGY || 's
 const SITEMAP_SAMPLE_SEED = process.env.INPUT_SITEMAP_SAMPLE_SEED || '';
 const SKIP_EXTENSIONS = (process.env.INPUT_SKIP_EXTENSIONS || '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.gz,.tgz,.tar,.rar,.7z').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
 const SITEMAP_FALLBACK_TO_CRAWL = process.env.INPUT_SITEMAP_FALLBACK_TO_CRAWL !== 'false';
+const BROWSER_NAME = normalizeBrowserName(process.env.INPUT_BROWSER || 'chromium'); // chromium | firefox | webkit
 
 // Input URLs (newline separated)
 const RAW_URLS = process.env.INPUT_URLS || ''; 
@@ -60,7 +61,7 @@ async function main() {
     if (REQUESTED_MAX > MAX_PAGES) {
         console.log(`Requested max pages ${REQUESTED_MAX} exceeds cap; clamped to ${MAX_PAGES}`);
     }
-    console.log(`Starting scan with config: MODE=${MODE}, MAX_PAGES=${MAX_PAGES}, CONCURRENCY=${CONCURRENCY}, LABEL=${LABEL || 'none'}, VIEWPORT=${VIEWPORT_PROFILE}, COLOR=${COLOR_SCHEME}`);
+    console.log(`Starting scan with config: MODE=${MODE}, MAX_PAGES=${MAX_PAGES}, CONCURRENCY=${CONCURRENCY}, LABEL=${LABEL || 'none'}, VIEWPORT=${VIEWPORT_PROFILE}, COLOR=${COLOR_SCHEME}, BROWSER=${BROWSER_NAME}`);
     // Helpful debug log: show final list of URLs that will be scanned
     console.log('Final targets to scan:', JSON.stringify(urls, null, 2));
 
@@ -80,10 +81,12 @@ async function main() {
         crawlFallback: {
             enabled: SITEMAP_FALLBACK_TO_CRAWL,
             used: false
-        }
+        },
+        browser: BROWSER_NAME
     }, urls, LABEL);
 
-    const browser = await chromium.launch();
+    const browserType = selectBrowser(BROWSER_NAME);
+    const browser = await browserType.launch();
     const context = await browser.newContext({ 
         userAgent: USER_AGENT,
         colorScheme: COLOR_SCHEME === 'dark' ? 'dark' : 'light',
@@ -380,6 +383,20 @@ function sampleSitemapUrls(urls, { maxPages, strategy = 'shuffle', seed = 'sitem
     return shuffled.slice(0, limit);
 }
 
+function selectBrowser(name) {
+    const normalized = normalizeBrowserName(name);
+    if (normalized === 'firefox') return firefox;
+    if (normalized === 'webkit') return webkit;
+    return chromium;
+}
+
+function normalizeBrowserName(name = 'chromium') {
+    const val = String(name).toLowerCase();
+    if (val === 'firefox') return 'firefox';
+    if (val === 'webkit' || val === 'safari') return 'webkit';
+    return 'chromium';
+}
+
 function shouldAllowDiscovery(mode, crawlFallbackUsed) {
     return mode === 'crawl' || crawlFallbackUsed;
 }
@@ -388,4 +405,4 @@ if (process.env.NODE_ENV !== 'test') {
     main().catch(console.error);
 }
 
-export { sampleSitemapUrls, seededShuffle, stringToSeed, isLikelyHtmlUrl, fetchSitemap, shouldAllowDiscovery };
+export { sampleSitemapUrls, seededShuffle, stringToSeed, isLikelyHtmlUrl, fetchSitemap, shouldAllowDiscovery, selectBrowser, normalizeBrowserName };

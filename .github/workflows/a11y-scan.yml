@@ -36,6 +36,11 @@ on:
         required: false
         default: 'light'
         type: string
+      browser:
+        description: 'chromium | firefox | webkit | all'
+        required: false
+        default: 'chromium'
+        type: string
   schedule:
     - cron: '0 3 * * *'
 
@@ -94,7 +99,12 @@ jobs:
           if [ -n "$MANUAL_SITE" ] || [ -n "$MANUAL_URLS" ]; then
             FLAGS="--ignore-schedule"
           fi
-          node scripts/resolve-targets.js --file targets.yml --output /tmp/due-sites.json $FLAGS $([ -n "$MANUAL_SITE" ] && echo "--filter" "$MANUAL_SITE")
+          ALLOW_ADHOC_FLAG=""
+          if [ -n "$MANUAL_SITE" ]; then
+            ALLOW_ADHOC_FLAG="--allow-adhoc"
+          fi
+
+          node scripts/resolve-targets.js --file targets.yml --output /tmp/due-sites.json $FLAGS $ALLOW_ADHOC_FLAG $([ -n "$MANUAL_SITE" ] && echo "--filter" "$MANUAL_SITE")
 
           if [ -n "$MANUAL_URLS" ]; then
             manual_urls=$(printf "%s" "$MANUAL_URLS" | jq -R -s 'split("\n") | map(select(length>0))')
@@ -117,6 +127,7 @@ jobs:
 
           echo "viewport_profile=${VIEWPORT_PROFILE:-desktop}" >> "$GITHUB_OUTPUT"
           echo "color_scheme=${COLOR_SCHEME:-light}" >> "$GITHUB_OUTPUT"
+          echo "browser=${{ github.event.inputs.browser || 'chromium' }}" >> "$GITHUB_OUTPUT"
 
           echo "Resolved targets:"
           cat /tmp/due-sites.json | jq '.'
@@ -156,11 +167,14 @@ jobs:
           set -euo pipefail
           vp_input="${{ steps.resolve.outputs.viewport_profile }}"
           cs_input="${{ steps.resolve.outputs.color_scheme }}"
+          browser_input="${{ steps.resolve.outputs.browser }}"
           dispatch_max="${{ github.event.inputs.max_pages }}"
           vp_list="${vp_input:-desktop}"
           cs_list="${cs_input:-light}"
+          browser_list="${browser_input:-chromium}"
           if [ "$vp_list" = "both" ]; then vp_list="desktop mobile"; fi
           if [ "$cs_list" = "both" ]; then cs_list="light dark"; fi
+          if [ "$browser_list" = "all" ]; then browser_list="chromium firefox webkit"; fi
           jq -c '.[]' /tmp/due-sites.json | while read -r site; do
             name=$(echo "$site" | jq -r '.name')
             mode=$(echo "$site" | jq -r '.mode // "sitemap"')
@@ -171,14 +185,16 @@ jobs:
             urls=$(echo "$site" | jq -r '.urls | join("\n") // ""')
             for vp in $vp_list; do
               for cs in $cs_list; do
-                run_label="$label"
-                if [ -n "$run_label" ]; then
-                  run_label="$run_label-$vp-$cs"
-                else
-                  run_label="$name-$vp-$cs"
-                fi
-                echo "--- Running $name (mode=$mode, maxPages=$maxPages, label=$run_label, viewport=$vp, color=$cs) ---"
-                INPUT_MODE="$mode" INPUT_LABEL="$run_label" INPUT_MAX_PAGES="$maxPages" INPUT_BASE_URL="$baseUrl" INPUT_URLS="$urls" INPUT_VIEWPORT_PROFILE="$vp" INPUT_COLOR_SCHEME="$cs" npm run scan:ci
+                for browser in $browser_list; do
+                  run_label="$label"
+                  if [ -n "$run_label" ]; then
+                    run_label="$run_label-$vp-$cs-$browser"
+                  else
+                    run_label="$name-$vp-$cs-$browser"
+                  fi
+                  echo "--- Running $name (mode=$mode, maxPages=$maxPages, label=$run_label, viewport=$vp, color=$cs, browser=$browser) ---"
+                  INPUT_MODE="$mode" INPUT_LABEL="$run_label" INPUT_MAX_PAGES="$maxPages" INPUT_BASE_URL="$baseUrl" INPUT_URLS="$urls" INPUT_VIEWPORT_PROFILE="$vp" INPUT_COLOR_SCHEME="$cs" INPUT_BROWSER="$browser" npm run scan:ci
+                done
               done
             done
           done
