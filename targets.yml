@@ -49,3 +49,237 @@ sites:
     schedule:
       - "0 6 * * SAT" # 1am ET Saturday
     label: nsf-weekly
+
+  - name: drupal.org
+    baseUrl: https://www.drupal.org
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "0 5 * * SUN" # 12am ET Sunday
+    label: drupal-weekly
+    notes: Core CMS project
+
+  - name: digitalservicescoalition.org
+    baseUrl: https://www.digitalservicescoalition.org
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "15 5 * * SUN" # 12:15am ET Sunday
+    label: dsc-weekly
+    notes: Digital Services Coalition
+
+  - name: energy.gov
+    baseUrl: https://www.energy.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "30 5 * * SUN" # 12:30am ET Sunday
+    label: energy-weekly
+    notes: US Department of Energy
+
+  - name: canada.ca
+    baseUrl: https://www.canada.ca
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "45 5 * * SUN" # 12:45am ET Sunday
+    label: canada-weekly
+    notes: Government of Canada portal
+
+  - name: gsa.gov
+    baseUrl: https://www.gsa.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "30 4 * * MON" # 11:30pm ET Sunday / 4:30 UTC Monday
+    label: gsa-weekly
+    notes: US General Services Administration
+
+  - name: gov.uk
+    baseUrl: https://www.gov.uk
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "45 4 * * MON" # 11:45pm ET Sunday / 4:45 UTC Monday
+    label: govuk-weekly
+    notes: UK government portal
+
+  - name: digital.georgia.gov
+    baseUrl: https://digital.georgia.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "30 4 * * TUE" # 11:30pm ET Monday / 4:30 UTC Tuesday
+    label: digital-georgia-weekly
+    notes: Georgia Digital Services
+
+  - name: georgia.gov
+    baseUrl: https://georgia.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "45 4 * * TUE" # 11:45pm ET Monday / 4:45 UTC Tuesday
+    label: georgia-weekly
+    notes: State of Georgia portal
+
+  - name: oit.colorado.gov
+    baseUrl: https://oit.colorado.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "30 4 * * WED" # 11:30pm ET Tuesday / 4:30 UTC Wednesday
+    label: colorado-oit-weekly
+    notes: Colorado Office of IT
+
+  - name: colorado.gov
+    baseUrl: https://www.colorado.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "45 4 * * WED" # 11:45pm ET Tuesday / 4:45 UTC Wednesday
+    label: colorado-weekly
+    notes: State of Colorado portal
+
+  - name: ca.gov
+    baseUrl: https://www.ca.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "30 4 * * THU" # 11:30pm ET Wednesday / 4:30 UTC Thursday
+    label: ca-weekly
+    notes: State of California portal
+
+  - name: sf.gov
+    baseUrl: https://sf.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "45 4 * * THU" # 11:45pm ET Wednesday / 4:45 UTC Thursday
+    label: sf-weekly
+    notes: City and County of San Francisco
+
+  - name: texas.gov
+    baseUrl: https://www.texas.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "30 4 * * FRI" # 11:30pm ET Thursday / 4:30 UTC Friday
+    label: texas-weekly
+    notes: State of Texas portal
+
+  - name: bundesregierung.de
+    baseUrl: https://www.bundesregierung.de
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "45 4 * * FRI" # 11:45pm ET Thursday / 4:45 UTC Friday
+    label: bundesregierung-weekly
+    notes: German Federal Government
+
+  - name: digital-strategy.ec.europa.eu
+    baseUrl: https://digital-strategy.ec.europa.eu
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "30 4 * * SAT" # 11:30pm ET Friday / 4:30 UTC Saturday
+    label: eu-digital-strategy-weekly
+    notes: European Commission digital strategy
+
+  - name: ec.europa.eu
+    baseUrl: https://ec.europa.eu
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "45 4 * * SAT" # 11:45pm ET Friday / 4:45 UTC Saturday
+    label: ec-weekly
+    notes: European Commission portal
+
+  - name: diplomatie.gouv.fr
+    baseUrl: https://www.diplomatie.gouv.fr
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "0 5 * * SAT" # 12:00am ET Saturday / 5:00 UTC Saturday
+    label: france-diplomatie-weekly
+    notes: France Ministry for Europe and Foreign Affairs
+
+  - name: usa.gov
+    baseUrl: https://www.usa.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "15 5 * * SAT" # 12:15am ET Saturday / 5:15 UTC Saturday
+    label: usa-weekly
+    notes: US government portal
+
+  - name: ny.gov
+    baseUrl: https://www.ny.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "30 5 * * SAT" # 12:30am ET Saturday / 5:30 UTC Saturday
+    label: ny-weekly
+    notes: State of New York portal
+
+  - name: nyc.gov
+    baseUrl: https://www.nyc.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "45 5 * * SAT" # 12:45am ET Saturday / 5:45 UTC Saturday
+    label: nyc-weekly
+    notes: City of New York portal
+
+  - name: australia.gov.au
+    baseUrl: https://www.australia.gov.au
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "0 4 * * SUN" # 11:00pm ET Saturday / 4:00 UTC Sunday
+    label: australia-weekly
+    notes: Australian Government portal
+
+  - name: ontario.ca
+    baseUrl: https://www.ontario.ca
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "15 4 * * SUN" # 11:15pm ET Saturday / 4:15 UTC Sunday
+    label: ontario-weekly
+    notes: Province of Ontario portal
+
+  - name: gov.bc.ca
+    baseUrl: https://www.gov.bc.ca
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "30 4 * * SUN" # 11:30pm ET Saturday / 4:30 UTC Sunday
+    label: bc-weekly
+    notes: Province of British Columbia portal
+
+  - name: novascotia.ca
+    baseUrl: https://novascotia.ca
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "45 4 * * SUN" # 11:45pm ET Saturday / 4:45 UTC Sunday
+    label: novascotia-weekly
+    notes: Province of Nova Scotia portal
+
+  - name: govt.nz
+    baseUrl: https://www.govt.nz
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "0 3 * * MON" # 10:00pm ET Sunday / 3:00 UTC Monday
+    label: nz-weekly
+    notes: New Zealand government portal
+
+  - name: government.nl
+    baseUrl: https://www.government.nl
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "15 3 * * MON" # 10:15pm ET Sunday / 3:15 UTC Monday
+    label: netherlands-weekly
+    notes: Netherlands government portal
