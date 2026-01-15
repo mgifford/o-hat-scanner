@@ -30,6 +30,17 @@ describe('resolve-targets adhoc fallback', () => {
     expect(sites[0].name).toBe('example.com');
   });
 
+  test('respects schedule when not ignoring it', () => {
+    const sites = resolveTargets({ file: tmpPath, now: new Date('2024-01-02T01:00:00Z'), respectSchedule: true });
+    expect(sites).toHaveLength(0);
+  });
+
+  test('ignores schedule when requested', () => {
+    const sites = resolveTargets({ file: tmpPath, now: new Date('2024-01-02T01:00:00Z'), respectSchedule: false });
+    expect(sites).toHaveLength(1);
+    expect(sites[0].name).toBe('example.com');
+  });
+
   test('creates adhoc target when filter missing and allowed', () => {
     const sites = resolveTargets({ file: tmpPath, filter: 'missing.com', allowAdhoc: true, respectSchedule: false });
     expect(sites).toHaveLength(1);

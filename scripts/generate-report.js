@@ -4,6 +4,27 @@ import path from 'path';
 const SITE_DIR = 'site';
 const RUNS_DIR = path.join(SITE_DIR, 'runs');
 
+function collectRunEntries() {
+    if (!fs.existsSync(RUNS_DIR)) return [];
+    const entries = [];
+    const levelOne = fs.readdirSync(RUNS_DIR).filter(name => fs.statSync(path.join(RUNS_DIR, name)).isDirectory());
+    for (const dir of levelOne) {
+        const directResults = path.join(RUNS_DIR, dir, 'results.json');
+        if (fs.existsSync(directResults)) {
+            entries.push({ runId: dir, runRelPath: dir });
+            continue;
+        }
+        const subdirs = fs.readdirSync(path.join(RUNS_DIR, dir)).filter(name => fs.statSync(path.join(RUNS_DIR, dir, name)).isDirectory());
+        for (const sub of subdirs) {
+            const resultsPath = path.join(RUNS_DIR, dir, sub, 'results.json');
+            if (fs.existsSync(resultsPath)) {
+                entries.push({ runId: sub, runRelPath: path.join(dir, sub) });
+            }
+        }
+    }
+    return entries;
+}
+
 // Severity levels based on axe impact
 const SEVERITY_MAP = {
     critical: { label: 'Must Fix', order: 1, color: '#d32f2f' },
@@ -21,33 +42,40 @@ function main() {
         fs.mkdirSync(RUNS_DIR, { recursive: true });
         console.log('No runs found. Generating empty index.');
         generateMainIndex([]);
+        generateAggregateCsv([]);
         return;
     }
 
-    const runs = fs.readdirSync(RUNS_DIR).filter(d => fs.statSync(path.join(RUNS_DIR, d)).isDirectory());
+    const runEntries = collectRunEntries();
     const runSummaries = [];
+    const aggregateRows = [];
 
     // Generate per-run pages
-    for (const runId of runs) {
-        const runPath = path.join(RUNS_DIR, runId);
+    for (const { runId, runRelPath } of runEntries) {
+        const runPath = path.join(RUNS_DIR, runRelPath);
         const resultsPath = path.join(runPath, 'results.json');
-        
+
         if (fs.existsSync(resultsPath)) {
             const results = JSON.parse(fs.readFileSync(resultsPath, 'utf-8'));
             const pageStats = analyzeResults(results);
-            generateRunPage(runId, results, pageStats); // creates site/runs/<id>/index.html
-            generateCSV(runId, results); // creates site/runs/<id>/report.csv
+            generateRunPage(runId, runRelPath, results, pageStats); // creates site/runs/<domain>/<id>/index.html
+            generateCSV(runId, runRelPath, results); // creates site/runs/<domain>/<id>/report.csv
+            aggregateRows.push(...buildAggregateRows(runId, results, pageStats));
             
             // Collect summary for main index
             const summaryPath = path.join(runPath, 'summary.json');
             if (fs.existsSync(summaryPath)) {
-                runSummaries.push(JSON.parse(fs.readFileSync(summaryPath, 'utf-8')));
+                const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf-8'));
+                summary.runRelPath = summary.runRelPath || runRelPath;
+                runSummaries.push(summary);
             }
         }
     }
 
     // Generate main index
     generateMainIndex(runSummaries);
+    generateAggregateCsv(aggregateRows);
+    generateTrendsPage();
 }
 
 function generateMainIndex(summaries) {
@@ -154,6 +182,7 @@ function generateMainIndex(summaries) {
                     ${summaries.map((s, i) => {
                         const started = s.startedAt ? new Date(s.startedAt).toLocaleString() : 'N/A';
                         const runShort = s.runId ? `${s.runId.slice(0, 8)}…` : 'n/a';
+                        const relPath = s.runRelPath || s.runId;
                         return `
                         <tr data-started-at="${esc(s.startedAt || '')}" data-target="${esc(s.target || '')}" data-viewport="${esc(s.viewport || '')}" data-color-scheme="${esc(s.colorScheme || '')}" data-browser="${esc(s.browser || '')}" data-pages="${s.pagesScanned ?? ''}" data-total="${s.totalViolations ?? ''}" data-idx="${i}">
                             <td>${started}</td>
@@ -168,7 +197,7 @@ function generateMainIndex(summaries) {
                             <td>${esc(s.browser || 'chromium')}</td>
                             <td>${s.pagesScanned ?? '—'}</td>
                             <td class="${(s.totalViolations || 0) > 0 ? 'status-fail' : 'status-pass'}">${s.totalViolations ?? 0}</td>
-                            <td><a href="runs/${esc(s.runId)}/index.html" aria-label="Open report for ${esc(s.target || 'run')} in new page">View →</a></td>
+                            <td><a href="runs/${esc(relPath)}/index.html" aria-label="Open report for ${esc(s.target || 'run')} in new page">View →</a></td>
                         </tr>`;
                     }).join('')}
                 </tbody>
@@ -258,7 +287,7 @@ function generateMainIndex(summaries) {
     console.log('Generated main index.');
 }
 
-function generateRunPage(runId, results, pageStats) {
+function generateRunPage(runId, runRelPath, results, pageStats) {
     const urls = Object.keys(results.resultsByUrl);
     const processedUrls = urls;
     const { mustFixCount, goodToFixCount, reviewCount, pagesWithIssues, automationCoverage } = pageStats;
@@ -267,7 +296,7 @@ function generateRunPage(runId, results, pageStats) {
     const runDate = results.startedAt ? new Date(results.startedAt) : new Date();
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const primaryTarget = (results.targets && results.targets[0]) || urls[0] || 'N/A';
-        const runDir = path.join(SITE_DIR, 'runs', runId);
+        const runDir = path.join(SITE_DIR, 'runs', runRelPath);
         const cfg = results.config || {};
         const viewportLabel = cfg.viewport === 'mobile' ? 'Mobile' : 'Desktop';
         const colorLabel = cfg.colorScheme === 'dark' ? 'Dark' : 'Light';
@@ -362,6 +391,13 @@ function generateRunPage(runId, results, pageStats) {
         .card.warning .value { color: var(--pill-warning); }
         .card.info .value { color: var(--pill-info); }
         .card .subtext { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+        .mini-trend { margin-top: 1rem; border-top: 1px solid var(--panel-border); padding-top: 1rem; }
+        .mini-trend h4 { margin: 0 0 0.5rem 0; font-size: 14px; }
+        .mini-trend svg { width: 100%; height: 120px; border: 1px solid var(--panel-border); border-radius: 4px; background: var(--card-bg); }
+        .mini-trend-status { margin-top: 0.35rem; color: var(--muted); font-size: 13px; }
+        .mini-dot { fill: var(--pill-info); }
+        .mini-line { stroke: var(--pill-info); stroke-width: 1.5; fill: none; }
 
         .bar { background: var(--bar-bg); height: 22px; border-radius: 4px; overflow: hidden; display: flex; margin: 10px 0; }
         .bar-segment { height: 100%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 700; }
@@ -543,6 +579,11 @@ function generateRunPage(runId, results, pageStats) {
                 <div style="margin-bottom: 0.25rem;">Sampling: ${esc(samplingLabel)}</div>
                 <div style="margin-top: 0.5rem;">Pages crawled: ${processedUrls.length}</div>
                 <div>Total occurrences: ${totalIssues}</div>
+                <div class="mini-trend" id="miniTrend" data-target="${esc(primaryTarget)}" data-viewport="${esc(cfg.viewport || 'desktop')}" data-color="${esc(cfg.colorScheme || 'light')}" data-browser="${esc(browserLabel)}">
+                    <h4>Trend (total occurrences)</h4>
+                    <svg id="miniTrendChart" viewBox="0 0 100 30" role="img" aria-label="Trend of total occurrences"></svg>
+                    <div class="mini-trend-status" id="miniTrendStatus">Loading trend…</div>
+                </div>
             </div>
         </div>
     </div>
@@ -608,6 +649,101 @@ function generateRunPage(runId, results, pageStats) {
             root.setAttribute('data-theme', next);
             localStorage.setItem('report-theme', next);
         });
+
+        // Mini trend sparkline (reads aggregate.csv)
+        const miniChart = document.getElementById('miniTrendChart');
+        const miniStatus = document.getElementById('miniTrendStatus');
+        const miniContainer = document.getElementById('miniTrend');
+
+        function parseAggregateCsv(text) {
+            const lines = text.trim().split(/\r?\n/).filter(Boolean);
+            if (!lines.length) return [];
+            const headers = lines.shift().split(',');
+            return lines.map(line => {
+                const cols = line.split(',');
+                const row = {};
+                headers.forEach((h, idx) => {
+                    row[h] = cols[idx] || '';
+                });
+                return row;
+            });
+        }
+
+        function drawMiniTrend(rows) {
+            if (!miniChart) return;
+            miniChart.innerHTML = '';
+            const width = 100;
+            const height = 30;
+            miniChart.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+            const values = rows.map(r => Number(r.totalViolations || 0));
+            const minY = Math.min(...values, 0);
+            const maxY = Math.max(...values, 1);
+            const span = Math.max(maxY - minY, 1);
+            const path = rows.map((r, idx) => {
+                const x = rows.length === 1 ? width / 2 : (idx / (rows.length - 1)) * width;
+                const yVal = Number(r.totalViolations || 0);
+                const y = height - ((yVal - minY) / span) * (height - 6) - 3;
+                return (idx === 0 ? 'M' : 'L') + x.toFixed(2) + ' ' + y.toFixed(2);
+            }).join(' ');
+
+            const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            pathEl.setAttribute('d', path || 'M0 15 L100 15');
+            pathEl.setAttribute('class', 'mini-line');
+            miniChart.appendChild(pathEl);
+
+            rows.forEach((r, idx) => {
+                const x = rows.length === 1 ? width / 2 : (idx / (rows.length - 1)) * width;
+                const yVal = Number(r.totalViolations || 0);
+                const y = height - ((yVal - minY) / span) * (height - 6) - 3;
+                const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                dot.setAttribute('cx', x.toFixed(2));
+                dot.setAttribute('cy', y.toFixed(2));
+                dot.setAttribute('r', '1.8');
+                dot.setAttribute('class', 'mini-dot');
+                dot.setAttribute('aria-label', 'Run ' + r.runId + ' total ' + yVal);
+                miniChart.appendChild(dot);
+            });
+
+            const latest = rows[rows.length - 1];
+            const latestValue = Number(latest.totalViolations || 0);
+            const latestPages = latest.pagesScanned || 'n/a';
+            if (miniStatus) {
+                miniStatus.textContent = 'Latest: ' + latestValue + ' occurrences across ' + latestPages + ' pages';
+            }
+        }
+
+        function loadMiniTrend() {
+            if (!miniContainer || !miniChart || !miniStatus) return;
+            miniStatus.textContent = 'Loading trend…';
+            const target = miniContainer.dataset.target || '';
+            const viewport = miniContainer.dataset.viewport || '';
+            const color = miniContainer.dataset.color || '';
+            const browser = miniContainer.dataset.browser || '';
+
+            fetch('../../aggregate.csv').then(res => {
+                if (!res.ok) throw new Error('Missing aggregate.csv');
+                return res.text();
+            }).then(text => {
+                const rows = parseAggregateCsv(text).filter(r => {
+                    return r.metricType === 'summary'
+                        && r.target === target
+                        && (!viewport || r.viewport === viewport)
+                        && (!color || r.colorScheme === color)
+                        && (!browser || r.browser === browser);
+                }).sort((a, b) => new Date(a.startedAt) - new Date(b.startedAt)).slice(-20);
+
+                if (!rows.length) {
+                    miniStatus.textContent = 'No trend data yet for this target.';
+                    miniChart.innerHTML = '';
+                    return;
+                }
+                drawMiniTrend(rows);
+            }).catch(() => {
+                if (miniStatus) miniStatus.textContent = 'Trend unavailable.';
+            });
+        }
+
+        loadMiniTrend();
     </script>
 </body>
 </html>`;
@@ -615,11 +751,7 @@ function generateRunPage(runId, results, pageStats) {
     fs.writeFileSync(path.join(runDir, 'index.html'), html);
 }
 
-if (process.env.NODE_ENV !== 'test') {
-    main();
-}
-
-function generateCSV(runId, results) {
+function generateCSV(runId, runRelPath, results) {
     const headers = [
         "customFlowLabel","deviceChosen","scanCompletedAt","severity","issueId",
         "issueDescription","wcagConformance","url","pageTitle","context",
@@ -627,6 +759,7 @@ function generateCSV(runId, results) {
     ];
 
     let csvContent = headers.map(h => `"${h}"`).join(",") + "\n";
+
 
     for (const url of Object.keys(results.resultsByUrl)) {
         const data = results.resultsByUrl[url];
@@ -658,9 +791,369 @@ function generateCSV(runId, results) {
         }
     }
 
-    const outDir = path.join(SITE_DIR, 'runs', runId);
+    const outDir = path.join(SITE_DIR, 'runs', runRelPath);
     fs.writeFileSync(path.join(outDir, 'report.csv'), csvContent);
 }
+
+function aggregateMetrics(results, pageStats) {
+    const counts = {
+        total: 0,
+        byImpact: { critical: 0, serious: 0, moderate: 0, minor: 0 },
+        rules: new Map(),
+        wcag: new Map()
+    };
+
+    for (const url of Object.keys(results.resultsByUrl)) {
+        const data = results.resultsByUrl[url];
+        if (!data.violations) continue;
+        for (const v of data.violations) {
+            const nodes = v.nodes || [];
+            const nodeCount = nodes.length;
+            counts.total += nodeCount;
+            const impact = (v.impact || '').toLowerCase();
+            if (impact && counts.byImpact[impact] !== undefined) {
+                counts.byImpact[impact] += nodeCount;
+            }
+            counts.rules.set(v.id, (counts.rules.get(v.id) || 0) + nodeCount);
+            (v.tags || []).forEach(tag => {
+                const t = (tag || '').toLowerCase();
+                if (t.startsWith('wcag')) {
+                    counts.wcag.set(t, (counts.wcag.get(t) || 0) + nodeCount);
+                }
+            });
+        }
+    }
+
+    return {
+        pagesScanned: pageStats.pagesScanned,
+        pagesWithIssues: pageStats.pagesWithIssues,
+        automationCoverage: pageStats.automationCoverage,
+        ...counts
+    };
+}
+
+function buildAggregateRows(runId, results, pageStats) {
+    const metrics = aggregateMetrics(results, pageStats);
+    const cfg = results.config || {};
+    const base = {
+        runId,
+        startedAt: results.startedAt || '',
+        target: (results.targets && results.targets[0]) || cfg.baseUrl || '',
+        viewport: cfg.viewport || 'desktop',
+        colorScheme: cfg.colorScheme || 'light',
+        browser: (cfg.browser || 'chromium').toLowerCase(),
+        pagesScanned: metrics.pagesScanned,
+        totalViolations: metrics.total,
+        critical: metrics.byImpact.critical,
+        serious: metrics.byImpact.serious,
+        moderate: metrics.byImpact.moderate,
+        minor: metrics.byImpact.minor
+    };
+
+    const rows = [];
+    rows.push({ ...base, metricType: 'summary', metricId: 'overall', metricCount: metrics.total });
+    metrics.rules.forEach((count, id) => {
+        rows.push({ ...base, metricType: 'rule', metricId: id, metricCount: count });
+    });
+    metrics.wcag.forEach((count, id) => {
+        rows.push({ ...base, metricType: 'wcag', metricId: id, metricCount: count });
+    });
+    return rows;
+}
+
+function generateAggregateCsv(rows) {
+    const headers = [
+        'runId','startedAt','target','viewport','colorScheme','browser','pagesScanned','totalViolations','critical','serious','moderate','minor','metricType','metricId','metricCount'
+    ];
+    let csv = headers.join(',') + '\n';
+    for (const r of rows) {
+        csv += [
+            r.runId,
+            r.startedAt,
+            r.target,
+            r.viewport,
+            r.colorScheme,
+            r.browser,
+            r.pagesScanned,
+            r.totalViolations,
+            r.critical,
+            r.serious,
+            r.moderate,
+            r.minor,
+            r.metricType,
+            r.metricId,
+            r.metricCount
+        ].map(s => String(s ?? '').replace(/"/g, '""')).join(',') + '\n';
+    }
+    fs.writeFileSync(path.join(SITE_DIR, 'aggregate.csv'), csv);
+}
+
+function generateTrendsPage() {
+        const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>O-Hat Trends</title>
+    <style>
+        :root { color-scheme: light; --bg:#f5f5f5; --panel:#fff; --border:#e0e0e0; --text:#222; --muted:#666; --link:#1976d2; --accent:#0d47a1; --grid:#ccc; --line:#1976d2; --dot:#0d47a1; }
+        body { margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif; background:var(--bg); color:var(--text); }
+        header { padding:1rem; background:linear-gradient(135deg,var(--accent),var(--line)); color:#fff; }
+        h1 { margin:0; font-size:24px; }
+        main { max-width:1100px; margin:1.5rem auto; padding:0 1rem 2rem; }
+        .panel { background:var(--panel); border:1px solid var(--border); border-radius:6px; padding:1rem; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+        .controls { display:flex; flex-wrap:wrap; gap:0.75rem; margin-bottom:1rem; align-items:flex-end; }
+        label { font-weight:600; font-size:14px; color:var(--text); }
+        select { padding:8px; border:1px solid var(--border); border-radius:4px; min-width:180px; }
+        canvas, svg { width:100%; height:360px; border:1px solid var(--border); border-radius:4px; background:#fff; }
+        .legend { display:flex; gap:1rem; flex-wrap:wrap; margin-top:0.5rem; font-size:13px; color:var(--muted); }
+        .legend span { display:inline-flex; align-items:center; gap:6px; }
+        .swatch { width:12px; height:12px; border-radius:50%; background:var(--line); display:inline-block; }
+        table { width:100%; border-collapse:collapse; margin-top:1rem; font-size:13px; }
+        th, td { padding:8px; border-bottom:1px solid var(--border); text-align:left; }
+        th { background:#fafafa; }
+        .status { margin:0.5rem 0; color:var(--muted); font-size:14px; }
+        .sr-only { position:absolute; left:-9999px; }
+        button:focus, select:focus { outline:2px solid var(--line); outline-offset:2px; }
+    </style>
+</head>
+<body>
+    <a class="sr-only" href="#main">Skip to main content</a>
+    <header>
+        <h1>O-Hat Trends</h1>
+        <p aria-live="polite" class="status" id="status">Loading aggregate data…</p>
+    </header>
+    <main id="main">
+        <div class="panel">
+            <div class="controls">
+                <div>
+                    <label for="targetSelect">Target</label><br>
+                    <select id="targetSelect" aria-label="Target"></select>
+                </div>
+                <div>
+                    <label for="metricSelect">Metric</label><br>
+                    <select id="metricSelect" aria-label="Metric">
+                        <option value="totalViolations">Total violations</option>
+                        <option value="critical">Critical</option>
+                        <option value="serious">Serious</option>
+                        <option value="moderate">Moderate</option>
+                        <option value="minor">Minor</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="filterViewport">Viewport</label><br>
+                    <select id="filterViewport" aria-label="Viewport filter">
+                        <option value="">All</option>
+                        <option value="desktop">Desktop</option>
+                        <option value="mobile">Mobile</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="filterColor">Color scheme</label><br>
+                    <select id="filterColor" aria-label="Color scheme filter">
+                        <option value="">All</option>
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="filterBrowser">Browser</label><br>
+                    <select id="filterBrowser" aria-label="Browser filter">
+                        <option value="">All</option>
+                        <option value="chromium">Chromium</option>
+                        <option value="firefox">Firefox</option>
+                        <option value="webkit">WebKit</option>
+                    </select>
+                </div>
+            </div>
+            <svg id="chart" role="img" aria-label="Trends line chart" viewBox="0 0 100 40" preserveAspectRatio="none"></svg>
+            <div class="legend" id="legend"></div>
+            <div class="status" id="summary"></div>
+            <table aria-label="Data table" id="dataTable">
+                <thead><tr><th>Date</th><th>Run</th><th>Pages</th><th>Total</th><th>Critical</th><th>Serious</th><th>Moderate</th><th>Minor</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </main>
+    <script>
+        const statusEl = document.getElementById('status');
+        const targetSelect = document.getElementById('targetSelect');
+        const metricSelect = document.getElementById('metricSelect');
+        const filterViewport = document.getElementById('filterViewport');
+        const filterColor = document.getElementById('filterColor');
+        const filterBrowser = document.getElementById('filterBrowser');
+        const chart = document.getElementById('chart');
+        const legendEl = document.getElementById('legend');
+        const summaryEl = document.getElementById('summary');
+        const tbody = document.querySelector('#dataTable tbody');
+
+        const palette = ['#1976d2','#d32f2f','#f57c00','#388e3c','#6a1b9a','#00796b','#c2185b','#455a64'];
+
+        function parseCsv(text) {
+            const lines = text.trim().split(/\\r?\\n/);
+            const headers = lines.shift().split(',');
+            return lines.map(line => {
+                const cells = line.split(',');
+                const obj = {};
+                headers.forEach((h, i) => obj[h] = cells[i]);
+                return obj;
+            });
+        }
+
+        function groupByTarget(rows) {
+            const byTarget = new Map();
+            rows.filter(r => r.metricType === 'summary').forEach(r => {
+                const key = r.target || 'unknown';
+                if (!byTarget.has(key)) byTarget.set(key, []);
+                byTarget.get(key).push(r);
+            });
+            byTarget.forEach(list => list.sort((a,b) => new Date(a.startedAt) - new Date(b.startedAt)));
+            return byTarget;
+        }
+
+        function drawSeries(seriesList, metricKey) {
+            chart.innerHTML = '';
+            legendEl.innerHTML = '';
+            if (!seriesList.length) return;
+
+            const maxVal = Math.max(...seriesList.flatMap(s => s.points.map(p => p.val)), 1);
+
+            seriesList.forEach((series, idx) => {
+                const color = series.color || palette[idx % palette.length];
+                const coords = series.points.map(p => {
+                    const y = 40 - ((p.val/maxVal)*35) - 2;
+                    return { ...p, y };
+                });
+                const poly = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+                poly.setAttribute('fill','none');
+                poly.setAttribute('stroke', color);
+                poly.setAttribute('stroke-width','1.2');
+                poly.setAttribute('points', coords.map(p => (p.x + ',' + p.y)).join(' '));
+                chart.appendChild(poly);
+
+                coords.forEach(p => {
+                    const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+                    c.setAttribute('cx', p.x);
+                    c.setAttribute('cy', p.y);
+                    c.setAttribute('r', 1.2);
+                    c.setAttribute('fill', color);
+                    c.setAttribute('tabindex','0');
+                    c.setAttribute('aria-label', series.name + ' ' + metricKey + ' ' + p.val + ' on ' + new Date(p.startedAt).toLocaleString());
+                    chart.appendChild(c);
+                });
+
+                const badge = document.createElement('span');
+                badge.innerHTML = '<span class="swatch" style="background:' + color + ';"></span>' + series.name;
+                legendEl.appendChild(badge);
+            });
+        }
+
+        function populateTable(data) {
+            tbody.innerHTML = data.map(d => {
+                return '<tr>' +
+                    '<td>' + new Date(d.startedAt).toLocaleString() + '</td>' +
+                    '<td>' + d.runId + '</td>' +
+                    '<td>' + d.pagesScanned + '</td>' +
+                    '<td>' + d.totalViolations + '</td>' +
+                    '<td>' + d.critical + '</td>' +
+                    '<td>' + d.serious + '</td>' +
+                    '<td>' + d.moderate + '</td>' +
+                    '<td>' + d.minor + '</td>' +
+                '</tr>';
+            }).join('');
+        }
+
+        function buildSeries(filtered, metricKey, targetFilter) {
+            if (targetFilter) {
+                const pts = filtered.sort((a,b) => new Date(a.startedAt) - new Date(b.startedAt)).map((d,i,arr) => {
+                    const x = (i/(arr.length-1||1))*100;
+                    const val = Number(d[metricKey] || 0);
+                    return { x, runId:d.runId, startedAt:d.startedAt, val };
+                });
+                return [{ name: targetFilter, points: pts }];
+            }
+
+            // Multi-series: one per target plus total
+            const byTarget = new Map();
+            filtered.forEach(r => {
+                const key = r.target || 'unknown';
+                if (!byTarget.has(key)) byTarget.set(key, []);
+                byTarget.get(key).push(r);
+            });
+
+            const series = Array.from(byTarget.entries()).map(([key, list], idx) => {
+                const sorted = list.sort((a,b) => new Date(a.startedAt) - new Date(b.startedAt));
+                const points = sorted.map((d,i) => {
+                    const x = (i/(sorted.length-1||1))*100;
+                    const val = Number(d[metricKey] || 0);
+                    return { x, runId:d.runId, startedAt:d.startedAt, val };
+                });
+                return { name: key, points, color: palette[idx % palette.length] };
+            });
+
+            // Total series across targets by timestamp
+            const totalsByDate = new Map();
+            filtered.forEach(r => {
+                const key = r.startedAt;
+                const val = Number(r[metricKey] || 0);
+                const prev = totalsByDate.get(key) || { startedAt: r.startedAt, val: 0 };
+                prev.val += val;
+                totalsByDate.set(key, prev);
+            });
+            const totals = Array.from(totalsByDate.values()).sort((a,b) => new Date(a.startedAt) - new Date(b.startedAt));
+            const totalPoints = totals.map((t,i) => {
+                const x = (i/(totals.length-1||1))*100;
+                return { x, runId:'total', startedAt:t.startedAt, val:t.val };
+            });
+            series.push({ name: 'Total', points: totalPoints, color: '#111' });
+            return series;
+        }
+
+        function updateView(rows) {
+            const target = targetSelect.value;
+            const metric = metricSelect.value;
+            const vp = filterViewport.value;
+            const cs = filterColor.value;
+            const br = filterBrowser.value;
+            const filtered = rows
+                .filter(r => r.metricType === 'summary')
+                .filter(r => !target || r.target === target)
+                .filter(r => !vp || r.viewport === vp)
+                .filter(r => !cs || r.colorScheme === cs)
+                .filter(r => !br || r.browser === br);
+            const series = buildSeries(filtered, metric, target);
+            drawSeries(series, metric);
+            populateTable(filtered);
+            summaryEl.textContent = filtered.length ? (filtered.length + ' runs shown for ' + (target || 'all targets') + '.') : 'No runs match the filters.';
+        }
+
+        async function init() {
+            try {
+                const resp = await fetch('aggregate.csv');
+                if (!resp.ok) throw new Error('aggregate.csv not found');
+                const text = await resp.text();
+                const rows = parseCsv(text);
+                const targets = Array.from(new Set(rows.filter(r => r.metricType === 'summary').map(r => r.target || 'unknown'))).sort();
+                targetSelect.innerHTML = '<option value="">All targets</option>' + targets.map(t => '<option value="' + t + '">' + t + '</option>').join('');
+                [targetSelect, metricSelect, filterViewport, filterColor, filterBrowser].forEach(el => el.addEventListener('change', () => updateView(rows)));
+                statusEl.textContent = 'Data loaded. Adjust filters to view trends.';
+                updateView(rows);
+            } catch (e) {
+                statusEl.textContent = 'Failed to load aggregate.csv';
+                summaryEl.textContent = e.message;
+            }
+        }
+        init();
+    </script>
+</body>
+</html>`;
+        fs.writeFileSync(path.join(SITE_DIR, 'trends.html'), html);
+}
+
+if (process.env.NODE_ENV !== 'test') {
+    main();
+}
+
 
 function escapeCSV(field) {
     if (field === null || field === undefined) return '""';
@@ -785,4 +1278,4 @@ function esc(s) {
     return String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }
 
-export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity };
+export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage };

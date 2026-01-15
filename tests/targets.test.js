@@ -69,4 +69,12 @@ describe('targets.yml resolver', () => {
     expect(id).toMatch(/--va-weekly$/);
     expect(sanitizeLabel('Health*Check 2024')).toBe('health-check-2024');
   });
+
+  test('buildRunId respects RUN_TIMESTAMP override', () => {
+    const prev = process.env.RUN_TIMESTAMP;
+    process.env.RUN_TIMESTAMP = '2024-05-01T12:00:00Z';
+    const id = buildRunId({ label: 'test', baseUrl: 'https://example.com' });
+    expect(id).toContain('2024-05-01T12-00-00-000Z');
+    process.env.RUN_TIMESTAMP = prev;
+  });
 });
