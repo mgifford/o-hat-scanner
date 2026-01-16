@@ -1,88 +1,28 @@
 sites:
-  - name: civicactions.com
-    baseUrl: https://www.civicactions.com
+  - name: govt.nz
+    baseUrl: https://www.govt.nz
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 6 * * MON" # 1am ET Monday
-    label: civicactions-weekly
-    notes: Weekly sitemap sample of civicactions.com
+      - "0 4 * * MON" # 11:00pm ET Sunday / 4:00 UTC Monday
+    label: nz-weekly
+    notes: New Zealand government portal
 
-  - name: va.gov
-    baseUrl: https://www.va.gov
+  - name: government.nl
+    baseUrl: https://www.government.nl
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 6 * * TUE" # 1am ET Tuesday
-    label: va-weekly
-    notes: Weekly sitemap sample of VA.gov
-
-  - name: cms.gov
-    baseUrl: https://www.cms.gov
-    mode: sitemap
-    maxPages: 50
-    schedule:
-      - "0 7 * * WED" # 2am ET Wednesday
-    label: cms-random-sitemap
-    notes: Midweek sitemap sample; adjust to crawl if needed
-
-  - name: medicare.gov
-    baseUrl: https://www.medicare.gov
-    mode: sitemap
-    maxPages: 50
-    schedule:
-      - "0 6 * * THU" # 1am ET Thursday
-    label: medicare-weekly
-
-  - name: healthcare.gov
-    baseUrl: https://www.healthcare.gov
-    mode: sitemap
-    maxPages: 50
-    schedule:
-      - "0 6 * * FRI" # 1am ET Friday
-    label: healthcare-weekly
-
-  - name: nsf.gov
-    baseUrl: https://www.nsf.gov
-    mode: sitemap
-    maxPages: 50
-    schedule:
-      - "0 6 * * SAT" # 1am ET Saturday
-    label: nsf-weekly
-
-  - name: drupal.org
-    baseUrl: https://www.drupal.org
-    mode: sitemap
-    maxPages: 50
-    schedule:
-      - "0 5 * * SUN" # 12am ET Sunday
-    label: drupal-weekly
-    notes: Core CMS project
-
-  - name: digitalservicescoalition.org
-    baseUrl: https://www.digitalservicescoalition.org
-    mode: sitemap
-    maxPages: 50
-    schedule:
-      - "15 5 * * SUN" # 12:15am ET Sunday
-    label: dsc-weekly
-    notes: Digital Services Coalition
-
-  - name: canada.ca
-    baseUrl: https://www.canada.ca
-    mode: sitemap
-    maxPages: 50
-    schedule:
-      - "45 5 * * SUN" # 12:45am ET Sunday
-    label: canada-weekly
-    notes: Government of Canada portal
+      - "0 4 * * MON" # 11:00pm ET Sunday / 4:00 UTC Monday
+    label: netherlands-weekly
+    notes: Netherlands government portal
 
   - name: gsa.gov
     baseUrl: https://www.gsa.gov
     mode: sitemap
     maxPages: 50
     schedule:
-      - "30 4 * * MON" # 11:30pm ET Sunday / 4:30 UTC Monday
+      - "0 5 * * MON" # 12:00am ET Monday / 5:00 UTC Monday
     label: gsa-weekly
     notes: US General Services Administration
 
@@ -91,25 +31,43 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "45 4 * * MON" # 11:45pm ET Sunday / 4:45 UTC Monday
+      - "0 5 * * MON" # 12:00am ET Monday / 5:00 UTC Monday
     label: govuk-weekly
     notes: UK government portal
+
+  - name: civicactions.com
+    baseUrl: https://www.civicactions.com
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "0 6 * * MON" # 1:00am ET Monday / 6:00 UTC Monday
+    label: civicactions-weekly
+    notes: Weekly sitemap sample of civicactions.com
 
   - name: digital.georgia.gov
     baseUrl: https://digital.georgia.gov
     mode: sitemap
     maxPages: 50
     schedule:
-      - "30 4 * * TUE" # 11:30pm ET Monday / 4:30 UTC Tuesday
+      - "0 5 * * TUE" # 12:00am ET Tuesday / 5:00 UTC Tuesday
     label: digital-georgia-weekly
     notes: Georgia Digital Services
+
+  - name: va.gov
+    baseUrl: https://www.va.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "0 6 * * TUE" # 1:00am ET Tuesday / 6:00 UTC Tuesday
+    label: va-weekly
+    notes: Weekly sitemap sample of VA.gov
 
   - name: georgia.gov
     baseUrl: https://georgia.gov
     mode: sitemap
     maxPages: 50
     schedule:
-      - "45 4 * * TUE" # 11:45pm ET Monday / 4:45 UTC Tuesday
+      - "0 6 * * TUE" # 1:00am ET Tuesday / 6:00 UTC Tuesday
     label: georgia-weekly
     notes: State of Georgia portal
 
@@ -118,16 +76,25 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "30 4 * * WED" # 11:30pm ET Tuesday / 4:30 UTC Wednesday
+      - "0 5 * * WED" # 12:00am ET Wednesday / 5:00 UTC Wednesday
     label: colorado-oit-weekly
     notes: Colorado Office of IT
+
+  - name: cms.gov
+    baseUrl: https://www.cms.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "0 6 * * WED" # 1:00am ET Wednesday / 6:00 UTC Wednesday
+    label: cms-random-sitemap
+    notes: Midweek sitemap sample
 
   - name: colorado.gov
     baseUrl: https://www.colorado.gov
     mode: sitemap
     maxPages: 50
     schedule:
-      - "45 4 * * WED" # 11:45pm ET Tuesday / 4:45 UTC Wednesday
+      - "0 6 * * WED" # 1:00am ET Wednesday / 6:00 UTC Wednesday
     label: colorado-weekly
     notes: State of Colorado portal
 
@@ -136,16 +103,24 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "30 4 * * THU" # 11:30pm ET Wednesday / 4:30 UTC Thursday
+      - "0 5 * * THU" # 12:00am ET Thursday / 5:00 UTC Thursday
     label: ca-weekly
     notes: State of California portal
+
+  - name: medicare.gov
+    baseUrl: https://www.medicare.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "0 6 * * THU" # 1:00am ET Thursday / 6:00 UTC Thursday
+    label: medicare-weekly
 
   - name: sf.gov
     baseUrl: https://sf.gov
     mode: sitemap
     maxPages: 50
     schedule:
-      - "45 4 * * THU" # 11:45pm ET Wednesday / 4:45 UTC Thursday
+      - "0 6 * * THU" # 1:00am ET Thursday / 6:00 UTC Thursday
     label: sf-weekly
     notes: City and County of San Francisco
 
@@ -154,16 +129,24 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "30 4 * * FRI" # 11:30pm ET Thursday / 4:30 UTC Friday
+      - "0 5 * * FRI" # 12:00am ET Friday / 5:00 UTC Friday
     label: texas-weekly
     notes: State of Texas portal
+
+  - name: healthcare.gov
+    baseUrl: https://www.healthcare.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "0 6 * * FRI" # 1:00am ET Friday / 6:00 UTC Friday
+    label: healthcare-weekly
 
   - name: bundesregierung.de
     baseUrl: https://www.bundesregierung.de
     mode: sitemap
     maxPages: 50
     schedule:
-      - "45 4 * * FRI" # 11:45pm ET Thursday / 4:45 UTC Friday
+      - "0 6 * * FRI" # 1:00am ET Friday / 6:00 UTC Friday
     label: bundesregierung-weekly
     notes: German Federal Government
 
@@ -172,18 +155,9 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "30 4 * * SAT" # 11:30pm ET Friday / 4:30 UTC Saturday
+      - "0 5 * * SAT" # 12:00am ET Saturday / 5:00 UTC Saturday
     label: eu-digital-strategy-weekly
     notes: European Commission digital strategy
-
-  - name: ec.europa.eu
-    baseUrl: https://ec.europa.eu
-    mode: sitemap
-    maxPages: 50
-    schedule:
-      - "45 4 * * SAT" # 11:45pm ET Friday / 4:45 UTC Saturday
-    label: ec-weekly
-    notes: European Commission portal
 
   - name: diplomatie.gouv.fr
     baseUrl: https://www.diplomatie.gouv.fr
@@ -194,12 +168,29 @@ sites:
     label: france-diplomatie-weekly
     notes: France Ministry for Europe and Foreign Affairs
 
+  - name: nsf.gov
+    baseUrl: https://www.nsf.gov
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "0 6 * * SAT" # 1:00am ET Saturday / 6:00 UTC Saturday
+    label: nsf-weekly
+
+  - name: ec.europa.eu
+    baseUrl: https://ec.europa.eu
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "0 6 * * SAT" # 1:00am ET Saturday / 6:00 UTC Saturday
+    label: ec-weekly
+    notes: European Commission portal
+
   - name: usa.gov
     baseUrl: https://www.usa.gov
     mode: sitemap
     maxPages: 50
     schedule:
-      - "15 5 * * SAT" # 12:15am ET Saturday / 5:15 UTC Saturday
+      - "0 6 * * SAT" # 1:00am ET Saturday / 6:00 UTC Saturday
     label: usa-weekly
     notes: US government portal
 
@@ -208,7 +199,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "30 5 * * SAT" # 12:30am ET Saturday / 5:30 UTC Saturday
+      - "0 7 * * SAT" # 2:00am ET Saturday / 7:00 UTC Saturday
     label: ny-weekly
     notes: State of New York portal
 
@@ -217,7 +208,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "45 5 * * SAT" # 12:45am ET Saturday / 5:45 UTC Saturday
+      - "0 8 * * SAT" # 3:00am ET Saturday / 8:00 UTC Saturday
     label: nyc-weekly
     notes: City of New York portal
 
@@ -230,21 +221,30 @@ sites:
     label: australia-weekly
     notes: Australian Government portal
 
-  - name: ontario.ca
-    baseUrl: https://www.ontario.ca
+  - name: drupal.org
+    baseUrl: https://www.drupal.org
     mode: sitemap
     maxPages: 50
     schedule:
-      - "15 4 * * SUN" # 11:15pm ET Saturday / 4:15 UTC Sunday
-    label: ontario-weekly
-    notes: Province of Ontario portal
+      - "0 5 * * SUN" # 12:00am ET Sunday / 5:00 UTC Sunday
+    label: drupal-weekly
+    notes: Core CMS project
+
+  - name: canada.ca
+    baseUrl: https://www.canada.ca
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "0 6 * * SUN" # 1:00am ET Sunday / 6:00 UTC Sunday
+    label: canada-weekly
+    notes: Government of Canada portal
 
   - name: gov.bc.ca
     baseUrl: https://www.gov.bc.ca
     mode: sitemap
     maxPages: 50
     schedule:
-      - "30 4 * * SUN" # 11:30pm ET Saturday / 4:30 UTC Sunday
+      - "0 7 * * SUN" # 2:00am ET Sunday / 7:00 UTC Sunday
     label: bc-weekly
     notes: Province of British Columbia portal
 
@@ -253,24 +253,24 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "45 4 * * SUN" # 11:45pm ET Saturday / 4:45 UTC Sunday
+      - "0 8 * * SUN" # 3:00am ET Sunday / 8:00 UTC Sunday
     label: novascotia-weekly
     notes: Province of Nova Scotia portal
 
-  - name: govt.nz
-    baseUrl: https://www.govt.nz
+  - name: digitalservicescoalition.org
+    baseUrl: https://www.digitalservicescoalition.org
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 3 * * MON" # 10:00pm ET Sunday / 3:00 UTC Monday
-    label: nz-weekly
-    notes: New Zealand government portal
+      - "0 8 * * SUN" # 3:00am ET Sunday / 8:00 UTC Sunday
+    label: dsc-weekly
+    notes: Digital Services Coalition
 
-  - name: government.nl
-    baseUrl: https://www.government.nl
+  - name: ontario.ca
+    baseUrl: https://www.ontario.ca
     mode: sitemap
     maxPages: 50
     schedule:
-      - "15 3 * * MON" # 10:15pm ET Sunday / 3:15 UTC Monday
-    label: netherlands-weekly
-    notes: Netherlands government portal
+      - "0 8 * * SUN" # 3:00am ET Sunday / 8:00 UTC Sunday
+    label: ontario-weekly
+    notes: Province of Ontario portal
