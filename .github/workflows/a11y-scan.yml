@@ -52,7 +52,9 @@ on:
         default: 'true'
         type: boolean
   schedule:
-    - cron: '0 3 * * *'
+    # Run hourly during nighttime window 11pm-5am ET (4am-10am UTC)
+    # This aligns with target schedules which are spread across this window
+    - cron: '0 4-10 * * *'  # Every hour at :00, 4am-10am UTC (11pm-5am ET)
 
 permissions:
   contents: read
