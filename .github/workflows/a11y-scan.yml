@@ -254,9 +254,10 @@ jobs:
       - name: Ensure site directory exists
         run: mkdir -p site
 
-      - name: Prune runs older than 365 days
+      - name: Prune old runs per domain (conservative—keep latest 3 per domain, plus recent within 52 weeks)
         env:
           DAYS: 365
+          KEEP_COUNT: 3
         run: |
           set -euo pipefail
           RUNS_DIR=site/runs
@@ -264,8 +265,37 @@ jobs:
             echo "$RUNS_DIR does not exist; skipping prune"
             exit 0
           fi
-          echo "Removing run folders older than ${DAYS} days to keep gh-pages lean..."
-          find "$RUNS_DIR" -maxdepth 1 -mindepth 1 -type d -mtime +${DAYS} -print -exec rm -rf {} +
+          echo "Pruning old run directories (keep latest ${KEEP_COUNT} per domain, threshold: ${DAYS} days)..."
+          # Iterate through each domain folder
+          for domain_dir in "$RUNS_DIR"/*; do
+            if [ ! -d "$domain_dir" ]; then
+              continue
+            fi
+            domain=$(basename "$domain_dir")
+            echo "Processing domain: $domain"
+            
+            # Get all run subdirs, sort by modification time (newest first)
+            runs=$(find "$domain_dir" -maxdepth 1 -mindepth 1 -type d -printf '%T@ %p\n' | sort -rn | cut -d' ' -f2-)
+            count=0
+            
+            for run_dir in $runs; do
+              count=$((count + 1))
+              # Keep the latest KEEP_COUNT runs regardless of age
+              if [ $count -le $KEEP_COUNT ]; then
+                echo "  Keeping recent run: $(basename "$run_dir")"
+                continue
+              fi
+              
+              # For older runs, only delete if > DAYS old
+              if [ -d "$run_dir" ] && find "$run_dir" -maxdepth 0 -mtime +${DAYS} | grep -q .; then
+                echo "  Deleting old run: $(basename "$run_dir")"
+                rm -rf "$run_dir"
+              else
+                echo "  Keeping recent run: $(basename "$run_dir")"
+              fi
+            done
+          done
+          echo "Prune complete."
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
