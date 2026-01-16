@@ -13,7 +13,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 4 * * MON" # 11:00pm ET Sunday / 4:00 UTC Monday
+      - "0 5 * * MON" # 12:00am ET Monday / 5:00 UTC Monday
     label: netherlands-weekly
     notes: Netherlands government portal
 
@@ -22,7 +22,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 5 * * MON" # 12:00am ET Monday / 5:00 UTC Monday
+      - "0 6 * * MON" # 1:00am ET Monday / 6:00 UTC Monday
     label: gsa-weekly
     notes: US General Services Administration
 
@@ -31,7 +31,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 5 * * MON" # 12:00am ET Monday / 5:00 UTC Monday
+      - "0 7 * * MON" # 2:00am ET Monday / 7:00 UTC Monday
     label: govuk-weekly
     notes: UK government portal
 
@@ -40,7 +40,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 6 * * MON" # 1:00am ET Monday / 6:00 UTC Monday
+      - "0 8 * * MON" # 3:00am ET Monday / 8:00 UTC Monday
     label: civicactions-weekly
     notes: Weekly sitemap sample of civicactions.com
 
@@ -49,7 +49,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 5 * * TUE" # 12:00am ET Tuesday / 5:00 UTC Tuesday
+      - "0 4 * * TUE" # 11:00pm ET Monday / 4:00 UTC Tuesday
     label: digital-georgia-weekly
     notes: Georgia Digital Services
 
@@ -58,7 +58,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 6 * * TUE" # 1:00am ET Tuesday / 6:00 UTC Tuesday
+      - "0 5 * * TUE" # 12:00am ET Tuesday / 5:00 UTC Tuesday
     label: va-weekly
     notes: Weekly sitemap sample of VA.gov
 
@@ -76,7 +76,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 5 * * WED" # 12:00am ET Wednesday / 5:00 UTC Wednesday
+      - "0 7 * * TUE" # 2:00am ET Tuesday / 7:00 UTC Tuesday
     label: colorado-oit-weekly
     notes: Colorado Office of IT
 
@@ -85,7 +85,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 6 * * WED" # 1:00am ET Wednesday / 6:00 UTC Wednesday
+      - "0 4 * * WED" # 11:00pm ET Tuesday / 4:00 UTC Wednesday
     label: cms-random-sitemap
     notes: Midweek sitemap sample
 
@@ -94,7 +94,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 6 * * WED" # 1:00am ET Wednesday / 6:00 UTC Wednesday
+      - "0 5 * * WED" # 12:00am ET Wednesday / 5:00 UTC Wednesday
     label: colorado-weekly
     notes: State of Colorado portal
 
@@ -103,7 +103,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 5 * * THU" # 12:00am ET Thursday / 5:00 UTC Thursday
+      - "0 6 * * WED" # 1:00am ET Wednesday / 6:00 UTC Wednesday
     label: ca-weekly
     notes: State of California portal
 
@@ -112,7 +112,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 6 * * THU" # 1:00am ET Thursday / 6:00 UTC Thursday
+      - "0 7 * * WED" # 2:00am ET Wednesday / 7:00 UTC Wednesday
     label: medicare-weekly
 
   - name: sf.gov
@@ -120,7 +120,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 6 * * THU" # 1:00am ET Thursday / 6:00 UTC Thursday
+      - "0 4 * * THU" # 11:00pm ET Wednesday / 4:00 UTC Thursday
     label: sf-weekly
     notes: City and County of San Francisco
 
@@ -129,7 +129,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 5 * * FRI" # 12:00am ET Friday / 5:00 UTC Friday
+      - "0 5 * * THU" # 12:00am ET Thursday / 5:00 UTC Thursday
     label: texas-weekly
     notes: State of Texas portal
 
@@ -138,7 +138,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 6 * * FRI" # 1:00am ET Friday / 6:00 UTC Friday
+      - "0 6 * * THU" # 1:00am ET Thursday / 6:00 UTC Thursday
     label: healthcare-weekly
 
   - name: bundesregierung.de
@@ -146,7 +146,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 6 * * FRI" # 1:00am ET Friday / 6:00 UTC Friday
+      - "0 7 * * THU" # 2:00am ET Thursday / 7:00 UTC Thursday
     label: bundesregierung-weekly
     notes: German Federal Government
 
@@ -155,7 +155,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 5 * * SAT" # 12:00am ET Saturday / 5:00 UTC Saturday
+      - "0 4 * * FRI" # 11:00pm ET Thursday / 4:00 UTC Friday
     label: eu-digital-strategy-weekly
     notes: European Commission digital strategy
 
@@ -164,7 +164,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 5 * * SAT" # 12:00am ET Saturday / 5:00 UTC Saturday
+      - "0 5 * * FRI" # 12:00am ET Friday / 5:00 UTC Friday
     label: france-diplomatie-weekly
     notes: France Ministry for Europe and Foreign Affairs
 
@@ -173,7 +173,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 6 * * SAT" # 1:00am ET Saturday / 6:00 UTC Saturday
+      - "0 6 * * FRI" # 1:00am ET Friday / 6:00 UTC Friday
     label: nsf-weekly
 
   - name: ec.europa.eu
@@ -181,7 +181,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 6 * * SAT" # 1:00am ET Saturday / 6:00 UTC Saturday
+      - "0 7 * * FRI" # 2:00am ET Friday / 7:00 UTC Friday
     label: ec-weekly
     notes: European Commission portal
 
@@ -190,7 +190,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 6 * * SAT" # 1:00am ET Saturday / 6:00 UTC Saturday
+      - "0 8 * * FRI" # 3:00am ET Friday / 8:00 UTC Friday
     label: usa-weekly
     notes: US government portal
 
@@ -199,7 +199,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 7 * * SAT" # 2:00am ET Saturday / 7:00 UTC Saturday
+      - "0 4 * * SAT" # 11:00pm ET Friday / 4:00 UTC Saturday
     label: ny-weekly
     notes: State of New York portal
 
@@ -208,7 +208,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 8 * * SAT" # 3:00am ET Saturday / 8:00 UTC Saturday
+      - "0 5 * * SAT" # 12:00am ET Saturday / 5:00 UTC Saturday
     label: nyc-weekly
     notes: City of New York portal
 
@@ -217,7 +217,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 4 * * SUN" # 11:00pm ET Saturday / 4:00 UTC Sunday
+      - "0 6 * * SAT" # 1:00am ET Saturday / 6:00 UTC Saturday
     label: australia-weekly
     notes: Australian Government portal
 
@@ -226,7 +226,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 5 * * SUN" # 12:00am ET Sunday / 5:00 UTC Sunday
+      - "0 7 * * SAT" # 2:00am ET Saturday / 7:00 UTC Saturday
     label: drupal-weekly
     notes: Core CMS project
 
@@ -235,7 +235,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 6 * * SUN" # 1:00am ET Sunday / 6:00 UTC Sunday
+      - "0 8 * * SAT" # 3:00am ET Saturday / 8:00 UTC Saturday
     label: canada-weekly
     notes: Government of Canada portal
 
@@ -244,7 +244,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 7 * * SUN" # 2:00am ET Sunday / 7:00 UTC Sunday
+      - "0 4 * * SUN" # 11:00pm ET Saturday / 4:00 UTC Sunday
     label: bc-weekly
     notes: Province of British Columbia portal
 
@@ -253,7 +253,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 8 * * SUN" # 3:00am ET Sunday / 8:00 UTC Sunday
+      - "0 5 * * SUN" # 12:00am ET Sunday / 5:00 UTC Sunday
     label: novascotia-weekly
     notes: Province of Nova Scotia portal
 
@@ -262,7 +262,7 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 8 * * SUN" # 3:00am ET Sunday / 8:00 UTC Sunday
+      - "0 6 * * SUN" # 1:00am ET Sunday / 6:00 UTC Sunday
     label: dsc-weekly
     notes: Digital Services Coalition
 
@@ -271,6 +271,6 @@ sites:
     mode: sitemap
     maxPages: 50
     schedule:
-      - "0 8 * * SUN" # 3:00am ET Sunday / 8:00 UTC Sunday
+      - "0 7 * * SUN" # 2:00am ET Sunday / 7:00 UTC Sunday
     label: ontario-weekly
     notes: Province of Ontario portal
