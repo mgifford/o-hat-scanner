@@ -40,9 +40,7 @@ function main() {
     }
     if (!fs.existsSync(RUNS_DIR)) {
         fs.mkdirSync(RUNS_DIR, { recursive: true });
-        console.log('No runs found. Generating empty index.');
-        generateMainIndex([]);
-        generateAggregateCsv([]);
+        console.log('No runs found. Skipping report generation to preserve existing data.');
         return;
     }
 

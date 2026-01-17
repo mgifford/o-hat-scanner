@@ -241,6 +241,14 @@ jobs:
           echo "Contents of site/runs (if any):"
           find site/runs -maxdepth 2 -type f || true
 
+      - name: Backup site before report generation
+        run: |
+          set -euo pipefail
+          if [ -d site ] && [ -n "$(find site -maxdepth 2 -type f 2>/dev/null)" ]; then
+            git add site/ || true
+            git commit -m "Backup site/ before report regeneration" || true
+          fi
+
       - name: Generate Report
         run: npm run report
 
