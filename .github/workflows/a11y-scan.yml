@@ -307,6 +307,25 @@ jobs:
           done
           echo "Prune complete."
 
+      - name: Validate site size before deploy
+        run: |
+          set -euo pipefail
+          if [ ! -f site/index.html ]; then
+            echo "::error::site/index.html missing. Aborting deploy to prevent 404."
+            exit 1
+          fi
+
+          # Check size in KB
+          SIZE_KB=$(du -sk site | cut -f1)
+          echo "Current site size: ${SIZE_KB} KB"
+
+          # User requested 1MB minimum to prevent wiping the site with a bad run
+          MIN_SIZE=1024
+          if [ "$SIZE_KB" -lt "$MIN_SIZE" ]; then
+            echo "::error::Site size (${SIZE_KB} KB) is below the minimum threshold of ${MIN_SIZE} KB. Aborting deploy to preserve history."
+            exit 1
+          fi
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
