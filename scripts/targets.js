@@ -66,7 +66,10 @@ function isDue(site, now) {
 
 function cronMatches(expr, now) {
   try {
-    const windowMs = 60 * 1000;
+    // GitHub Actions schedules are not precise and can be delayed by 15-30+ minutes.
+    // Use a wide window (45m) to ensure we catch the intended slot even if delayed.
+    // Since we run hourly, 45m is safe from overlap.
+    const windowMs = 45 * 60 * 1000;
     const interval = cronParser.parseExpression(expr, {
       currentDate: new Date(now.getTime() - windowMs),
       tz: 'UTC'
