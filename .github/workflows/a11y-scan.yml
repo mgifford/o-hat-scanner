@@ -214,6 +214,7 @@ jobs:
           browser_input="${{ steps.resolve.outputs.browser }}"
           seed_strategy="${{ github.event.inputs.sampling_seed_strategy || 'fixed' }}"
           dispatch_max="${{ github.event.inputs.max_pages }}"
+          sim_time="${{ github.event.inputs.simulated_time }}"
           vp_list="${vp_input:-desktop}"
           cs_list="${cs_input:-light}"
           browser_list="${browser_input:-chromium}"
@@ -242,7 +243,7 @@ jobs:
                     run_label="$name-$vp-$cs-$browser"
                   fi
                   echo "--- Running $name (mode=$mode, maxPages=$maxPages, label=$run_label, viewport=$vp, color=$cs, browser=$browser) ---"
-                  INPUT_MODE="$mode" INPUT_LABEL="$run_label" INPUT_MAX_PAGES="$maxPages" INPUT_BASE_URL="$baseUrl" INPUT_URLS="$urls" INPUT_VIEWPORT_PROFILE="$vp" INPUT_COLOR_SCHEME="$cs" INPUT_BROWSER="$browser" INPUT_SITEMAP_SAMPLE_SEED="$sample_seed" npm run scan:ci
+                  RUN_TIMESTAMP="$sim_time" INPUT_MODE="$mode" INPUT_LABEL="$run_label" INPUT_MAX_PAGES="$maxPages" INPUT_BASE_URL="$baseUrl" INPUT_URLS="$urls" INPUT_VIEWPORT_PROFILE="$vp" INPUT_COLOR_SCHEME="$cs" INPUT_BROWSER="$browser" INPUT_SITEMAP_SAMPLE_SEED="$sample_seed" npm run scan:ci
                 done
               done
             done
