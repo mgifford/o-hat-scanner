@@ -62,7 +62,7 @@ on:
     # UNCOMMENT THE LINE BELOW TO ENABLE A TEST RUN
     # Adjust the cron expression to a time ~10 mins in the future to test the scheduler.
     # IMPORTANT: If you change this time, you MUST also update the 'test-daytime-check' schedule in targets.yml
-    - cron: '30 17 * * *' # Example: 12:30pm ET (17:30 UTC)
+    - cron: '30 19 * * *' # Example: 2:30pm ET (19:30 UTC)
 
 permissions:
   contents: read
