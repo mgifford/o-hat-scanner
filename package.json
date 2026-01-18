@@ -1,11 +1,10 @@
 {
-  "name": "a11y-dual-scanner",
+  "name": "o-hat-scanner",
   "version": "1.0.0",
-  "description": "Accessibility scanner supporting CI (Playwright) and Standalone (In-browser) modes",
+  "description": "Accessibility scanner CI (Playwright) mode",
   "main": "scripts/scan-ci.js",
   "type": "module",
   "scripts": {
-    "vendor-assets": "cp node_modules/axe-core/axe.min.js assets/axe.min.js",
     "scan:ci": "node scripts/scan-ci.js",
     "report": "node scripts/generate-report.js",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest"

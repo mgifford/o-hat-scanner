@@ -5,3 +5,4 @@ site/index.html
 site/runs/
 site/**/*.csv
 site/**/*.json
+.vscode/
