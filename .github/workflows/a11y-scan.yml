@@ -51,10 +51,17 @@ on:
         required: false
         default: 'true'
         type: boolean
+      simulated_time:
+        description: 'Simulate a specific date/time (ISO string) for schedule testing'
+        required: false
+        type: string
   schedule:
     # Run hourly during nighttime window 11pm-5am ET (4am-10am UTC)
     # This aligns with target schedules which are spread across this window
     - cron: '0 4-10 * * *'  # Every hour at :00, 4am-10am UTC (11pm-5am ET)
+    # UNCOMMENT THE LINE BELOW TO ENABLE A TEST RUN
+    # Adjust the cron expression to a time ~10 mins in the future to test the scheduler.
+    # - cron: '30 5 * * *'  # Example: 12:30am ET (05:30 UTC)
 
 permissions:
   contents: read
@@ -120,6 +127,7 @@ jobs:
           COLOR_SCHEME: ${{ github.event.inputs.color_scheme }}
           SAMPLING_SEED_STRATEGY: ${{ github.event.inputs.sampling_seed_strategy }}
           IGNORE_SCHEDULE: ${{ github.event.inputs.ignore_schedule }}
+          SIMULATED_TIME: ${{ github.event.inputs.simulated_time }}
         run: |
           set -euo pipefail
           FLAGS=""
@@ -130,6 +138,10 @@ jobs:
           # Manual URL/site inputs also imply ignore schedule.
           if [ -n "$MANUAL_SITE" ] || [ -n "$MANUAL_URLS" ]; then
             FLAGS="--ignore-schedule"
+          fi
+          # If a simulated time is provided, pass it and enforce schedule respect.
+          if [ -n "$SIMULATED_TIME" ]; then
+            FLAGS="--now=$SIMULATED_TIME"
           fi
           ALLOW_ADHOC_FLAG=""
           if [ -n "$MANUAL_SITE" ]; then
