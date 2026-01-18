@@ -275,12 +275,23 @@ sites:
     label: ontario-weekly
     notes: Province of Ontario portal
 
-  # --- TEST TARGETS ---
+  # --- TEST TARGETS / TIME TRAVEL ---
+  # To test specific times, ensure this schedule matches the cron in .github/workflows/a11y-scan.yml
+  # To test "Time Travel", use the "simulated_time" input in GitHub Actions "Run workflow" dispatch.
+  #   Example: Set simulated_time to "2026-01-01T17:30:00Z" to trigger this target (and backlog history).
+  
+  # --- CONFIGURATION DEFAULTS ---
+  # Currently, the following settings are GLOBAL workflow inputs (not per-site):
+  # - Viewport: desktop (default) | mobile | both
+  # - Color Scheme: light (default) | dark | both
+  # - Browser: chromium (default) | firefox | webkit | all
+  # - Sitemap Sampling: fixed (default) | random
+  
   - name: test-daytime-check
     baseUrl: https://www.civicactions.com
     mode: sitemap
     maxPages: 10
     schedule:
-      - "30 17 * * *" # 12:30 PM ET / 17:30 UTC (Daily daytime test slot)
+      - "30 17 * * *" # 12:30 PM ET / 17:30 UTC
     label: test-run
-    notes: Quick daytime test target
+    notes: Quick daytime test target. MUST MATCH CRON IN .github/workflows/a11y-scan.yml
