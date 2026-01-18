@@ -1,27 +1,47 @@
 import fs from 'fs';
 import path from 'path';
 
+import { fileURLToPath } from 'url';
+
 const SITE_DIR = 'site';
 const RUNS_DIR = path.join(SITE_DIR, 'runs');
+const ARCHIVES_DIR = path.join(SITE_DIR, 'archives');
 
 function collectRunEntries() {
-    if (!fs.existsSync(RUNS_DIR)) return [];
     const entries = [];
-    const levelOne = fs.readdirSync(RUNS_DIR).filter(name => fs.statSync(path.join(RUNS_DIR, name)).isDirectory());
-    for (const dir of levelOne) {
-        const directResults = path.join(RUNS_DIR, dir, 'results.json');
-        if (fs.existsSync(directResults)) {
-            entries.push({ runId: dir, runRelPath: dir });
-            continue;
-        }
-        const subdirs = fs.readdirSync(path.join(RUNS_DIR, dir)).filter(name => fs.statSync(path.join(RUNS_DIR, dir, name)).isDirectory());
-        for (const sub of subdirs) {
-            const resultsPath = path.join(RUNS_DIR, dir, sub, 'results.json');
-            if (fs.existsSync(resultsPath)) {
-                entries.push({ runId: sub, runRelPath: path.join(dir, sub) });
+    
+    // Collect active runs
+    if (fs.existsSync(RUNS_DIR)) {
+        const levelOne = fs.readdirSync(RUNS_DIR).filter(name => fs.statSync(path.join(RUNS_DIR, name)).isDirectory());
+        for (const dir of levelOne) {
+            const directResults = path.join(RUNS_DIR, dir, 'results.json');
+            if (fs.existsSync(directResults)) {
+                entries.push({ runId: dir, runRelPath: dir, isArchived: false });
+                continue;
+            }
+            const sub = fs.readdirSync(path.join(RUNS_DIR, dir)).filter(name => fs.statSync(path.join(RUNS_DIR, dir, name)).isDirectory());
+            for (const s of sub) {
+                const resultsPath = path.join(RUNS_DIR, dir, s, 'results.json');
+                if (fs.existsSync(resultsPath)) {
+                    entries.push({ runId: s, runRelPath: path.join(dir, s), isArchived: false });
+                }
             }
         }
     }
+
+    // Collect archived runs
+    if (fs.existsSync(ARCHIVES_DIR)) {
+        const levelOne = fs.readdirSync(ARCHIVES_DIR).filter(name => fs.statSync(path.join(ARCHIVES_DIR, name)).isDirectory());
+        for (const dir of levelOne) {
+            const sub = fs.readdirSync(path.join(ARCHIVES_DIR, dir)).filter(name => name.endsWith('.json'));
+            for (const s of sub) {
+                // e.g. runId.json
+                const runId = s.replace('.json', '');
+                entries.push({ runId, runRelPath: path.join(dir, s), isArchived: true });
+            }
+        }
+    }
+
     return entries;
 }
 
@@ -38,7 +58,8 @@ function main() {
     if (!fs.existsSync(SITE_DIR)) {
         fs.mkdirSync(SITE_DIR, { recursive: true });
     }
-    if (!fs.existsSync(RUNS_DIR)) {
+    // Only skip if both runs and archives are empty
+    if (!fs.existsSync(RUNS_DIR) && !fs.existsSync(ARCHIVES_DIR)) {
         fs.mkdirSync(RUNS_DIR, { recursive: true });
         console.log('No runs found. Skipping report generation to preserve existing data.');
         return;
@@ -48,8 +69,30 @@ function main() {
     const runSummaries = [];
     const aggregateRows = [];
 
-    // Generate per-run pages
-    for (const { runId, runRelPath } of runEntries) {
+    // Generate per-run pages or load archives
+    for (const { runId, runRelPath, isArchived } of runEntries) {
+        if (isArchived) {
+            // Load pre-calculated data from archive JSON
+            const archPath = path.join(ARCHIVES_DIR, runRelPath);
+            try {
+                const data = JSON.parse(fs.readFileSync(archPath, 'utf-8'));
+                if (data.summary) {
+                    // Adjust summary path to point to zip if needed, or handle in index generation
+                    data.summary.isArchived = true;
+                    // For archive, runRelPath is "domain/runId.json". Web path should look like "archives/domain/runId.zip"
+                    // But generateMainIndex logic needs to use this.
+                    data.summary.archivePath = 'archives/' + runRelPath.replace('.json', '.zip');
+                    runSummaries.push(data.summary);
+                }
+                if (data.aggregateRows) {
+                    aggregateRows.push(...data.aggregateRows);
+                }
+            } catch (e) {
+                console.error(`Failed to load archive ${runRelPath}:`, e);
+            }
+            continue;
+        }
+
         const runPath = path.join(RUNS_DIR, runRelPath);
         const resultsPath = path.join(runPath, 'results.json');
 
@@ -64,7 +107,7 @@ function main() {
             const summaryPath = path.join(runPath, 'summary.json');
             if (fs.existsSync(summaryPath)) {
                 const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf-8'));
-                summary.runRelPath = summary.runRelPath || runRelPath;
+                summary.runRelPath = runRelPath;
                 runSummaries.push(summary);
             }
         }
@@ -181,13 +224,16 @@ function generateMainIndex(summaries) {
                         const started = s.startedAt ? new Date(s.startedAt).toLocaleString() : 'N/A';
                         const runShort = s.runId ? `${s.runId.slice(0, 8)}…` : 'n/a';
                         const relPath = s.runRelPath || s.runId;
+                        const isArchived = !!s.isArchived;
+                        const linkUrl = isArchived && s.archivePath ? s.archivePath : `runs/${esc(relPath)}/index.html`;
+                        const linkText = isArchived ? 'Download ZIP' : 'View →';
                         return `
                         <tr data-started-at="${esc(s.startedAt || '')}" data-target="${esc(s.target || '')}" data-viewport="${esc(s.viewport || '')}" data-color-scheme="${esc(s.colorScheme || '')}" data-browser="${esc(s.browser || '')}" data-pages="${s.pagesScanned ?? ''}" data-total="${s.totalViolations ?? ''}" data-idx="${i}">
                             <td>${started}</td>
                             <td>
                                 <div class="target-cell">
                                     <div class="target-main">${esc(s.target || 'Unknown')}</div>
-                                    <div class="target-meta">Run ID <span class="run-id" title="${esc(s.runId || '')}" aria-label="Run ID ${esc(s.runId || '')}">${esc(runShort)}</span></div>
+                                    <div class="target-meta">Run ID <span class="run-id" title="${esc(s.runId || '')}" aria-label="Run ID ${esc(s.runId || '')}">${esc(runShort)}</span>${isArchived ? ' (Archived)' : ''}</div>
                                 </div>
                             </td>
                             <td>${esc(s.viewport || 'desktop')}</td>
@@ -195,7 +241,7 @@ function generateMainIndex(summaries) {
                             <td>${esc(s.browser || 'chromium')}</td>
                             <td>${s.pagesScanned ?? '—'}</td>
                             <td class="${(s.totalViolations || 0) > 0 ? 'status-fail' : 'status-pass'}">${s.totalViolations ?? 0}</td>
-                            <td><a href="runs/${esc(relPath)}/index.html" aria-label="Open report for ${esc(s.target || 'run')} in new page">View →</a></td>
+                            <td><a href="${esc(linkUrl)}" aria-label="${isArchived ? 'Download archive' : 'Open report'} for ${esc(s.target || 'run')}">${linkText}</a></td>
                         </tr>`;
                     }).join('')}
                 </tbody>
@@ -1148,7 +1194,7 @@ function generateTrendsPage() {
         fs.writeFileSync(path.join(SITE_DIR, 'trends.html'), html);
 }
 
-if (process.env.NODE_ENV !== 'test') {
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
     main();
 }
 
