@@ -274,3 +274,13 @@ sites:
       - "0 7 * * SUN" # 2:00am ET Sunday / 7:00 UTC Sunday
     label: ontario-weekly
     notes: Province of Ontario portal
+
+  # --- TEST TARGETS ---
+  - name: test-daytime-check
+    baseUrl: https://www.civicactions.com
+    mode: sitemap
+    maxPages: 10
+    schedule:
+      - "30 17 * * *" # 12:30 PM ET / 17:30 UTC (Daily daytime test slot)
+    label: test-run
+    notes: Quick daytime test target
