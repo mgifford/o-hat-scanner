@@ -88,19 +88,34 @@ jobs:
           ruby -e "require 'yaml'; YAML.load_file('.github/workflows/a11y-scan.yml')"
           ruby -e "require 'yaml'; YAML.load_file('targets.yml')"
 
-      - name: Restore prior Pages site
+      - name: Restore prior Pages artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          if git ls-remote --exit-code origin gh-pages; then
-            git fetch origin gh-pages:gh-pages
-            mkdir -p /tmp/gh-pages site
-            # Restore gh-pages content into site/
-            git --work-tree=/tmp/gh-pages checkout gh-pages -- . || true
-            rsync -a /tmp/gh-pages/ site/ || true
-            echo "Restored previous site content from gh-pages."
-          else
-            echo "gh-pages branch not found; skipping restore"
+          mkdir -p /tmp/pages-restore site
+
+          artifact_id=$(gh api -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/actions/artifacts" --paginate \
+            -q '.artifacts[] | select(.name=="github-pages" and .expired==false) | .id' | head -n1 || true)
+
+          if [ -z "$artifact_id" ]; then
+            echo "No prior Pages artifact found; skipping restore."
+            exit 0
           fi
+
+          echo "Restoring previous Pages artifact id=$artifact_id"
+          gh api -H "Accept: application/vnd.github+json" -X GET \
+            "/repos/${{ github.repository }}/actions/artifacts/${artifact_id}/zip" \
+            > /tmp/pages-restore/pages.zip
+
+          if ! unzip -q /tmp/pages-restore/pages.zip -d /tmp/pages-restore/extracted; then
+            echo "Failed to unzip prior Pages artifact; continuing without restore."
+            exit 0
+          fi
+
+          rsync -a /tmp/pages-restore/extracted/ site/ || true
+          echo "Restored previous site content into site/."
 
       - name: Debug list restored site (pre-scan)
         run: |
