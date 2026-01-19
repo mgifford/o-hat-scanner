@@ -1,0 +1,210 @@
+name: Cleanup Site Data
+
+on:
+  workflow_dispatch:
+    inputs:
+      delete_runs:
+        description: 'Delete specific runs (comma-separated, e.g., "example-com/run1,example-com/run2")'
+        required: false
+        type: string
+      delete_domains:
+        description: 'Delete entire domains (comma-separated, e.g., "example-com,test-org")'
+        required: false
+        type: string
+      delete_archives:
+        description: 'Delete archived runs (comma-separated, e.g., "example-com/run3.json")'
+        required: false
+        type: string
+      replace_aggregate:
+        description: 'Replace aggregate.csv? (Paste CSV content below if "yes")'
+        required: false
+        type: choice
+        options:
+          - 'no'
+          - 'yes'
+        default: 'no'
+      aggregate_csv_content:
+        description: 'New aggregate.csv content (only if replace_aggregate=yes)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "cleanup-pages"
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Restore current Pages artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/pages-restore site
+
+          artifact_id=$(gh api -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/actions/artifacts" --paginate \
+            -q '.artifacts[] | select(.name=="github-pages" and .expired==false) | .id' | head -n1 || true)
+
+          if [ -z "$artifact_id" ]; then
+            echo "::error::No Pages artifact found. Run a scan first."
+            exit 1
+          fi
+
+          echo "Restoring Pages artifact id=$artifact_id"
+          gh api -H "Accept: application/vnd.github+json" -X GET \
+            "/repos/${{ github.repository }}/actions/artifacts/${artifact_id}/zip" \
+            > /tmp/pages-restore/pages.zip
+
+          unzip -q /tmp/pages-restore/pages.zip -d /tmp/pages-restore/extracted
+
+          RESTORE_ROOT=/tmp/pages-restore/extracted
+          ARTIFACT_TAR=$(find "$RESTORE_ROOT" -maxdepth 1 -name 'artifact.tar' -print -quit)
+          if [ -n "$ARTIFACT_TAR" ]; then
+            mkdir -p /tmp/pages-restore/unpacked
+            tar -xf "$ARTIFACT_TAR" -C /tmp/pages-restore/unpacked
+            RESTORE_ROOT=/tmp/pages-restore/unpacked
+          fi
+
+          if [ -d "$RESTORE_ROOT/site" ]; then
+            rsync -a "$RESTORE_ROOT/site/" site/
+          else
+            rsync -a "$RESTORE_ROOT/" site/
+          fi
+          echo "Restored site content."
+
+      - name: Delete specific runs
+        if: inputs.delete_runs != ''
+        run: |
+          set -euo pipefail
+          IFS=',' read -ra RUNS <<< "${{ inputs.delete_runs }}"
+          for run in "${RUNS[@]}"; do
+            run=$(echo "$run" | xargs)  # trim whitespace
+            if [ -z "$run" ]; then continue; fi
+            
+            target_path="site/runs/${run}"
+            if [ -d "$target_path" ]; then
+              echo "Deleting run: $target_path"
+              rm -rf "$target_path"
+            else
+              echo "::warning::Run not found: $target_path"
+            fi
+          done
+
+      - name: Delete entire domains
+        if: inputs.delete_domains != ''
+        run: |
+          set -euo pipefail
+          IFS=',' read -ra DOMAINS <<< "${{ inputs.delete_domains }}"
+          for domain in "${DOMAINS[@]}"; do
+            domain=$(echo "$domain" | xargs)
+            if [ -z "$domain" ]; then continue; fi
+            
+            runs_path="site/runs/${domain}"
+            archives_path="site/archives/${domain}"
+            
+            if [ -d "$runs_path" ]; then
+              echo "Deleting domain runs: $runs_path"
+              rm -rf "$runs_path"
+            fi
+            
+            if [ -d "$archives_path" ]; then
+              echo "Deleting domain archives: $archives_path"
+              rm -rf "$archives_path"
+            fi
+            
+            if [ ! -d "$runs_path" ] && [ ! -d "$archives_path" ]; then
+              echo "::warning::Domain not found: $domain"
+            fi
+          done
+
+      - name: Delete archived runs
+        if: inputs.delete_archives != ''
+        run: |
+          set -euo pipefail
+          IFS=',' read -ra ARCHIVES <<< "${{ inputs.delete_archives }}"
+          for archive in "${ARCHIVES[@]}"; do
+            archive=$(echo "$archive" | xargs)
+            if [ -z "$archive" ]; then continue; fi
+            
+            target_path="site/archives/${archive}"
+            if [ -f "$target_path" ]; then
+              echo "Deleting archive: $target_path"
+              rm -f "$target_path"
+            else
+              echo "::warning::Archive not found: $target_path"
+            fi
+          done
+
+      - name: Replace aggregate.csv
+        if: inputs.replace_aggregate == 'yes' && inputs.aggregate_csv_content != ''
+        run: |
+          set -euo pipefail
+          echo "Replacing aggregate.csv with provided content"
+          cat > site/aggregate.csv <<'EOF'
+          ${{ inputs.aggregate_csv_content }}
+          EOF
+          echo "aggregate.csv replaced."
+
+      - name: Regenerate reports
+        run: |
+          set -euo pipefail
+          echo "Regenerating site indexes and trends..."
+          npm run report
+
+      - name: List site after cleanup
+        run: |
+          echo "Site structure after cleanup:"
+          find site -maxdepth 3 -type f | head -50
+
+      - name: Validate site before deploy
+        run: |
+          set -euo pipefail
+          if [ ! -f site/index.html ]; then
+            echo "::error::site/index.html missing after cleanup!"
+            exit 1
+          fi
+          
+          SIZE_KB=$(du -sk site | cut -f1)
+          echo "Site size after cleanup: ${SIZE_KB} KB"
+          
+          if [ "$SIZE_KB" -lt 100 ]; then
+            echo "::error::Site too small (${SIZE_KB} KB). Aborting to prevent data loss."
+            exit 1
+          fi
+
+      - name: Upload cleaned Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'site'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: cleanup
+    timeout-minutes: 5
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
