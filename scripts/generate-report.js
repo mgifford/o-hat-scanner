@@ -180,7 +180,7 @@ function generateMainIndex(summaries) {
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; min-width: 760px; table-layout: auto; }
         th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid #ddd; vertical-align: top; }
         th { background: #f4f4f4; font-weight: 600; white-space: nowrap; }
-        .viewport-cell, .color-cell, .browser-cell, .pages-cell, .total-cell, .report-cell { white-space: nowrap; }
+        .date-cell, .viewport-cell, .color-cell, .browser-cell, .pages-cell, .total-cell, .report-cell { white-space: nowrap; }
         .target-cell { min-width: 220px; }
         .sort-btn { background: transparent; border: none; font: inherit; color: #0d47a1; cursor: pointer; padding: 0; }
         .sort-btn:focus { outline: 2px solid #0d47a1; outline-offset: 2px; }
@@ -256,6 +256,7 @@ function generateMainIndex(summaries) {
                 <thead>
                     <tr>
                         <th><button class="sort-btn" data-sort="report">View</button></th>
+                        <th><button class="sort-btn" data-sort="startedAt">Date</button></th>
                         <th><button class="sort-btn" data-sort="target">Target</button></th>
                         <th><button class="sort-btn" data-sort="viewport">Viewport</button></th>
                         <th><button class="sort-btn" data-sort="colorScheme">Color</button></th>
@@ -276,6 +277,7 @@ function generateMainIndex(summaries) {
                         return `
                         <tr data-started-at="${esc(s.startedAt || '')}" data-target="${esc(s.target || '')}" data-viewport="${esc(s.viewport || '')}" data-color-scheme="${esc(s.colorScheme || '')}" data-browser="${esc(s.browser || '')}" data-pages="${s.pagesScanned ?? ''}" data-total="${s.totalViolations ?? ''}" data-idx="${i}" data-archived="${isArchived}">
                             <td class="report-cell"><a class="view-link" href="${esc(linkUrl)}" aria-label="${esc(linkLabel)}">${linkText}</a></td>
+                            <td class="date-cell" data-started-at="${esc(s.startedAt || '')}">${esc(startedIso || 'N/A')}</td>
                             <td>
                                 <div class="target-cell">
                                     <div class="target-main">${esc(s.target || 'Unknown')}</div>
