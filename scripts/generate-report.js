@@ -310,6 +310,12 @@ function generateMainIndex(summaries) {
             </ul>
             <p><strong>Learn more:</strong> See the <a href="https://github.com/mgifford/o-hat-scanner">GitHub repository</a> for setup and configuration.</p>
         </div>
+        
+        <div class="intro">
+            <h2>📈 Trends & History</h2>
+            <p>Track accessibility improvements over time with the <a href="trends.html"><strong>Trends Dashboard</strong></a>.</p>
+            <p>View violation counts across multiple scans, filter by target/viewport/browser, and export historical data.</p>
+        </div>
     </main>
     
     <footer>
@@ -1093,6 +1099,7 @@ function generateTrendsPage() {
     <a class="sr-only" href="#main">Skip to main content</a>
     <header>
         <h1>O-Hat Trends</h1>
+        <p style="margin:0.5rem 0;"><a href="index.html" style="color:#fff;text-decoration:underline;">← Back to Reports</a></p>
         <p aria-live="polite" class="status" id="status">Loading aggregate data…</p>
     </header>
     <main id="main">
@@ -1160,6 +1167,7 @@ function generateTrendsPage() {
         const tbody = document.querySelector('#dataTable tbody');
 
         const palette = ['#1976d2','#d32f2f','#f57c00','#388e3c','#6a1b9a','#00796b','#c2185b','#455a64'];
+        const newlineRe = new RegExp('\\r?\\n');
 
         function parseCsv(text) {
             const lines = text.trim().split(newlineRe);
