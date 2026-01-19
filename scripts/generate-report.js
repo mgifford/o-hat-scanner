@@ -484,7 +484,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             --header-bg: #0a2540;
             --header-text: #fff;
             --pill-critical: #d32f2f;
-            --pill-warning: #f57c00;
+            --pill-warning: #b95e00;
             --pill-info: #0d47a1;
             --card-bg: #fafafa;
             --bar-bg: #e0e0e0;
@@ -503,7 +503,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             --header-bg: #0a2540;
             --header-text: #e5e7eb;
             --pill-critical: #ef4444;
-            --pill-warning: #f59e0b;
+            --pill-warning: #b95e00;
             --pill-info: #3b82f6;
             --card-bg: #1f2937;
             --bar-bg: #1f2937;
