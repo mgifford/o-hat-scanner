@@ -114,7 +114,13 @@ jobs:
             exit 0
           fi
 
-          rsync -a /tmp/pages-restore/extracted/ site/ || true
+          RESTORE_ROOT=/tmp/pages-restore/extracted
+          if [ -d "$RESTORE_ROOT/site" ]; then
+            echo "Artifact contained nested site/ directory; syncing that.";
+            rsync -a "$RESTORE_ROOT/site/" site/ || true
+          else
+            rsync -a "$RESTORE_ROOT/" site/ || true
+          fi
           echo "Restored previous site content into site/."
 
       - name: Debug list restored site (pre-scan)
