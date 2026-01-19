@@ -298,17 +298,17 @@ function generateMainIndex(summaries) {
         </div>
         
         <div class="intro" id="standalone">
-            <h2>📦 Standalone Scanner</h2>
-            <p>The O-Hat Scanner includes a standalone HTML file that runs accessibility scans directly in your browser (same-origin only).</p>
+            <h2>📦 Related Project: O-Hat Standalone Scanner</h2>
+            <p>Need same-origin browser-based scanning? Check out the <strong><a href="https://github.com/mgifford/o-hat-standalone">O-Hat Standalone Scanner</a></strong>—a companion project that runs accessibility scans directly in your browser.</p>
             <p><strong>Features:</strong></p>
             <ul>
-                <li>No server required—runs entirely in the browser</li>
+                <li>Single HTML file—no server required</li>
                 <li>Discovers pages via sitemap.xml</li>
                 <li>Real-time progress tracking</li>
-                <li>JSON + CSV export with Oobee schema</li>
+                <li>JSON + CSV export with Oobee-compatible schema</li>
                 <li>Token-based access control</li>
             </ul>
-            <p><strong>Learn more:</strong> See the <a href="https://github.com/mgifford/o-hat-scanner">GitHub repository</a> for setup and configuration.</p>
+            <p><strong>Try it:</strong> <a href="https://mgifford.github.io/o-hat-standalone/">Live demo</a> | <a href="https://github.com/mgifford/o-hat-standalone">GitHub repository</a></p>
         </div>
         
         <div class="intro">
