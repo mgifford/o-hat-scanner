@@ -104,6 +104,36 @@ describe('generate-report run page', () => {
         expect(html).toContain('aggregate.csv');
         expect(html).toContain('Trend (total occurrences)');
     });
+
+    test('includes a print-to-PDF control with print styles', () => {
+        const stats = analyzeResults(results);
+        generateRunPage(runId, runRelPath, results, stats);
+        const html = fs.readFileSync(path.join(runDir, 'index.html'), 'utf-8');
+
+        expect(html).toContain('id="printButton"');
+        expect(html).toContain('Save as PDF');
+        expect(html).toContain('@media print');
+        expect(html).toContain('window.print()');
+    });
+
+    test('exposes download links for CSV, JSON, and MHTML', () => {
+        const stats = analyzeResults(results);
+        generateRunPage(runId, runRelPath, results, stats);
+        const html = fs.readFileSync(path.join(runDir, 'index.html'), 'utf-8');
+
+        expect(html).toContain('Download CSV');
+        expect(html).toContain('Download JSON');
+        expect(html).toContain('Download MHTML');
+    });
+
+    test('uses newline regex via constructor in emitted HTML', () => {
+        const stats = analyzeResults(results);
+        generateRunPage(runId, runRelPath, results, stats);
+        const html = fs.readFileSync(path.join(runDir, 'index.html'), 'utf-8');
+
+        expect(html).toContain("const newlineRe = new RegExp('\\\\r?\\\\n')");
+        expect(html).toContain('split(newlineRe)');
+    });
 });
 
 describe('generate-report data loss protection', () => {
