@@ -124,6 +124,12 @@ describe('generate-report run page', () => {
         expect(html).toContain('Download CSV');
         expect(html).toContain('Download JSON');
         expect(html).toContain('Download MHTML');
+
+        // Verify link hrefs point to correct files
+        expect(html).toContain('<a href="report.csv"');
+        expect(html).toContain('<a href="results.json"');
+        expect(html).toContain('<a href="report.mhtml"');
+        expect(html).toContain('Download JSON</a>');
     });
 
     test('uses newline regex via constructor in emitted HTML', () => {
@@ -133,6 +139,29 @@ describe('generate-report run page', () => {
 
         expect(html).toContain("const newlineRe = new RegExp('\\\\r?\\\\n')");
         expect(html).toContain('split(newlineRe)');
+    });
+
+    test('generates results.json in run directory and is readable', () => {
+        const stats = analyzeResults(results);
+        
+        // Write results.json to simulate what scan-ci.js does
+        fs.mkdirSync(runDir, { recursive: true });
+        const resultsPath = path.join(runDir, 'results.json');
+        fs.writeFileSync(resultsPath, JSON.stringify(results));
+
+        // Generate the run page
+        generateRunPage(runId, runRelPath, results, stats);
+
+        // Verify results.json still exists and is readable
+        expect(fs.existsSync(resultsPath)).toBe(true);
+
+        const resultsContent = fs.readFileSync(resultsPath, 'utf-8');
+        expect(() => JSON.parse(resultsContent)).not.toThrow();
+
+        // Verify it contains the expected structure
+        const parsed = JSON.parse(resultsContent);
+        expect(parsed.resultsByUrl).toBeDefined();
+        expect(parsed.mode).toBe('ci');
     });
 });
 
