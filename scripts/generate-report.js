@@ -8,6 +8,13 @@ const RUNS_DIR = path.join(SITE_DIR, 'runs');
 const ARCHIVES_DIR = path.join(SITE_DIR, 'archives');
 const MAX_INDEX_RUNS_PER_DOMAIN = 3;
 
+function formatRunIdShort(runId = '') {
+    const safe = runId || '';
+    if (!safe) return 'n/a';
+    if (safe.length <= 28) return safe;
+    return `${safe.slice(0, 18)}…${safe.slice(-12)}`;
+}
+
 function collectRunEntries() {
     const entries = [];
     
@@ -152,10 +159,10 @@ function generateMainIndex(summaries) {
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; color: #222; }
         a { color: #1976d2; text-decoration: none; }
         a:hover { text-decoration: underline; }
-        header { background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%); color: #fff; padding: 3rem 1rem; }
+        header { background: #0a2540; color: #fff; padding: 3rem 1rem; }
         .header-content { max-width: 1000px; margin: 0 auto; }
-        h1 { font-size: 32px; font-weight: 700; margin: 0 0 0.5rem 0; }
-        .tagline { font-size: 18px; color: #e3f2fd; margin: 0; }
+        h1 { font-size: 32px; font-weight: 700; margin: 0 0 0.5rem 0; color: #fff; }
+        .tagline { font-size: 18px; color: #fff; margin: 0; }
         main { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
         .intro { background: #fff; padding: 2rem; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 2rem; }
         .intro h2 { margin-top: 0; color: #0d47a1; }
@@ -182,13 +189,15 @@ function generateMainIndex(summaries) {
         .target-cell { display: flex; flex-direction: column; gap: 4px; }
         .target-main { font-weight: 700; }
         .target-meta { font-size: 12px; color: #555; display: inline-flex; gap: 6px; align-items: baseline; }
-        .run-id { font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; opacity: 0.7; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom; }
+        .run-id { font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; opacity: 0.7; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom; }
         tr:hover .run-id, tr:focus-within .run-id { opacity: 1; }
         .run-id:focus, .run-id:hover { white-space: normal; max-width: none; background: #eef2ff; outline: 2px solid #5e35b1; outline-offset: 2px; padding: 0 2px; }
         .view-link { display: inline-block; padding: 8px 12px; background: #0d47a1; color: #fff; border-radius: 4px; font-weight: 700; border: 1px solid #0d47a1; text-align: center; }
         .view-link:hover { background: #0b3a82; color: #fff; text-decoration: none; }
         .view-link:focus { outline: 2px solid #5e35b1; outline-offset: 3px; }
         footer { text-align: center; padding: 2rem 1rem; color: #666; font-size: 14px; }
+        footer a { color: #0d47a1; text-decoration: underline; }
+        footer a:hover { color: #1976d2; }
     </style>
 </head>
 <body>
@@ -196,7 +205,7 @@ function generateMainIndex(summaries) {
         <div class="header-content">
             <h1>🎩 O-Hat Scanner</h1>
             <p class="tagline">Oobee-style accessibility reports powered by GitHub Actions & Pages</p>
-            <p style="margin-top: 1rem;"><a href="https://github.com/mgifford/o-hat-scanner" style="color: #bbdefb; font-weight: 600;">View on GitHub →</a></p>
+            <p style="margin-top: 1rem;"><a href="https://github.com/mgifford/o-hat-scanner" style="color: #fff; font-weight: 600; text-decoration: underline;">View on GitHub →</a></p>
         </div>
     </header>
     
@@ -258,7 +267,7 @@ function generateMainIndex(summaries) {
                 <tbody>
                     ${filteredSummaries.map((s, i) => {
                         const startedIso = s.startedAt || '';
-                        const runShort = s.runId ? `${s.runId.slice(0, 8)}…` : 'n/a';
+                        const runShort = formatRunIdShort(s.runId || '');
                         const relPath = s.runRelPath || s.runId;
                         const isArchived = !!s.isArchived;
                         const linkUrl = isArchived && s.archivePath ? s.archivePath : `runs/${esc(relPath)}/index.html`;
@@ -429,14 +438,13 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             --panel-border: #e0e0e0;
             --text: #222;
             --muted: #666;
-            --link: #1976d2;
+            --link: #005a9c;
             --link-visited: #5e35b1;
-            --header-grad-start: #0d47a1;
-            --header-grad-end: #1976d2;
+            --header-bg: #0a2540;
             --header-text: #fff;
             --pill-critical: #d32f2f;
             --pill-warning: #f57c00;
-            --pill-info: #1976d2;
+            --pill-info: #0d47a1;
             --card-bg: #fafafa;
             --bar-bg: #e0e0e0;
             --code-bg: #f5f5f5;
@@ -451,8 +459,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             --muted: #9ca3af;
             --link: #7cb7ff;
             --link-visited: #c4b5fd;
-            --header-grad-start: #0b1f3a;
-            --header-grad-end: #163c6b;
+            --header-bg: #0a2540;
             --header-text: #e5e7eb;
             --pill-critical: #ef4444;
             --pill-warning: #f59e0b;
@@ -469,15 +476,15 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         a:visited { color: var(--link-visited); }
         h1, h2, h3, h4 { margin: 0; }
 
-        header { background: linear-gradient(135deg, var(--header-grad-start) 0%, var(--header-grad-end) 100%); color: var(--header-text); padding: 2rem 1rem; }
+        header { background: var(--header-bg); color: var(--header-text); padding: 2rem 1rem; }
         .header-content { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 0.5rem; }
         .header-actions { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
         .back-link { color: var(--header-text); font-size: 14px; display: inline-block; font-weight: 700; text-decoration: underline; }
         .back-link:hover { color: var(--header-text); text-decoration: underline; }
         h1 { font-size: 28px; font-weight: 700; }
-        .meta { margin-top: 0.25rem; font-size: 14px; color: var(--header-text); opacity: 0.9; }
+        .meta { margin-top: 0.25rem; font-size: 14px; color: var(--header-text); opacity: 1; }
         .meta strong { color: var(--header-text); }
-        .download-link { display: inline-block; margin-top: 0.5rem; padding: 10px 16px; background: var(--panel-bg); color: var(--header-grad-start); border-radius: 4px; font-weight: 600; border: 1px solid var(--panel-border); text-align: center; }
+        .download-link { display: inline-block; margin-top: 0.5rem; padding: 10px 16px; background: var(--panel-bg); color: #000; border-radius: 4px; font-weight: 600; border: 1px solid var(--panel-border); text-align: center; }
         .download-link:hover { background: var(--card-bg); text-decoration: none; }
         button.download-link { cursor: pointer; }
 
@@ -497,11 +504,9 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
         .card { background: var(--card-bg); border: 1px solid var(--panel-border); border-radius: 6px; padding: 1rem; }
         .card h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 0.35rem; }
-        .card .value { font-size: 30px; font-weight: 700; color: var(--text); }
-        .card.critical .value { color: var(--pill-critical); }
-        .card.warning .value { color: var(--pill-warning); }
-        .card.info .value { color: var(--pill-info); }
+        .card .value { font-size: 30px; font-weight: 700; color: #000; background: #fff; padding: 2px 4px; border-radius: 3px; display: inline-block; }
         .card .subtext { font-size: 12px; color: var(--muted); margin-top: 4px; }
+        [data-theme="dark"] .card .value { color: #fff; background: #0f141a; }
 
         .mini-trend { margin-top: 1rem; border-top: 1px solid var(--panel-border); padding-top: 1rem; }
         .mini-trend h4 { margin: 0 0 0.5rem 0; font-size: 14px; }
@@ -536,7 +541,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         .node-item { margin-bottom: 8px; }
         .node-item:last-child { margin-bottom: 0; }
         .node-url { font-weight: 700; color: var(--text); }
-        .node-selector { color: var(--link); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        .node-selector { color: #005a9c; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
         .node-html { margin-top: 4px; color: var(--text); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; overflow-wrap: anywhere; background: var(--code-bg); padding: 6px; border-radius: 4px; }
 
         .pill-critical { background: var(--pill-critical); }
@@ -633,7 +638,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
                 <div class="panel" style="margin-top: 1rem;">
                     <h3>WCAG compliance snapshot</h3>
                     <small>Automated coverage only; manual verification still required.</small>
-                    <div class="bar" aria-label="Automation coverage">
+                    <div class="bar" role="img" aria-label="Automation coverage">
                         <div class="bar-segment bar-auto" style="width: ${automationCoverage}%">${automationCoverage}% automation</div>
                         <div class="bar-segment" style="background:#e0e0e0; width: ${100 - automationCoverage}%"></div>
                     </div>
@@ -717,7 +722,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         </div>
     </div>
 
-    <div class="container" aria-label="Debug information" style="margin-top: 0;">
+    <section style="margin-top: 0; max-width: 1200px; margin-left: auto; margin-right: auto; padding: 0 1rem;">
         <div class="panel" style="margin-top: 1rem; background-color: #f5f0d9; border: 1px solid #d8cfa3;">
             <details class="debug-accordion">
                 <summary style="cursor: pointer; font-weight: 600; outline: none;">Debug info (run config)</summary>
@@ -740,7 +745,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
                 </div>
             </details>
         </div>
-    </div>
+    </section>
 
     <script>
         // Toggle severity blocks (keyboard accessible)
@@ -1060,10 +1065,10 @@ function generateTrendsPage() {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>O-Hat Trends</title>
     <style>
-        :root { color-scheme: light; --bg:#f5f5f5; --panel:#fff; --border:#e0e0e0; --text:#222; --muted:#666; --link:#1976d2; --accent:#0d47a1; --grid:#ccc; --line:#1976d2; --dot:#0d47a1; }
+        :root { color-scheme: light; --bg:#f5f5f5; --panel:#fff; --border:#e0e0e0; --text:#222; --muted:#666; --link:#1976d2; --accent:#0a2540; --grid:#ccc; --line:#1976d2; --dot:#0d47a1; }
         body { margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif; background:var(--bg); color:var(--text); }
-        header { padding:1rem; background:linear-gradient(135deg,var(--accent),var(--line)); color:#fff; }
-        h1 { margin:0; font-size:24px; }
+        header { padding:1rem; background:var(--accent); color:#fff; }
+        h1 { margin:0; font-size:24px; color:#fff; }
         main { max-width:1100px; margin:1.5rem auto; padding:0 1rem 2rem; }
         .panel { background:var(--panel); border:1px solid var(--border); border-radius:6px; padding:1rem; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
         .controls { display:flex; flex-wrap:wrap; gap:0.75rem; margin-bottom:1rem; align-items:flex-end; }
@@ -1076,7 +1081,8 @@ function generateTrendsPage() {
         table { width:100%; border-collapse:collapse; margin-top:1rem; font-size:13px; }
         th, td { padding:8px; border-bottom:1px solid var(--border); text-align:left; }
         th { background:#fafafa; }
-        .status { margin:0.5rem 0; color:var(--muted); font-size:14px; }
+        .status { margin:0.5rem 0; color:#222; font-size:14px; }
+        #status { color:#fff; }
         .sr-only { position:absolute; left:-9999px; }
         button:focus, select:focus { outline:2px solid var(--line); outline-offset:2px; }
     </style>
@@ -1134,8 +1140,8 @@ function generateTrendsPage() {
             <div class="legend" id="legend"></div>
             <div class="status" id="summary"></div>
             <table aria-label="Data table" id="dataTable">
-                <thead><tr><th>Date</th><th>Run</th><th>Pages</th><th>Total</th><th>Critical</th><th>Serious</th><th>Moderate</th><th>Minor</th></tr></thead>
-                <tbody></tbody>
+                <thead><tr><th scope="col">Date</th><th scope="col">Run</th><th scope="col">Pages</th><th scope="col">Total</th><th scope="col">Critical</th><th scope="col">Serious</th><th scope="col">Moderate</th><th scope="col">Minor</th></tr></thead>
+                <tbody><tr><td colspan="8" aria-live="polite">No data yet</td></tr></tbody>
             </table>
         </div>
     </main>
@@ -1442,4 +1448,4 @@ function esc(s) {
     return String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }
 
-export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage };
+export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort };

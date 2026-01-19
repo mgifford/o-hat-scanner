@@ -6,6 +6,7 @@ const ROOT = path.resolve(__dirname, '..');
 
 let generateRunPage;
 let analyzeResults;
+let formatRunIdShort;
 
 describe('generate-report run page', () => {
     const runId = 'test-run-report';
@@ -51,12 +52,22 @@ describe('generate-report run page', () => {
 
     beforeAll(async () => {
         process.env.NODE_ENV = 'test';
-        ({ generateRunPage, analyzeResults } = await import('../scripts/generate-report.js'));
+        ({ generateRunPage, analyzeResults, formatRunIdShort } = await import('../scripts/generate-report.js'));
         fs.rmSync(runDir, { recursive: true, force: true });
     });
 
     afterAll(() => {
         fs.rmSync(path.join(ROOT, 'site'), { recursive: true, force: true });
+    });
+
+    test('formatRunIdShort keeps readable head and tail', () => {
+        const longId = 'www-civicactions-com--2026-01-19T13-58-55-307Z--test-run-desktop-light-chromium';
+        const short = formatRunIdShort(longId);
+
+        expect(short.startsWith('www-civicactions-')).toBe(true);
+        expect(short).toContain('…');
+        expect(short.endsWith('chromium')).toBe(true);
+        expect(short.length).toBeLessThan(longId.length);
     });
 
     test('renders run page with search, top pages, and severity groups', () => {
