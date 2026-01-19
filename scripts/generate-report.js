@@ -157,7 +157,7 @@ function generateMainIndex(summaries) {
     <style>
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; color: #222; }
-        a { color: #1976d2; text-decoration: none; }
+        a { color: #1976d2; text-decoration: underline; }
         a:hover { text-decoration: underline; }
         header { background: #0a2540; color: #fff; padding: 3rem 1rem; }
         .header-content { max-width: 1200px; margin: 0 auto; }
@@ -208,7 +208,7 @@ function generateMainIndex(summaries) {
         @media (min-width: 901px) {
             th.options-col, td.options-cell { display: none; }
         }
-        .view-link { display: inline-block; padding: 8px 12px; background: #0d47a1; color: #fff; border-radius: 4px; font-weight: 700; border: 1px solid #0d47a1; text-align: center; }
+        .view-link { display: inline-block; padding: 8px 12px; background: #0d47a1; color: #fff; border-radius: 4px; font-weight: 700; border: 1px solid #0d47a1; text-align: center; text-decoration: none; }
         .view-link:hover { background: #0b3a82; color: #fff; text-decoration: none; }
         .view-link:focus { outline: 2px solid #5e35b1; outline-offset: 3px; }
         footer { text-align: center; padding: 2rem 1rem; color: #666; font-size: 14px; }
@@ -1250,8 +1250,6 @@ function generateTrendsPage() {
                     c.setAttribute('cy', p.y);
                     c.setAttribute('r', 1.2);
                     c.setAttribute('fill', color);
-                    c.setAttribute('tabindex','0');
-                    c.setAttribute('aria-label', series.name + ' ' + metricKey + ' ' + p.val + ' on ' + new Date(p.startedAt).toLocaleString());
                     chart.appendChild(c);
                 });
 
