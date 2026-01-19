@@ -291,6 +291,6 @@ sites:
     baseUrl: https://www.civicactions.com
     mode: sitemap
     maxPages: 10
-    schedule: ["0 * * * *"] # 12:30 PM ET / 17:30 UTC; comment/uncomment this single line to toggle
+    # schedule: ["0 * * * *"] # 12:30 PM ET / 17:30 UTC; comment/uncomment this single line to toggle
     label: test-run
     notes: Quick daytime test target. MUST MATCH CRON IN .github/workflows/a11y-scan.yml
