@@ -87,21 +87,31 @@ jobs:
           cat /tmp/ci-server.log >&2
           exit 1
 
+      - name: Write pa11y config
+        run: |
+          cat > .pa11yrc.json <<'EOF'
+          {
+            "chromeLaunchConfig": {
+              "args": ["--no-sandbox", "--disable-setuid-sandbox"]
+            }
+          }
+          EOF
+
       - name: Accessibility scan (main index)
         run: |
           npx pa11y http://127.0.0.1:4173/index.html \
             --standard WCAG2AA \
             --timeout 60000 \
-            --runners chromium \
-            --chromium-args '--no-sandbox'
+            --runner axe \
+            --config .pa11yrc.json
 
       - name: Accessibility scan (run page)
         run: |
           npx pa11y http://127.0.0.1:4173/runs/test-domain/test-quality-run/index.html \
             --standard WCAG2AA \
             --timeout 60000 \
-            --runners chromium \
-            --chromium-args '--no-sandbox'
+            --runner axe \
+            --config .pa11yrc.json
 
       - name: Accessibility scan (trends page)
         if: always()
@@ -110,8 +120,8 @@ jobs:
             npx pa11y http://127.0.0.1:4173/trends.html \
               --standard WCAG2AA \
               --timeout 60000 \
-              --runners chromium \
-              --chromium-args '--no-sandbox'
+              --runner axe \
+              --config .pa11yrc.json
           else
             echo "trends.html not generated; skipping."
           fi
