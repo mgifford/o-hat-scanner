@@ -1,0 +1,131 @@
+name: Quality Checks
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ "*" ]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Generate test report
+        run: |
+          # Create a test run directory with sample data
+          mkdir -p site/runs/test-domain/test-quality-run
+          cat > site/runs/test-domain/test-quality-run/results.json <<'EOF'
+          {
+            "runId": "test-quality-run",
+            "startedAt": "2026-01-19T00:00:00Z",
+            "finishedAt": "2026-01-19T00:05:00Z",
+            "mode": "ci",
+            "targets": ["https://example.com"],
+            "config": {
+              "viewport": "desktop",
+              "colorScheme": "light",
+              "browser": "chromium",
+              "maxPages": 5
+            },
+            "resultsByUrl": {
+              "https://example.com": {
+                "title": "Example Page",
+                "violations": [
+                  {
+                    "id": "color-contrast",
+                    "impact": "serious",
+                    "help": "Elements must meet minimum color contrast ratio thresholds",
+                    "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/color-contrast",
+                    "nodes": [
+                      {
+                        "target": [".example"],
+                        "html": "<div class=\"example\">Test</div>",
+                        "failureSummary": "Fix contrast ratio"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+          EOF
+          
+          # Generate the report HTML
+          node scripts/generate-report.js
+
+      - name: Start local server
+        run: |
+          npx http-server site -p 4173 >/tmp/ci-server.log 2>&1 &
+          echo $! > /tmp/server.pid
+
+      - name: Wait for server readiness
+        run: |
+          for i in {1..12}; do
+            if curl -fsS http://127.0.0.1:4173 >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          echo "Server did not start" >&2
+          cat /tmp/ci-server.log >&2
+          exit 1
+
+      - name: Accessibility scan (main index)
+        run: |
+          npx pa11y http://127.0.0.1:4173/index.html \
+            --standard WCAG2AA \
+            --timeout 60000 \
+            --runners chromium \
+            --chromium-args '--no-sandbox'
+
+      - name: Accessibility scan (run page)
+        run: |
+          npx pa11y http://127.0.0.1:4173/runs/test-domain/test-quality-run/index.html \
+            --standard WCAG2AA \
+            --timeout 60000 \
+            --runners chromium \
+            --chromium-args '--no-sandbox'
+
+      - name: Accessibility scan (trends page)
+        if: always()
+        run: |
+          if [ -f site/trends.html ]; then
+            npx pa11y http://127.0.0.1:4173/trends.html \
+              --standard WCAG2AA \
+              --timeout 60000 \
+              --runners chromium \
+              --chromium-args '--no-sandbox'
+          else
+            echo "trends.html not generated; skipping."
+          fi
+
+      - name: Upload server log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-log
+          path: /tmp/ci-server.log
+
+      - name: Stop local server
+        if: always()
+        run: |
+          if [ -f /tmp/server.pid ]; then
+            kill "$(cat /tmp/server.pid)" || true
+          fi
