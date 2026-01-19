@@ -61,8 +61,8 @@ on:
     - cron: '0 4-10 * * *'  # Every hour at :00, 4am-10am UTC (11pm-5am ET)
     # UNCOMMENT THE LINE BELOW TO ENABLE A TEST RUN
     # Adjust the cron expression to a time ~10 mins in the future to test the scheduler.
-    # IMPORTANT: If you change this time, you MUST also update the 'test-daytime-check' schedule in targets.yml
-    - cron: '30 * * * *' # Example: 2:30pm ET (19:30 UTC)
+    # IMPORTANT: Keep this in sync with test-daytime-check in targets.yml (single-line schedule).
+    - cron: '0 * * * *' # Example: 12:30pm ET (17:30 UTC)
 
 permissions:
   contents: read
