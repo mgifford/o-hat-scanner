@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 const SITE_DIR = 'site';
 const RUNS_DIR = path.join(SITE_DIR, 'runs');
 const ARCHIVES_DIR = path.join(SITE_DIR, 'archives');
+const MAX_INDEX_RUNS_PER_DOMAIN = 3;
 
 function collectRunEntries() {
     const entries = [];
@@ -120,7 +121,26 @@ function main() {
 }
 
 function generateMainIndex(summaries) {
-    summaries.sort((a, b) => new Date(b.startedAt) - new Date(a.startedAt));
+    const normalizeTarget = (t = '') => t.replace(/^https?:\/\//i, '').replace(/^www\./i, '').toLowerCase();
+    const sortedSummaries = [...summaries].sort((a, b) => {
+        const dateDiff = new Date(b.startedAt) - new Date(a.startedAt);
+        if (dateDiff !== 0) return dateDiff;
+        const ta = normalizeTarget(a.target || '');
+        const tb = normalizeTarget(b.target || '');
+        if (ta < tb) return -1;
+        if (ta > tb) return 1;
+        return 0;
+    });
+
+    const perDomainCounts = new Map();
+    const filteredSummaries = [];
+    for (const s of sortedSummaries) {
+        const key = normalizeTarget(s.target || '');
+        const count = perDomainCounts.get(key) || 0;
+        if (count >= MAX_INDEX_RUNS_PER_DOMAIN) continue;
+        perDomainCounts.set(key, count + 1);
+        filteredSummaries.push(s);
+    }
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -146,10 +166,15 @@ function generateMainIndex(summaries) {
         .feature p { margin: 0.5rem 0; line-height: 1.5; }
         .reports-section { background: #fff; padding: 2rem; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin: 2rem 0; }
         .reports-section h2 { color: #0d47a1; margin-top: 0; }
+        .report-filters { display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem; flex-wrap: wrap; }
+        .filter-label { font-weight: 600; color: #333; }
+        .filter-select { padding: 0.45rem 0.6rem; border: 1px solid #ddd; border-radius: 4px; min-width: 180px; }
         .table-wrapper { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; min-width: 720px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; min-width: 760px; table-layout: auto; }
         th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid #ddd; vertical-align: top; }
-        th { background: #f4f4f4; font-weight: 600; }
+        th { background: #f4f4f4; font-weight: 600; white-space: nowrap; }
+        .date-cell, .viewport-cell, .color-cell, .browser-cell, .pages-cell, .total-cell, .report-cell { white-space: nowrap; }
+        .target-cell { min-width: 220px; }
         .sort-btn { background: transparent; border: none; font: inherit; color: #0d47a1; cursor: pointer; padding: 0; }
         .sort-btn:focus { outline: 2px solid #0d47a1; outline-offset: 2px; }
         .status-pass { color: green; }
@@ -203,7 +228,15 @@ function generateMainIndex(summaries) {
         
         <div class="reports-section">
             <h2>Recent Scan Reports</h2>
-            ${summaries.length === 0 ? '<p>No scan reports yet. Check back after the first scan completes.</p>' : `
+            ${filteredSummaries.length === 0 ? '<p>No scan reports yet. Check back after the first scan completes.</p>' : `
+            <div class="report-filters">
+                <div class="filter-label">Showing:</div>
+                <select id="archiveFilter" class="filter-select" aria-label="Show runs">
+                    <option value="active" selected>Active only</option>
+                    <option value="archived">Archived only</option>
+                    <option value="all">All runs</option>
+                </select>
+            </div>
             <p>View detailed accessibility reports from recent scans:</p>
             <div class="table-wrapper">
             <table aria-live="polite">
@@ -215,33 +248,33 @@ function generateMainIndex(summaries) {
                         <th><button class="sort-btn" data-sort="colorScheme">Color</button></th>
                         <th><button class="sort-btn" data-sort="browser">Browser</button></th>
                         <th><button class="sort-btn" data-sort="pagesScanned">Pages</button></th>
-                        <th><button class="sort-btn" data-sort="totalViolations">Total occurrences</button></th>
+                        <th><button class="sort-btn" data-sort="totalViolations">Total</button></th>
                         <th>Report</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${summaries.map((s, i) => {
-                        const started = s.startedAt ? new Date(s.startedAt).toLocaleString() : 'N/A';
+                    ${filteredSummaries.map((s, i) => {
+                        const startedIso = s.startedAt || '';
                         const runShort = s.runId ? `${s.runId.slice(0, 8)}…` : 'n/a';
                         const relPath = s.runRelPath || s.runId;
                         const isArchived = !!s.isArchived;
                         const linkUrl = isArchived && s.archivePath ? s.archivePath : `runs/${esc(relPath)}/index.html`;
                         const linkText = isArchived ? 'Download ZIP' : 'View →';
                         return `
-                        <tr data-started-at="${esc(s.startedAt || '')}" data-target="${esc(s.target || '')}" data-viewport="${esc(s.viewport || '')}" data-color-scheme="${esc(s.colorScheme || '')}" data-browser="${esc(s.browser || '')}" data-pages="${s.pagesScanned ?? ''}" data-total="${s.totalViolations ?? ''}" data-idx="${i}">
-                            <td>${started}</td>
+                        <tr data-started-at="${esc(s.startedAt || '')}" data-target="${esc(s.target || '')}" data-viewport="${esc(s.viewport || '')}" data-color-scheme="${esc(s.colorScheme || '')}" data-browser="${esc(s.browser || '')}" data-pages="${s.pagesScanned ?? ''}" data-total="${s.totalViolations ?? ''}" data-idx="${i}" data-archived="${isArchived}">
+                            <td class="date-cell" data-started-at="${esc(startedIso)}"></td>
                             <td>
                                 <div class="target-cell">
                                     <div class="target-main">${esc(s.target || 'Unknown')}</div>
                                     <div class="target-meta">Run ID <span class="run-id" title="${esc(s.runId || '')}" aria-label="Run ID ${esc(s.runId || '')}">${esc(runShort)}</span>${isArchived ? ' (Archived)' : ''}</div>
                                 </div>
                             </td>
-                            <td>${esc(s.viewport || 'desktop')}</td>
-                            <td>${esc(s.colorScheme || 'light')}</td>
-                            <td>${esc(s.browser || 'chromium')}</td>
-                            <td>${s.pagesScanned ?? '—'}</td>
-                            <td class="${(s.totalViolations || 0) > 0 ? 'status-fail' : 'status-pass'}">${s.totalViolations ?? 0}</td>
-                            <td><a href="${esc(linkUrl)}" aria-label="${isArchived ? 'Download archive' : 'Open report'} for ${esc(s.target || 'run')}">${linkText}</a></td>
+                            <td class="viewport-cell">${esc(s.viewport || 'desktop')}</td>
+                            <td class="color-cell">${esc(s.colorScheme || 'light')}</td>
+                            <td class="browser-cell">${esc(s.browser || 'chromium')}</td>
+                            <td class="pages-cell">${s.pagesScanned ?? '—'}</td>
+                            <td class="total-cell ${(s.totalViolations || 0) > 0 ? 'status-fail' : 'status-pass'}">${s.totalViolations ?? 0}</td>
+                            <td class="report-cell"><a href="${esc(linkUrl)}" aria-label="${isArchived ? 'Download archive' : 'Open report'} for ${esc(s.target || 'run')}">${linkText}</a></td>
                         </tr>`;
                     }).join('')}
                 </tbody>
@@ -272,7 +305,18 @@ function generateMainIndex(summaries) {
     <script>
         const tbody = document.querySelector('tbody');
         const sortButtons = document.querySelectorAll('.sort-btn');
+        const archiveFilter = document.getElementById('archiveFilter');
         let sortState = { key: 'startedAt', dir: 'desc' };
+
+        function formatDate(cell) {
+            const iso = cell.dataset.startedAt || '';
+            if (!iso) {
+                cell.textContent = 'N/A';
+                return;
+            }
+            const dt = new Date(iso);
+            cell.textContent = dt.toLocaleString(undefined, { timeZoneName: 'short' });
+        }
 
         function valueFor(row, key) {
             switch (key) {
@@ -308,6 +352,7 @@ function generateMainIndex(summaries) {
 
             rows.forEach(r => tbody.appendChild(r));
             updateSortIndicators();
+            applyArchiveFilter();
         }
 
         function updateSortIndicators() {
@@ -318,9 +363,27 @@ function generateMainIndex(summaries) {
             });
         }
 
+        function applyArchiveFilter() {
+            if (!archiveFilter) return;
+            const mode = archiveFilter.value;
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            rows.forEach(row => {
+                const isArchived = row.dataset.archived === 'true';
+                const show = mode === 'all' || (mode === 'archived' && isArchived) || (mode === 'active' && !isArchived);
+                row.style.display = show ? '' : 'none';
+            });
+        }
+
         sortButtons.forEach(btn => {
             btn.addEventListener('click', () => applySort(btn.dataset.sort));
         });
+
+        if (archiveFilter) {
+            archiveFilter.addEventListener('change', applyArchiveFilter);
+            applyArchiveFilter();
+        }
+
+        document.querySelectorAll('.date-cell').forEach(formatDate);
 
         updateSortIndicators();
     </script>
@@ -406,13 +469,14 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         header { background: linear-gradient(135deg, var(--header-grad-start) 0%, var(--header-grad-end) 100%); color: var(--header-text); padding: 2rem 1rem; }
         .header-content { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 0.5rem; }
         .header-actions { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
-        .back-link { color: var(--link); font-size: 14px; display: inline-block; }
-        .back-link:hover { color: var(--header-text); }
+        .back-link { color: var(--header-text); font-size: 14px; display: inline-block; font-weight: 700; text-decoration: underline; }
+        .back-link:hover { color: var(--header-text); text-decoration: underline; }
         h1 { font-size: 28px; font-weight: 700; }
         .meta { margin-top: 0.25rem; font-size: 14px; color: var(--header-text); opacity: 0.9; }
         .meta strong { color: var(--header-text); }
-        .download-link { display: inline-block; margin-top: 0.5rem; padding: 10px 16px; background: var(--panel-bg); color: var(--header-grad-start); border-radius: 4px; font-weight: 600; border: 1px solid var(--panel-border); }
+        .download-link { display: inline-block; margin-top: 0.5rem; padding: 10px 16px; background: var(--panel-bg); color: var(--header-grad-start); border-radius: 4px; font-weight: 600; border: 1px solid var(--panel-border); text-align: center; }
         .download-link:hover { background: var(--card-bg); text-decoration: none; }
+        button.download-link { cursor: pointer; }
 
         .container { max-width: 1200px; margin: -40px auto 0 auto; padding: 0 1rem 2rem 1rem; }
         .layout { display: grid; grid-template-columns: 2fr 0.9fr; gap: 1.5rem; align-items: start; }
@@ -485,11 +549,24 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         .severity-header:focus,
         .debug-accordion summary:focus,
         .theme-toggle:focus {
-            outline: 2px solid var(--focus);
+            outline: 2px solid var(--header-text);
             outline-offset: 2px;
         }
 
         .theme-toggle { background: var(--panel-bg); color: var(--text); border: 1px solid var(--panel-border); border-radius: 4px; padding: 8px 12px; cursor: pointer; font-weight: 600; }
+
+        @media print {
+            :root { color-scheme: light; }
+            body { background: #fff; color: #000; }
+            header { background: #fff; color: #000; }
+            a { color: #000; text-decoration: underline; }
+            .header-actions { display: none; }
+            .layout { grid-template-columns: 1fr; }
+            .panel { box-shadow: none; border: 1px solid #ccc; background: #fff; }
+            .severity-content { display: block !important; }
+            .severity-header { page-break-inside: avoid; }
+            .page-row, .card, .panel { page-break-inside: avoid; }
+        }
     </style>
 </head>
 <body>
@@ -497,14 +574,19 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
     <header>
         <div class="header-content">
             <div class="header-actions">
-                <a href="../../index.html" class="back-link">← Back to all runs</a>
+                <a href="#" class="back-link" id="backLink">← Back to all runs</a>
                 <button class="theme-toggle" type="button" aria-label="Toggle light or dark mode">Toggle light/dark</button>
             </div>
             <h1>Accessibility Scan Report</h1>
             <p class="meta">
                 <strong>Scan ID:</strong> ${esc(runId)} · <strong>Date:</strong> ${runDate.toLocaleString()} · <strong>Mode:</strong> ${esc(results.mode || 'unknown')} · <strong>Viewport:</strong> ${viewportLabel} · <strong>Color:</strong> ${colorLabel} · <strong>Max pages:</strong> ${esc(maxPagesLabel)} · <strong>Sampling:</strong> ${esc(samplingLabel)}
             </p>
-            <a href="report.csv" class="download-link" download>Download CSV</a>
+            <div class="header-actions">
+                <a href="report.csv" class="download-link" download>Download CSV</a>
+                <a href="results.json" class="download-link" download>Download JSON</a>
+                <a href="report.mhtml" class="download-link" download>Download MHTML</a>
+                <button id="printButton" class="download-link" type="button" aria-label="Save this report as a PDF">Save as PDF</button>
+            </div>
         </div>
     </header>
 
@@ -694,13 +776,35 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             localStorage.setItem('report-theme', next);
         });
 
+        function siteRootPath() {
+            const parts = window.location.pathname.split('/');
+            const runsIdx = parts.indexOf('runs');
+            if (runsIdx > 0) {
+                return parts.slice(0, runsIdx).join('/') || '/';
+            }
+            return '/';
+        }
+
+        const backLink = document.getElementById('backLink');
+        if (backLink) {
+            const root = siteRootPath().replace(/\/$/, '');
+            backLink.href = root + '/index.html';
+        }
+
+        const printButton = document.getElementById('printButton');
+        printButton?.addEventListener('click', () => {
+            window.print();
+        });
+
         // Mini trend sparkline (reads aggregate.csv)
         const miniChart = document.getElementById('miniTrendChart');
         const miniStatus = document.getElementById('miniTrendStatus');
         const miniContainer = document.getElementById('miniTrend');
 
+        const newlineRe = new RegExp('\\\\r?\\\\n');
+
         function parseAggregateCsv(text) {
-            const lines = text.trim().split(/\r?\n/).filter(Boolean);
+            const lines = text.trim().split(newlineRe).filter(Boolean);
             if (!lines.length) return [];
             const headers = lines.shift().split(',');
             return lines.map(line => {
@@ -756,6 +860,15 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             }
         }
 
+        function rootPathForAggregate() {
+            const parts = window.location.pathname.split('/');
+            const runsIdx = parts.indexOf('runs');
+            if (runsIdx > 0) {
+                return parts.slice(0, runsIdx).join('/') || '/';
+            }
+            return '/';
+        }
+
         function loadMiniTrend() {
             if (!miniContainer || !miniChart || !miniStatus) return;
             miniStatus.textContent = 'Loading trend…';
@@ -764,7 +877,8 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             const color = miniContainer.dataset.color || '';
             const browser = miniContainer.dataset.browser || '';
 
-            fetch('../../aggregate.csv').then(res => {
+            const aggUrl = rootPathForAggregate().replace(/\/$/, '') + '/aggregate.csv';
+            fetch(aggUrl).then(res => {
                 if (!res.ok) throw new Error('Missing aggregate.csv');
                 return res.text();
             }).then(text => {
@@ -792,7 +906,10 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
 </body>
 </html>`;
 
-    fs.writeFileSync(path.join(runDir, 'index.html'), html);
+    const htmlPath = path.join(runDir, 'index.html');
+    fs.writeFileSync(htmlPath, html);
+    // Provide a build-time MHTML-like artifact by duplicating the HTML; downstream can save/distribute easily.
+    fs.writeFileSync(path.join(runDir, 'report.mhtml'), html);
 }
 
 function generateCSV(runId, runRelPath, results) {
@@ -1034,7 +1151,7 @@ function generateTrendsPage() {
         const palette = ['#1976d2','#d32f2f','#f57c00','#388e3c','#6a1b9a','#00796b','#c2185b','#455a64'];
 
         function parseCsv(text) {
-            const lines = text.trim().split(/\\r?\\n/);
+            const lines = text.trim().split(newlineRe);
             const headers = lines.shift().split(',');
             return lines.map(line => {
                 const cells = line.split(',');
