@@ -160,10 +160,10 @@ function generateMainIndex(summaries) {
         a { color: #1976d2; text-decoration: none; }
         a:hover { text-decoration: underline; }
         header { background: #0a2540; color: #fff; padding: 3rem 1rem; }
-        .header-content { max-width: 1000px; margin: 0 auto; }
+        .header-content { max-width: 1200px; margin: 0 auto; }
         h1 { font-size: 32px; font-weight: 700; margin: 0 0 0.5rem 0; color: #fff; }
         .tagline { font-size: 18px; color: #fff; margin: 0; }
-        main { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+        main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
         .intro { background: #fff; padding: 2rem; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 2rem; }
         .intro h2 { margin-top: 0; color: #0d47a1; }
         .intro p { line-height: 1.6; margin: 1rem 0; }
@@ -180,7 +180,10 @@ function generateMainIndex(summaries) {
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; min-width: 760px; table-layout: auto; }
         th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid #ddd; vertical-align: top; }
         th { background: #f4f4f4; font-weight: 600; white-space: nowrap; }
-        .date-cell, .viewport-cell, .color-cell, .browser-cell, .pages-cell, .total-cell, .report-cell { white-space: nowrap; }
+        .report-cell, .viewport-cell, .color-cell, .browser-cell, .pages-cell, .total-cell { white-space: nowrap; }
+        .date-cell { white-space: normal; max-width: 160px; }
+        .date-cell .date-date { font-weight: 600; }
+        .date-cell .date-time { color: #555; }
         .target-cell { min-width: 220px; }
         .sort-btn { background: transparent; border: none; font: inherit; color: #0d47a1; cursor: pointer; padding: 0; }
         .sort-btn:focus { outline: 2px solid #0d47a1; outline-offset: 2px; }
@@ -189,9 +192,22 @@ function generateMainIndex(summaries) {
         .target-cell { display: flex; flex-direction: column; gap: 4px; }
         .target-main { font-weight: 700; }
         .target-meta { font-size: 12px; color: #555; display: inline-flex; gap: 6px; align-items: baseline; }
-        .run-id { font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; opacity: 0.7; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom; }
+        .run-id { position: relative; font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; opacity: 0.8; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom; }
         tr:hover .run-id, tr:focus-within .run-id { opacity: 1; }
-        .run-id:focus, .run-id:hover { white-space: normal; max-width: none; background: #eef2ff; outline: 2px solid #5e35b1; outline-offset: 2px; padding: 0 2px; }
+        .run-id:focus { outline: 2px solid #5e35b1; outline-offset: 2px; }
+        .run-id::after { content: attr(data-full); display: none; position: absolute; left: 0; top: calc(100% + 4px); z-index: 10; background: #111; color: #fff; padding: 6px 8px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); white-space: normal; max-width: 60vw; min-width: 240px; }
+        .run-id:hover::after, .run-id:focus::after { display: block; }
+        .options-cell { white-space: normal; font-size: 12px; color: #333; }
+        .options-badge { display: inline-block; padding: 2px 6px; border: 1px solid #ddd; border-radius: 999px; margin-right: 6px; margin-bottom: 4px; background: #fafafa; }
+        @media (max-width: 900px) {
+            th.viewport-col, td.viewport-cell,
+            th.color-col, td.color-cell,
+            th.browser-col, td.browser-cell { display: none; }
+            th.options-col, td.options-cell { display: table-cell; }
+        }
+        @media (min-width: 901px) {
+            th.options-col, td.options-cell { display: none; }
+        }
         .view-link { display: inline-block; padding: 8px 12px; background: #0d47a1; color: #fff; border-radius: 4px; font-weight: 700; border: 1px solid #0d47a1; text-align: center; }
         .view-link:hover { background: #0b3a82; color: #fff; text-decoration: none; }
         .view-link:focus { outline: 2px solid #5e35b1; outline-offset: 3px; }
@@ -256,13 +272,14 @@ function generateMainIndex(summaries) {
                 <thead>
                     <tr>
                         <th><button class="sort-btn" data-sort="report">View</button></th>
-                        <th><button class="sort-btn" data-sort="startedAt">Date</button></th>
                         <th><button class="sort-btn" data-sort="target">Target</button></th>
-                        <th><button class="sort-btn" data-sort="viewport">Viewport</button></th>
-                        <th><button class="sort-btn" data-sort="colorScheme">Color</button></th>
-                        <th><button class="sort-btn" data-sort="browser">Browser</button></th>
+                        <th class="viewport-col"><button class="sort-btn" data-sort="viewport">Viewport</button></th>
+                        <th class="color-col"><button class="sort-btn" data-sort="colorScheme">Color</button></th>
+                        <th class="browser-col"><button class="sort-btn" data-sort="browser">Browser</button></th>
+                        <th class="options-col" scope="col">Options</th>
                         <th><button class="sort-btn" data-sort="pagesScanned">Pages</button></th>
-                        <th><button class="sort-btn" data-sort="totalViolations">Total</button></th>
+                        <th><button class="sort-btn" data-sort="totalViolations">Errors</button></th>
+                        <th><button class="sort-btn" data-sort="startedAt">Date</button></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -277,18 +294,23 @@ function generateMainIndex(summaries) {
                         return `
                         <tr data-started-at="${esc(s.startedAt || '')}" data-target="${esc(s.target || '')}" data-viewport="${esc(s.viewport || '')}" data-color-scheme="${esc(s.colorScheme || '')}" data-browser="${esc(s.browser || '')}" data-pages="${s.pagesScanned ?? ''}" data-total="${s.totalViolations ?? ''}" data-idx="${i}" data-archived="${isArchived}">
                             <td class="report-cell"><a class="view-link" href="${esc(linkUrl)}" aria-label="${esc(linkLabel)}">${linkText}</a></td>
-                            <td class="date-cell" data-started-at="${esc(s.startedAt || '')}">${esc(startedIso || 'N/A')}</td>
                             <td>
                                 <div class="target-cell">
                                     <div class="target-main">${esc(s.target || 'Unknown')}</div>
-                                    <div class="target-meta">Run ID <span class="run-id" title="${esc(s.runId || '')}" aria-label="Run ID ${esc(s.runId || '')}">${esc(runShort)}</span>${isArchived ? ' (Archived)' : ''}</div>
+                                    <div class="target-meta">Run ID <span tabindex="0" class="run-id" title="${esc(s.runId || '')}" aria-label="Run ID ${esc(s.runId || '')}" data-full="${esc(s.runId || '')}">${esc(runShort)}</span>${isArchived ? ' (Archived)' : ''}</div>
                                 </div>
                             </td>
                             <td class="viewport-cell">${esc(s.viewport || 'desktop')}</td>
                             <td class="color-cell">${esc(s.colorScheme || 'light')}</td>
                             <td class="browser-cell">${esc(s.browser || 'chromium')}</td>
+                            <td class="options-cell">
+                                <span class="options-badge">${esc(s.viewport || 'desktop')}</span>
+                                <span class="options-badge">${esc(s.colorScheme || 'light')}</span>
+                                <span class="options-badge">${esc(s.browser || 'chromium')}</span>
+                            </td>
                             <td class="pages-cell">${s.pagesScanned ?? '—'}</td>
                             <td class="total-cell ${(s.totalViolations || 0) > 0 ? 'status-fail' : 'status-pass'}">${s.totalViolations ?? 0}</td>
+                            <td class="date-cell" data-started-at="${esc(s.startedAt || '')}"><div class="date-date"></div><div class="date-time"></div></td>
                         </tr>`;
                     }).join('')}
                 </tbody>
@@ -330,12 +352,23 @@ function generateMainIndex(summaries) {
 
         function formatDate(cell) {
             const iso = cell.dataset.startedAt || '';
+            const dateEl = cell.querySelector('.date-date');
+            const timeEl = cell.querySelector('.date-time');
             if (!iso) {
-                cell.textContent = 'N/A';
+                if (dateEl) dateEl.textContent = 'N/A';
+                if (timeEl) timeEl.textContent = '';
+                else cell.textContent = 'N/A';
                 return;
             }
             const dt = new Date(iso);
-            cell.textContent = dt.toLocaleString(undefined, { timeZoneName: 'short' });
+            const dateStr = dt.toLocaleDateString('en-CA'); // YYYY-MM-DD
+            const timeStr = dt.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true, timeZoneName: 'short' });
+            if (dateEl && timeEl) {
+                dateEl.textContent = dateStr;
+                timeEl.textContent = timeStr;
+            } else {
+                cell.textContent = dateStr + ' ' + timeStr;
+            }
         }
 
         function valueFor(row, key) {
