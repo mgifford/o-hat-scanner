@@ -897,7 +897,9 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
                 dot.setAttribute('cy', y.toFixed(2));
                 dot.setAttribute('r', '1.8');
                 dot.setAttribute('class', 'mini-dot');
-                dot.setAttribute('aria-label', 'Run ' + r.runId + ' total ' + yVal);
+                const titleEl = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                titleEl.textContent = 'Run ' + r.runId + ' total ' + yVal;
+                dot.appendChild(titleEl);
                 miniChart.appendChild(dot);
             });
 
