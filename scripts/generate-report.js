@@ -836,7 +836,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
 
         const backLink = document.getElementById('backLink');
         if (backLink) {
-            const root = siteRootPath().replace(/\/$/, '');
+            const root = siteRootPath().replace(/\\\/$/, '');
             backLink.href = root + '/index.html';
         }
 
@@ -926,7 +926,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             const color = miniContainer.dataset.color || '';
             const browser = miniContainer.dataset.browser || '';
 
-            const aggUrl = rootPathForAggregate().replace(/\/$/, '') + '/aggregate.csv';
+            const aggUrl = rootPathForAggregate().replace(/\\\/$/, '') + '/aggregate.csv';
             fetch(aggUrl).then(res => {
                 if (!res.ok) throw new Error('Missing aggregate.csv');
                 return res.text();
