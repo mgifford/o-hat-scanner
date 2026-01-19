@@ -82,6 +82,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Configure git identity
+        run: |
+          git config user.email "github-actions@users.noreply.github.com"
+          git config user.name "github-actions"
+
       - name: Lint workflow and targets YAML
         run: |
           set -euo pipefail
@@ -115,6 +120,14 @@ jobs:
           fi
 
           RESTORE_ROOT=/tmp/pages-restore/extracted
+          ARTIFACT_TAR=$(find "$RESTORE_ROOT" -maxdepth 1 -name 'artifact.tar' -print -quit)
+          if [ -n "$ARTIFACT_TAR" ]; then
+            echo "Found artifact.tar inside Pages artifact; extracting contents.";
+            mkdir -p /tmp/pages-restore/unpacked
+            tar -xf "$ARTIFACT_TAR" -C /tmp/pages-restore/unpacked
+            RESTORE_ROOT=/tmp/pages-restore/unpacked
+          fi
+
           if [ -d "$RESTORE_ROOT/site" ]; then
             echo "Artifact contained nested site/ directory; syncing that.";
             rsync -a "$RESTORE_ROOT/site/" site/ || true
