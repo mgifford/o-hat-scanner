@@ -173,7 +173,7 @@ function generateMainIndex(summaries) {
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; min-width: 760px; table-layout: auto; }
         th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid #ddd; vertical-align: top; }
         th { background: #f4f4f4; font-weight: 600; white-space: nowrap; }
-        .date-cell, .viewport-cell, .color-cell, .browser-cell, .pages-cell, .total-cell, .report-cell { white-space: nowrap; }
+        .viewport-cell, .color-cell, .browser-cell, .pages-cell, .total-cell, .report-cell { white-space: nowrap; }
         .target-cell { min-width: 220px; }
         .sort-btn { background: transparent; border: none; font: inherit; color: #0d47a1; cursor: pointer; padding: 0; }
         .sort-btn:focus { outline: 2px solid #0d47a1; outline-offset: 2px; }
@@ -181,9 +181,13 @@ function generateMainIndex(summaries) {
         .status-fail { color: red; font-weight: bold; }
         .target-cell { display: flex; flex-direction: column; gap: 4px; }
         .target-main { font-weight: 700; }
-        .target-meta { font-size: 12px; color: #555; }
-        .run-id { font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; opacity: 0.6; }
+        .target-meta { font-size: 12px; color: #555; display: inline-flex; gap: 6px; align-items: baseline; }
+        .run-id { font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; opacity: 0.7; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom; }
         tr:hover .run-id, tr:focus-within .run-id { opacity: 1; }
+        .run-id:focus, .run-id:hover { white-space: normal; max-width: none; background: #eef2ff; outline: 2px solid #5e35b1; outline-offset: 2px; padding: 0 2px; }
+        .view-link { display: inline-block; padding: 8px 12px; background: #0d47a1; color: #fff; border-radius: 4px; font-weight: 700; border: 1px solid #0d47a1; text-align: center; }
+        .view-link:hover { background: #0b3a82; color: #fff; text-decoration: none; }
+        .view-link:focus { outline: 2px solid #5e35b1; outline-offset: 3px; }
         footer { text-align: center; padding: 2rem 1rem; color: #666; font-size: 14px; }
     </style>
 </head>
@@ -242,14 +246,13 @@ function generateMainIndex(summaries) {
             <table aria-live="polite">
                 <thead>
                     <tr>
-                        <th><button class="sort-btn" data-sort="startedAt">Date</button></th>
+                        <th><button class="sort-btn" data-sort="report">View</button></th>
                         <th><button class="sort-btn" data-sort="target">Target</button></th>
                         <th><button class="sort-btn" data-sort="viewport">Viewport</button></th>
                         <th><button class="sort-btn" data-sort="colorScheme">Color</button></th>
                         <th><button class="sort-btn" data-sort="browser">Browser</button></th>
                         <th><button class="sort-btn" data-sort="pagesScanned">Pages</button></th>
                         <th><button class="sort-btn" data-sort="totalViolations">Total</button></th>
-                        <th>Report</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -259,10 +262,11 @@ function generateMainIndex(summaries) {
                         const relPath = s.runRelPath || s.runId;
                         const isArchived = !!s.isArchived;
                         const linkUrl = isArchived && s.archivePath ? s.archivePath : `runs/${esc(relPath)}/index.html`;
-                        const linkText = isArchived ? 'Download ZIP' : 'View →';
+                        const linkLabel = isArchived ? `Download archive for ${s.target || 'run'}` : `Open ${s.target || 'report'}`;
+                        const linkText = isArchived ? 'Download ZIP' : 'Open';
                         return `
                         <tr data-started-at="${esc(s.startedAt || '')}" data-target="${esc(s.target || '')}" data-viewport="${esc(s.viewport || '')}" data-color-scheme="${esc(s.colorScheme || '')}" data-browser="${esc(s.browser || '')}" data-pages="${s.pagesScanned ?? ''}" data-total="${s.totalViolations ?? ''}" data-idx="${i}" data-archived="${isArchived}">
-                            <td class="date-cell" data-started-at="${esc(startedIso)}"></td>
+                            <td class="report-cell"><a class="view-link" href="${esc(linkUrl)}" aria-label="${esc(linkLabel)}">${linkText}</a></td>
                             <td>
                                 <div class="target-cell">
                                     <div class="target-main">${esc(s.target || 'Unknown')}</div>
@@ -274,7 +278,6 @@ function generateMainIndex(summaries) {
                             <td class="browser-cell">${esc(s.browser || 'chromium')}</td>
                             <td class="pages-cell">${s.pagesScanned ?? '—'}</td>
                             <td class="total-cell ${(s.totalViolations || 0) > 0 ? 'status-fail' : 'status-pass'}">${s.totalViolations ?? 0}</td>
-                            <td class="report-cell"><a href="${esc(linkUrl)}" aria-label="${isArchived ? 'Download archive' : 'Open report'} for ${esc(s.target || 'run')}">${linkText}</a></td>
                         </tr>`;
                     }).join('')}
                 </tbody>
