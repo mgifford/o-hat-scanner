@@ -185,6 +185,7 @@ Each scan run generates:
 
 - **Results Schema**: See `scripts/shared-schema.js`.
 - **Violations**: Uses `axe-core` standard output.
+- **Rule Documentation**: For details on specific accessibility rules, see [Axe Rules Reference](https://dequeuniversity.com/rules/axe/html/4.11).
 
 ## Configuration
 
