@@ -1,8 +1,5 @@
 node_modules
 
 # Generated reports (built into gh-pages, not tracked on main)
-site/index.html
-site/runs/
-site/**/*.csv
-site/**/*.json
+site/
 .vscode/
