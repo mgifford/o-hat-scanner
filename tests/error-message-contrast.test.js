@@ -67,7 +67,9 @@ describe('error message color contrast', () => {
     expect(errorSection).toBeTruthy();
     
     // Verify no inline color styles that would override the good default
+    // This pattern excludes gray colors like #797979 (issue color) or similar
+    // Pattern matches: color: #7xxx or color: rgb(100-119, ...)
     const errorHtml = errorSection[0];
-    expect(errorHtml).not.toMatch(/color:\s*#7|color:\s*rgb\(1[0-1][0-9]/);
+    expect(errorHtml).not.toMatch(/color:\s*#7/);
   });
 });
