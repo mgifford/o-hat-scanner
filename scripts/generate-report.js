@@ -192,7 +192,7 @@ function generateMainIndex(summaries) {
         .target-cell { display: flex; flex-direction: column; gap: 4px; }
         .target-main { font-weight: 700; }
         .target-meta { font-size: 12px; color: #555; display: inline-flex; gap: 6px; align-items: baseline; }
-        .run-id { position: relative; font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; opacity: 0.8; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom; }
+        .run-id { position: relative; font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; color: #505050; opacity: 0.8; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom; }
         tr:hover .run-id, tr:focus-within .run-id { opacity: 1; }
         .run-id:focus { outline: 2px solid #5e35b1; outline-offset: 2px; }
         .run-id::after { content: attr(data-full); display: none; position: absolute; left: 0; top: calc(100% + 4px); z-index: 10; background: #111; color: #fff; padding: 6px 8px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); white-space: normal; max-width: 60vw; min-width: 240px; }
