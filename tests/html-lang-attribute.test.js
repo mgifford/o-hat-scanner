@@ -58,7 +58,7 @@ describe('HTML lang attribute accessibility (html-has-lang)', () => {
         fs.rmSync(siteDir, { recursive: true, force: true });
     });
 
-    test('run page HTML must have lang="en" attribute for WCAG 2.1 AA compliance', () => {
+    test('run page HTML must have lang="en" attribute for WCAG 2.1 Level A compliance', () => {
         // Generate a run page
         const stats = analyzeResults(testResults);
         generateRunPage(runId, runRelPath, testResults, stats);
