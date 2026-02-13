@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { safeRmSync, ensureDirSync } from './test-utils.js';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const ROOT = path.resolve(__dirname, '..');
@@ -53,11 +54,11 @@ describe('generate-report run page', () => {
     beforeAll(async () => {
         process.env.NODE_ENV = 'test';
         ({ generateRunPage, analyzeResults, formatRunIdShort } = await import('../scripts/generate-report.js'));
-        fs.rmSync(runDir, { recursive: true, force: true });
+        safeRmSync(runDir);
     });
 
     afterAll(() => {
-        fs.rmSync(path.join(ROOT, 'site'), { recursive: true, force: true });
+        safeRmSync(path.join(ROOT, 'site'));
     });
 
     test('formatRunIdShort keeps readable head and tail', () => {
@@ -182,11 +183,11 @@ describe('generate-report data loss protection', () => {
 
     beforeEach(() => {
         // Clean up before each test
-        fs.rmSync(siteDir, { recursive: true, force: true });
+        safeRmSync(siteDir);
     });
 
     afterEach(() => {
-        fs.rmSync(siteDir, { recursive: true, force: true });
+        safeRmSync(siteDir);
     });
 
     test('skips report generation when no runs found (prevents data loss)', async () => {
