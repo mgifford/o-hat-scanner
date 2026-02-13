@@ -1,21 +1,20 @@
 # AGENTS.md
 
-This repo supports two accessibility scanning modes in one codebase:
+This repo is a **CI-focused accessibility scanner** that runs Playwright + axe-core against configured targets and publishes static HTML reports to GitHub Pages.
 
-1. **CI scanner**: GitHub Actions runs Playwright + axe-core against a list of URLs/domains, then publishes a static HTML report to GitHub Pages.
-2. **Standalone scanner**: a single HTML file you can drop into a site (same-origin) that crawls via `sitemap.xml`, scans pages in hidden iframes with axe, and shows a report in the browser.
+**Note**: The standalone scanner has been moved to a separate project: [o-hat-standalone](https://github.com/civicactions/o-hat-standalone)
 
-This file tells automated agents (and humans) how to work in this repo without breaking the two-mode design.
+This file tells automated agents (and humans) how to work in this repo without breaking the design.
 
 ---
 
 ## Non-negotiable constraints
 
-- **Standalone mode is same-origin only.** Do not claim it can scan other domains. Browser security prevents DOM access cross-origin.
-- **Standalone scanner must remain a single HTML file** located at `standalone/a11y-scan.html`.
-- **Standalone scanner must vendor axe** from `assets/axe.min.js`. No CDN.
 - **CI scanner must run in GitHub Actions** using Playwright and publish reports to GitHub Pages from `/site`.
-- **Both modes must emit the same result schema**, with `mode: "ci"` or `mode: "standalone"`.
+- **Reports must be WCAG 2.2 AA compliant** - the tool itself must be accessible.
+- **All UI changes must have accessibility tests** - contrast, landmarks, headings, etc.
+- **Results must follow the shared schema** defined in `scripts/shared-schema.js`.
+- **Test-driven development is mandatory** - write tests before implementing changes.
 
 If you change anything that violates these constraints, you broke the repo.
 
@@ -27,28 +26,34 @@ If you change anything that violates these constraints, you broke the repo.
   CI crawler + axe runner. Produces JSON artifacts under `/site/runs/<runId>/`.
 
 - `scripts/generate-report.js`
-  Converts JSON into static HTML and CSV reports under `/site`. Implements Oobee-style professional report template with sidebar, search, severity grouping, and top pages ranking. Must not require a server.
+  Converts JSON into static HTML and CSV reports under `/site`. Implements professional report template with sidebar, search, severity grouping, and top pages ranking. Must not require a server.
 
-- `scripts/scan-local.js`
-  Local testing utility. Scans test pages via Playwright against localhost:8082, generates results compatible with report generator.
+- `scripts/resolve-targets.js`
+  Resolves which sites to scan based on `targets.yml` configuration and cron schedules.
+
+- `scripts/targets.js`
+  Parses and validates the `targets.yml` configuration file.
+
+- `scripts/archive-old-runs.js`
+  Archives old scan runs to keep the repository size manageable.
 
 - `scripts/shared-schema.js`
-  Defines the shared schema and validation helpers. Both modes must match it.
+  Defines the shared schema and validation helpers.
 
-- `standalone/a11y-scan.html`
-  Single-file scanner UI that crawls same-origin pages via sitemap or list. Includes JSON and CSV export with Oobee-compatible headers.
-
-- `standalone/page*.html`, `standalone/blog/`, `standalone/auth/`
-  Test pages with intentional accessibility issues for validation and testing.
-
-- `assets/axe.min.js`
-  Vendored axe build for standalone scanning and (optionally) for CI injection.
+- `targets.yml`
+  Configuration file defining sites to scan, schedules, modes (sitemap/crawl/list), and parameters.
 
 - `.github/workflows/a11y-scan.yml`
-  Runs `scan-ci.js` and `generate-report.js`, then deploys `/site` to Pages.
+  Main workflow that runs scans, generates reports, and deploys to GitHub Pages.
 
-- `tests/generate-report.test.js`
-  Test suite validating report generation with Oobee template features.
+- `.github/workflows/quality.yml`
+  Runs test suite on PRs and pushes to ensure code quality.
+
+- `tests/`
+  Comprehensive test suite including:
+  - **Feature tests**: `generate-report.test.js`, `aggregate-report.test.js`, `trends-page.test.js`
+  - **Accessibility tests**: `pill-warning-contrast.test.js`, `run-id-contrast.test.js`, `error-message-contrast.test.js`, `html-lang-attribute.test.js`, `link-in-text-block.test.js`, `mini-trend-accessibility.test.js`, `404-landmark.test.js`, `run-page-main-landmark.test.js`
+  - **Utility tests**: `scan-ci-utils.test.js`, `fetch-sitemap.test.js`, `sitemap-sampling.test.js`, `extract-links.test.js`, `resolve-sitemap-seed.test.js`, `response-filter.test.js`, `targets.test.js`, `resolve-targets.script.test.js`
 
 ---
 
@@ -62,8 +67,14 @@ All scans produce this shape:
   "startedAt": "ISO-8601 string",
   "finishedAt": "ISO-8601 string",
   "toolVersion": "string",
-  "mode": "ci | standalone",
-  "config": { "any": "object" },
+  "mode": "ci",
+  "config": {
+    "baseUrl": "string",
+    "maxPages": "number",
+    "viewport": "desktop | mobile",
+    "colorScheme": "light | dark",
+    "browser": "chromium | firefox | webkit"
+  },
   "targets": ["urlOrDomain", "..."],
   "resultsByUrl": {
     "https://example.com/page": {
@@ -82,15 +93,11 @@ Rules:
 - Errors must be captured per URL, not crash the entire run.
 - Keep axe’s object structure intact. Do not “simplify” it in a lossy way.
 - Add fields only in a backwards-compatible way.
+- The schema is validated by `scripts/shared-schema.js`.
 
 ---
 
 ## Security and safety rules
-
-### Standalone scanner gating
-- The standalone scanner MUST have a gate (token query param or stronger).
-- Do not remove the gate.
-- README must warn: do not deploy publicly, prefer staging or auth.
 
 ### Data handling
 - Reports may include DOM snippets and selectors. Treat as potentially sensitive.
@@ -102,13 +109,11 @@ Rules:
 
 ### CI mode
 - Prefer sitemap discovery when possible.
-- Otherwise crawl internal links same-origin up to maxPages.
+- Support three modes: `sitemap`, `crawl`, and `list` (configured in `targets.yml`).
+- Crawl internal links same-origin up to maxPages.
 - Concurrency is allowed but must be bounded (default 2).
-
-### Standalone mode
-- Default is sequential scanning (no parallel iframes).
-- Source of URLs is sitemap.xml by default, plus optional filtering.
-- Provide maxPages, timeout, and delay controls.
+- Implement sitemap sampling strategies: `shuffle` (default) and `sequential`.
+- Support seed-based deterministic sampling for reproducibility.
 
 Do not implement an uncontrolled crawler that can lock up browsers or CI runners.
 
@@ -116,7 +121,7 @@ Do not implement an uncontrolled crawler that can lock up browsers or CI runners
 
 ## Reporting rules
 - `/site/index.html` must list runs and link to per-run pages.
-- `/site/runs/<runId>/index.html` must implement Oobee-style professional template with:
+- `/site/runs/<runId>/index.html` must implement professional report template with:
   - **Sidebar**: Scan metadata (date, timezone, page count, target URL)
   - **Search bar**: Real-time filtering by issue ID, description, or page URL
   - **Summary cards**: Pages scanned, pages with issues, Must Fix count, Good to Fix count, Manual Review count
@@ -125,10 +130,15 @@ Do not implement an uncontrolled crawler that can lock up browsers or CI runners
   - **Severity grouping**: Issues organized by impact (critical/moderate/review) with collapsible headers
   - **Per-issue details**: Violation ID, help text, impact level, affected pages, selectors, HTML snippets
   - **CSV export link**: Download button in header for spreadsheet export
+  - **Mini trend chart**: Embedded sparkline showing violation trends over time
+  - **Print/PDF support**: Print styles and save-as-PDF button
 - `/site/runs/<runId>/report.csv` must contain 14 columns matching Oobee schema:
   - customFlowLabel, deviceChosen, scanCompletedAt, severity, issueId, issueDescription, wcagConformance, url, pageTitle, context, howToFix, axeImpact, xpath, learnMore
-  - Severity labels: "Must Fix" (critical), "Good to Fix" (moderate), "Manual Review Required" (minor/review)
+  - Severity labels: "Must Fix" (critical/serious), "Good to Fix" (moderate/minor), "Manual Review Required" (review)
+- `/site/aggregate.csv` tracks all runs with metrics for trending analysis.
+- `/site/trends.html` provides interactive multi-series trend visualization with filtering.
 - Keep the report static. No backend. No database. All interactivity client-side JavaScript.
+- **Accessibility requirement**: All report pages must pass WCAG 2.2 AA, including proper contrast ratios, landmarks, headings, and keyboard navigation.
 
 ---
 
@@ -150,10 +160,13 @@ Unit tests must exist for:
 - Sitemap parsing (urlset and sitemapindex)
 - Filtering logic (prefix, exclude substrings, maxPages)
 - Crawl boundary enforcement (same-origin)
-- Concurrency limiting (CI mode) and sequential enforcement (standalone mode logic if extracted)
+- Concurrency limiting (CI mode)
+- Sitemap sampling strategies (shuffle, sequential, seed-based)
 - Shared schema validation and backwards compatibility behaviors
 - Report aggregation math (pages scanned, pages with violations, total violation instances)
 - Error handling per URL (timeouts, navigation errors, missing sitemap)
+- Accessibility compliance (contrast ratios, landmarks, semantic HTML)
+- Report generation (HTML output, CSV export, trends visualization)
 
 ### Test strategy boundaries
 - Prefer **pure function** units for most logic (parsing, filtering, aggregation, schema validation).
@@ -176,7 +189,6 @@ The project itself (repo-generated reports and the standalone scanner UI) must m
 
 ### What this means here
 - The generated report pages in `/site` must be WCAG 2.2 AA conformant.
-- `standalone/a11y-scan.html` must be WCAG 2.2 AA conformant.
 - This requirement applies to:
   - Keyboard navigation
   - Focus visibility and focus order
@@ -196,6 +208,12 @@ The project itself (repo-generated reports and the standalone scanner UI) must m
 ### Required accessibility checks
 - Add automated checks for the scanner UI and report UI:
   - Axe-based checks are allowed and encouraged, but must not be the only gate.
+- Specific accessibility tests are required for:
+  - **Color contrast**: All text and UI elements must meet WCAG AA contrast ratios (tested in `pill-warning-contrast.test.js`, `run-id-contrast.test.js`, `error-message-contrast.test.js`)
+  - **Landmarks**: Proper ARIA landmarks for navigation (tested in `404-landmark.test.js`, `run-page-main-landmark.test.js`)
+  - **HTML lang attribute**: Language must be specified (tested in `html-lang-attribute.test.js`)
+  - **Link accessibility**: Links in text blocks must be distinguishable (tested in `link-in-text-block.test.js`)
+  - **Interactive elements**: All charts and interactive components must be accessible (tested in `mini-trend-accessibility.test.js`)
 - Add at least one manual verification checklist item in the README for releases:
   - Keyboard-only smoke test
   - Screen reader spot-check (at minimum: headings, table navigation, expandable details, progress updates)
@@ -213,23 +231,30 @@ The project itself (repo-generated reports and the standalone scanner UI) must m
 
 When an agent changes code:
 - It must add or update unit tests first (TDD).
-- It must not introduce accessibility regressions in the report UI or standalone UI.
+- It must not introduce accessibility regressions in the report UI.
 - If modifying UI markup or styling, the agent must explicitly verify:
   - keyboard navigation still works,
   - focus is visible,
   - headings remain logical,
   - labels remain correct.
+- All accessibility tests must pass before considering work complete.
 
 If those checks were not performed, the work is considered incomplete.
+
+The test suite includes 19 test files covering:
+- Feature functionality (report generation, aggregation, trends)
+- Accessibility compliance (contrast, landmarks, semantic HTML)
+- Utility functions (sitemap parsing, URL filtering, schema validation)
+- Integration scenarios (CI scanning, target resolution)
 
 ---
 
 ## What not to do
-- Do not add cross-origin scanning claims or code paths in standalone mode.
-- Do not load axe from a CDN in standalone mode.
-- Do not split the standalone scanner into multiple files.
 - Do not remove GitHub Pages deployment or move reports out of /site.
 - Do not weaken or remove testing or accessibility requirements.
+- Do not change the shared schema in a backwards-incompatible way.
+- Do not add features that require a backend server - reports must remain static.
+- Do not remove accessibility tests or introduce WCAG 2.2 AA violations.
 
 ---
 
