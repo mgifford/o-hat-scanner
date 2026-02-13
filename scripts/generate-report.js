@@ -191,7 +191,7 @@ function generateMainIndex(summaries) {
         .status-fail { color: red; font-weight: bold; }
         .target-cell { display: flex; flex-direction: column; gap: 4px; }
         .target-main { font-weight: 700; }
-        .target-meta { font-size: 12px; color: #555; display: inline-flex; gap: 6px; align-items: baseline; }
+        .target-meta { font-size: 12px; color: #505050; display: inline-flex; gap: 6px; align-items: baseline; }
         .run-id { position: relative; font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; opacity: 0.8; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom; }
         tr:hover .run-id, tr:focus-within .run-id { opacity: 1; }
         .run-id:focus { outline: 2px solid #5e35b1; outline-offset: 2px; }
@@ -1492,4 +1492,4 @@ function esc(s) {
     return String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }
 
-export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort };
+export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort, generateMainIndex };
