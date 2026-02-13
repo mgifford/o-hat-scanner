@@ -201,6 +201,18 @@ describe('generate-report run page', () => {
         expect(mainEndIndex).toBeGreaterThan(containerIndex);
         expect(mainEndIndex).toBeGreaterThan(debugSectionIndex);
     });
+
+    test('links have underline to be distinguishable without relying on color (WCAG 2.1)', () => {
+        const stats = analyzeResults(results);
+        generateRunPage(runId, runRelPath, results, stats);
+        const html = fs.readFileSync(path.join(runDir, 'index.html'), 'utf-8');
+
+        // Verify that the main CSS (not print styles) includes text-decoration: underline for links
+        // This ensures links are distinguishable without relying on color alone
+        // The pattern should match: a { color: var(--link); text-decoration: underline; }
+        expect(html).toMatch(/a\s*\{\s*color:\s*var\(--link\);?\s*text-decoration:\s*underline/);
+    });
+    
 });
 
 describe('generate-report data loss protection', () => {
