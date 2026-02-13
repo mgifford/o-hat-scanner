@@ -77,8 +77,8 @@ describe('status-fail color contrast', () => {
 
     // Check that .status-fail has color: #cc0000 specified
     // This ensures the contrast ratio meets WCAG 2.1 AA (4.5:1) for bold text on white background
-    // Color #cc0000 provides 5.59:1 contrast ratio on white (#ffffff)
-    // Original #ff0000 provided only 3.99:1 contrast
+    // Color #cc0000 provides 5.89:1 contrast ratio on white (#ffffff)
+    // Original #ff0000 provided only 4.00:1 contrast
     expect(html).toMatch(/\.status-fail\s*\{[^}]*color:\s*#cc0000/);
   });
 
