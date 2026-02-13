@@ -57,7 +57,16 @@ describe('generate-report run page', () => {
     });
 
     afterAll(() => {
-        fs.rmSync(path.join(ROOT, 'site'), { recursive: true, force: true });
+        // Clean up only the test directory, not the entire site folder
+        // to avoid conflicts with other running tests or locked files
+        try {
+            fs.rmSync(runDir, { recursive: true, force: true });
+        } catch (err) {
+            // Ignore cleanup errors in CI environments
+            if (err.code !== 'ENOENT') {
+                console.warn('Cleanup warning:', err.message);
+            }
+        }
     });
 
     test('formatRunIdShort keeps readable head and tail', () => {
