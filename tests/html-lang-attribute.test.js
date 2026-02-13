@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { safeRmSync, ensureDirSync } from './test-utils.js';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const ROOT = path.resolve(__dirname, '..');
@@ -47,12 +48,12 @@ describe('HTML lang attribute accessibility', () => {
 
     beforeEach(() => {
         // Clean up before each test
-        fs.rmSync(siteDir, { recursive: true, force: true });
+        safeRmSync(siteDir);
     });
 
     afterAll(() => {
         // Clean up after all tests
-        fs.rmSync(siteDir, { recursive: true, force: true });
+        safeRmSync(siteDir);
     });
 
     test('run page HTML element has lang="en" attribute', () => {
