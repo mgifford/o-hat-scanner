@@ -66,12 +66,15 @@ function main() {
     if (!fs.existsSync(SITE_DIR)) {
         fs.mkdirSync(SITE_DIR, { recursive: true });
     }
-    // Only skip if both runs and archives are empty
-    if (!fs.existsSync(RUNS_DIR) && !fs.existsSync(ARCHIVES_DIR)) {
+    // Ensure runs dir exists
+    if (!fs.existsSync(RUNS_DIR)) {
         fs.mkdirSync(RUNS_DIR, { recursive: true });
-        console.log('No runs found. Skipping report generation to preserve existing data.');
-        return;
     }
+    // Note: previously the script returned early when neither runs nor archives
+    // existed to avoid overwriting an existing `site` folder. For tests and
+    // automation we still want a usable `site/index.html` to be generated even
+    // when there are no runs. Continue and let `generateMainIndex` create a
+    // minimal index if no summaries are found.
 
     const runEntries = collectRunEntries();
     const runSummaries = [];
@@ -192,7 +195,7 @@ function generateMainIndex(summaries) {
         .target-cell { display: flex; flex-direction: column; gap: 4px; }
         .target-main { font-weight: 700; }
         .target-meta { font-size: 12px; color: #555; display: inline-flex; gap: 6px; align-items: baseline; }
-        .run-id { position: relative; font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; opacity: 0.8; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom; }
+        .run-id { position: relative; font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; color: #505050; opacity: 0.8; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom; }
         tr:hover .run-id, tr:focus-within .run-id { opacity: 1; }
         .run-id:focus { outline: 2px solid #5e35b1; outline-offset: 2px; }
         .run-id::after { content: attr(data-full); display: none; position: absolute; left: 0; top: calc(100% + 4px); z-index: 10; background: #111; color: #fff; padding: 6px 8px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); white-space: normal; max-width: 60vw; min-width: 240px; }
