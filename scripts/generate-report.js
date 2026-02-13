@@ -516,6 +516,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         a:hover { text-decoration: underline; }
         a:visited { color: var(--link-visited); }
         h1, h2, h3, h4 { margin: 0; }
+        strong { color: var(--text); }
 
         header { background: var(--header-bg); color: var(--header-text); padding: 2rem 1rem; }
         .header-content { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 0.5rem; }
