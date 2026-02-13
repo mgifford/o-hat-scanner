@@ -642,6 +642,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         </div>
     </header>
 
+    <main id="main">
     <div class="container">
         <div class="layout">
             <!-- Main column -->
@@ -790,6 +791,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             </details>
         </div>
     </section>
+    </main>
 
     <script>
         // Toggle severity blocks (keyboard accessible)
