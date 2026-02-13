@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 
 let generateRunPage;
@@ -177,11 +178,12 @@ describe('HTML lang attribute accessibility (html-has-lang)', () => {
         // The static 404 page should also have the lang attribute
         const static404Path = path.join(ROOT, 'static', '404.html');
         
-        if (fs.existsSync(static404Path)) {
-            const html = fs.readFileSync(static404Path, 'utf-8');
-            
-            // Verify <html> tag has lang attribute
-            expect(html).toMatch(/<html\s+[^>]*lang="en"[^>]*>/);
-        }
+        // Verify the file exists
+        expect(fs.existsSync(static404Path)).toBe(true);
+        
+        const html = fs.readFileSync(static404Path, 'utf-8');
+        
+        // Verify <html> tag has lang attribute
+        expect(html).toMatch(/<html\s+[^>]*lang="en"[^>]*>/);
     });
 });
