@@ -520,6 +520,8 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         header { background: var(--header-bg); color: var(--header-text); padding: 2rem 1rem; }
         .header-content { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 0.5rem; }
         .header-actions { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+        .site-logo { color: var(--header-text); font-size: 20px; display: inline-block; font-weight: 700; text-decoration: none; }
+        .site-logo:hover { color: var(--header-text); text-decoration: underline; }
         .back-link { color: var(--header-text); font-size: 14px; display: inline-block; font-weight: 700; text-decoration: underline; }
         .back-link:hover { color: var(--header-text); text-decoration: underline; }
         h1 { font-size: 28px; font-weight: 700; }
@@ -592,6 +594,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         .no-violations { background: #11321b; border: 1px solid #1f5d2f; border-radius: 6px; padding: 1rem; color: #b7f7c0; font-weight: 600; }
         [data-theme="light"] .no-violations { background: #e8f5e9; border-color: #c8e6c9; color: #2e7d32; }
 
+        .site-logo:focus,
         .back-link:focus,
         .download-link:focus,
         .search-input:focus,
@@ -622,6 +625,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
     <a href="#main" style="position:absolute;left:-999px;top:-999px;">Skip to main content</a>
     <header>
         <div class="header-content">
+            <a href="#" class="site-logo" id="homeLogo">🎩 O-Hat Scanner</a>
             <div class="header-actions">
                 <a href="#" class="back-link" id="backLink">← Back to all runs</a>
                 <button class="theme-toggle" type="button" aria-label="Toggle light or dark mode">Toggle light/dark</button>
@@ -835,9 +839,11 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         }
 
         const backLink = document.getElementById('backLink');
-        if (backLink) {
-            const root = siteRootPath().replace(/\\\/$/, '');
-            backLink.href = root + '/index.html';
+        const homeLogo = document.getElementById('homeLogo');
+        if (backLink || homeLogo) {
+            const root = siteRootPath().replace(/\/$/, '');
+            if (backLink) backLink.href = root + '/index.html';
+            if (homeLogo) homeLogo.href = root + '/index.html';
         }
 
         const printButton = document.getElementById('printButton');
