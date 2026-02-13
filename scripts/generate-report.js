@@ -191,7 +191,7 @@ function generateMainIndex(summaries) {
         .sort-btn { background: transparent; border: none; font: inherit; color: #0d47a1; cursor: pointer; padding: 0; }
         .sort-btn:focus { outline: 2px solid #0d47a1; outline-offset: 2px; }
         .status-pass { color: green; }
-        .status-fail { color: red; font-weight: bold; }
+        .status-fail { color: #cc0000; font-weight: bold; }
         .target-cell { display: flex; flex-direction: column; gap: 4px; }
         .target-main { font-weight: 700; }
         .target-meta { font-size: 12px; color: #555; display: inline-flex; gap: 6px; align-items: baseline; }
