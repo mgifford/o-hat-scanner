@@ -525,6 +525,8 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         .header-actions { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
         .back-link { color: var(--header-text); font-size: 14px; display: inline-block; font-weight: 700; text-decoration: underline; }
         .back-link:hover { color: var(--header-text); text-decoration: underline; }
+        .site-logo { color: var(--header-text); font-size: 18px; display: inline-block; font-weight: 600; text-decoration: none; margin-bottom: 0.5rem; }
+        .site-logo:hover { text-decoration: underline; }
         h1 { font-size: 28px; font-weight: 700; }
         .meta { margin-top: 0.25rem; font-size: 14px; color: var(--header-text); opacity: 1; }
         .meta strong { color: var(--header-text); }
@@ -629,6 +631,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
                 <a href="#" class="back-link" id="backLink">← Back to all runs</a>
                 <button class="theme-toggle" type="button" aria-label="Toggle light or dark mode">Toggle light/dark</button>
             </div>
+            <a href="#" class="site-logo" id="homeLogo">🎩 O-Hat Scanner</a>
             <h1>Accessibility Scan Report</h1>
             <p class="meta">
                 <strong>Scan ID:</strong> ${esc(runId)} · <strong>Date:</strong> ${runDate.toLocaleString()} · <strong>Mode:</strong> ${esc(results.mode || 'unknown')} · <strong>Viewport:</strong> ${viewportLabel} · <strong>Color:</strong> ${colorLabel} · <strong>Max pages:</strong> ${esc(maxPagesLabel)} · <strong>Sampling:</strong> ${esc(samplingLabel)}
@@ -843,6 +846,12 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         if (backLink) {
             const root = siteRootPath().replace(/\\\/$/, '');
             backLink.href = root + '/index.html';
+        }
+
+        const homeLogo = document.getElementById('homeLogo');
+        if (homeLogo) {
+            const root = siteRootPath().replace(/\\\/$/, '');
+            homeLogo.href = root + '/index.html';
         }
 
         const printButton = document.getElementById('printButton');
