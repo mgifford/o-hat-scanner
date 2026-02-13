@@ -174,6 +174,32 @@ describe('generate-report run page', () => {
         expect(parsed.resultsByUrl).toBeDefined();
         expect(parsed.mode).toBe('ci');
     });
+
+    test('includes main landmark with id for skip link', () => {
+        const stats = analyzeResults(results);
+        generateRunPage(runId, runRelPath, results, stats);
+        const htmlPath = path.join(runDir, 'index.html');
+        const html = fs.readFileSync(htmlPath, 'utf-8');
+
+        // Should have a skip link pointing to #main
+        expect(html).toContain('href="#main"');
+        expect(html).toContain('Skip to main content');
+
+        // Should have a main element with id="main"
+        expect(html).toContain('<main id="main">');
+        expect(html).toContain('</main>');
+
+        // Verify main landmark wraps the main content (container and debug section)
+        const mainStartIndex = html.indexOf('<main id="main">');
+        const mainEndIndex = html.indexOf('</main>');
+        const containerIndex = html.indexOf('<div class="container">');
+        const debugSectionIndex = html.indexOf('Debug info (run config)');
+
+        expect(mainStartIndex).toBeLessThan(containerIndex);
+        expect(mainStartIndex).toBeLessThan(debugSectionIndex);
+        expect(mainEndIndex).toBeGreaterThan(containerIndex);
+        expect(mainEndIndex).toBeGreaterThan(debugSectionIndex);
+    });
 });
 
 describe('generate-report data loss protection', () => {
