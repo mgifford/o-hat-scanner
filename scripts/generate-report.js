@@ -138,7 +138,7 @@ function generateMainIndex(summaries) {
         .sort-btn { background: transparent; border: none; font: inherit; color: #0d47a1; cursor: pointer; padding: 0; }
         .sort-btn:focus { outline: 2px solid #0d47a1; outline-offset: 2px; }
         .status-pass { color: green; }
-        .status-fail { color: red; font-weight: bold; }
+        .status-fail { color: #cc0000; font-weight: bold; }
         .target-cell { display: flex; flex-direction: column; gap: 4px; }
         .target-main { font-weight: 700; }
         .target-meta { font-size: 12px; color: #555; display: inline-flex; gap: 6px; align-items: baseline; }
@@ -420,54 +420,97 @@ function renderRunPage(runId, runRelPath, results, stats) {
     <title>O-Hat Scanner - Accessibility Reports</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; color: #222; }
-        a { color: #1976d2; text-decoration: underline; }
-        a:hover { text-decoration: underline; }
-        header { background: #0a2540; color: #fff; padding: 3rem 1rem; }
-        .header-content { max-width: 1200px; margin: 0 auto; }
-        h1 { font-size: 32px; font-weight: 700; margin: 0 0 0.5rem 0; color: #fff; }
-        .tagline { font-size: 18px; color: #fff; margin: 0; }
-        main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
-        .intro { background: #fff; padding: 2rem; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 2rem; }
-        .intro h2 { margin-top: 0; color: #0d47a1; }
-        .intro p { line-height: 1.6; margin: 1rem 0; }
-        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin: 2rem 0; }
-        .feature { background: #fff; padding: 1.5rem; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .feature h3 { color: #0d47a1; margin-top: 0; }
-        .feature p { margin: 0.5rem 0; line-height: 1.5; }
-        .reports-section { background: #fff; padding: 2rem; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin: 2rem 0; }
-        .reports-section h2 { color: #0d47a1; margin-top: 0; }
-        .report-filters { display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem; flex-wrap: wrap; }
-        .filter-label { font-weight: 600; color: #333; }
-        .filter-select { padding: 0.45rem 0.6rem; border: 1px solid #ddd; border-radius: 4px; min-width: 180px; }
-        .table-wrapper { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; min-width: 760px; table-layout: auto; }
-        th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid #ddd; vertical-align: top; }
-        th { background: #f4f4f4; font-weight: 600; white-space: nowrap; }
-        .report-cell, .viewport-cell, .color-cell, .browser-cell, .pages-cell, .total-cell { white-space: nowrap; }
-        .date-cell { white-space: normal; max-width: 160px; }
-        .date-cell .date-date { font-weight: 600; }
-        .date-cell .date-time { color: #555; }
-        .target-cell { min-width: 220px; }
-        .sort-btn { background: transparent; border: none; font: inherit; color: #0d47a1; cursor: pointer; padding: 0; }
-        .sort-btn:focus { outline: 2px solid #0d47a1; outline-offset: 2px; }
-        .status-pass { color: green; }
-        .status-fail { color: red; font-weight: bold; }
-        .target-cell { display: flex; flex-direction: column; gap: 4px; }
-        .target-main { font-weight: 700; }
-        .target-meta { font-size: 12px; color: #555; display: inline-flex; gap: 6px; align-items: baseline; }
-        .run-id { position: relative; font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; color: #505050; opacity: 0.8; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom; }
-        tr:hover .run-id, tr:focus-within .run-id { opacity: 1; }
-        .run-id:focus { outline: 2px solid #5e35b1; outline-offset: 2px; }
-        .run-id::after { content: attr(data-full); display: none; position: absolute; left: 0; top: calc(100% + 4px); z-index: 10; background: #111; color: #fff; padding: 6px 8px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); white-space: normal; max-width: 60vw; min-width: 240px; }
-        .run-id:hover::after, .run-id:focus::after { display: block; }
-        .options-cell { white-space: normal; font-size: 12px; color: #333; }
-        .options-badge { display: inline-block; padding: 2px 6px; border: 1px solid #ddd; border-radius: 999px; margin-right: 6px; margin-bottom: 4px; background: #fafafa; }
-        @media (max-width: 900px) {
-            th.viewport-col, td.viewport-cell,
-            th.color-col, td.color-cell,
-            th.browser-col, td.browser-cell { display: none; }
-            th.options-col, td.options-cell { display: table-cell; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+        a { color: var(--link); text-decoration: underline; }
+        a:hover { font-weight: bold;  }
+        a:visited { color: var(--link-visited); }
+        h1, h2, h3, h4 { margin: 0; }
+
+        header { background: var(--header-bg); color: var(--header-text); padding: 2rem 1rem; }
+        .header-content { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 0.5rem; }
+        .header-actions { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+        .back-link { color: var(--header-text); font-size: 14px; display: inline-block; font-weight: 700; text-decoration: underline; }
+        .back-link:hover { color: var(--header-text); text-decoration: underline; }
+        .site-logo { color: var(--header-text); font-size: 18px; display: inline-block; font-weight: 600; text-decoration: none; margin-bottom: 0.5rem; }
+        .site-logo:hover { text-decoration: underline; }
+        h1 { font-size: 28px; font-weight: 700; }
+        .meta { margin-top: 0.25rem; font-size: 14px; color: var(--header-text); opacity: 1; }
+        .meta strong { color: var(--header-text); }
+        .download-link { display: inline-block; margin-top: 0.5rem; padding: 10px 16px; background: var(--panel-bg); color: #000; border-radius: 4px; font-weight: 600; border: 1px solid var(--panel-border); text-align: center; }
+        .download-link:hover { background: var(--card-bg); text-decoration: none; }
+        button.download-link { cursor: pointer; }
+
+        .container { max-width: 1200px; margin: -40px auto 0 auto; padding: 0 1rem 2rem 1rem; }
+        .layout { display: grid; grid-template-columns: 2fr 0.9fr; gap: 1.5rem; align-items: start; }
+        @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } }
+
+        .panel { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,0.04); padding: 1.5rem; }
+        .panel + .panel { margin-top: 1rem; }
+        .panel h3 { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 0.75rem; }
+        .panel small { color: var(--muted); }
+
+        .search-row { display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+        .search-input { flex: 1 1 260px; padding: 10px 12px; border: 1px solid var(--panel-border); border-radius: 4px; font-size: 14px; background: var(--panel-bg); color: var(--text); }
+        .search-input:focus { outline: 2px solid var(--focus); border-color: var(--focus); }
+
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+        .card { background: var(--card-bg); border: 1px solid var(--panel-border); border-radius: 6px; padding: 1rem; }
+        .card h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 0.35rem; }
+        .card .value { font-size: 30px; font-weight: 700; color: #000; background: #fff; padding: 2px 4px; border-radius: 3px; display: inline-block; }
+        .card .subtext { font-size: 12px; color: var(--muted); margin-top: 4px; }
+        [data-theme="dark"] .card .value { color: #fff; background: #0f141a; }
+
+        .mini-trend { margin-top: 1rem; border-top: 1px solid var(--panel-border); padding-top: 1rem; }
+        .mini-trend h4 { margin: 0 0 0.5rem 0; font-size: 14px; }
+        .mini-trend svg { width: 100%; height: 120px; border: 1px solid var(--panel-border); border-radius: 4px; background: var(--card-bg); }
+        .mini-trend-status { margin-top: 0.35rem; color: var(--muted); font-size: 13px; }
+        .mini-dot { fill: var(--pill-info); }
+        .mini-line { stroke: var(--pill-info); stroke-width: 1.5; fill: none; }
+
+        .bar { background: var(--bar-bg); height: 22px; border-radius: 4px; overflow: hidden; display: flex; margin: 10px 0; }
+        .bar-segment { height: 100%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 700; }
+        .bar-auto { background: var(--pill-info); }
+
+        .top-pages { display: grid; gap: 0.5rem; }
+        .page-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border: 1px solid var(--panel-border); border-radius: 4px; }
+        .page-row .url { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 13px; overflow-wrap: anywhere; color: var(--text); }
+        .pill { padding: 4px 10px; border-radius: 999px; font-weight: 700; font-size: 12px; white-space: nowrap; color: #fff; }
+
+        .issues-by-severity { margin-top: 1.5rem; }
+        .severity-group { border: 1px solid var(--panel-border); border-radius: 6px; overflow: hidden; margin-bottom: 1rem; }
+        .severity-header { background: var(--card-bg); padding: 1rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: none; width: 100%; text-align: left; color: var(--text); }
+        .severity-header .title { font-weight: 700; }
+        .severity-header .count { background: #e0e0e0; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 700; color: #111; }
+        [data-theme="dark"] .severity-header .count { background: #1f2937; color: var(--text); }
+        .severity-content { padding: 1rem; }
+
+        .violation-item { border-bottom: 1px solid var(--panel-border); padding: 0.75rem 0; }
+        .violation-item:last-child { border-bottom: none; }
+        .violation-id { font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color: var(--text); }
+        .violation-help { color: var(--muted); margin: 4px 0 6px 0; }
+        .violation-meta { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+        .node-list { background: var(--card-bg); border: 1px solid var(--panel-border); border-radius: 4px; padding: 10px; font-size: 13px; }
+        .node-item { margin-bottom: 8px; }
+        .node-item:last-child { margin-bottom: 0; }
+        .node-url { font-weight: 700; color: var(--text); }
+        .node-selector { color: #005a9c; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        .node-html { margin-top: 4px; color: var(--text); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; overflow-wrap: anywhere; background: var(--code-bg); padding: 6px; border-radius: 4px; }
+
+        .pill-critical { background: var(--pill-critical); }
+        .pill-warning { background: var(--pill-warning); }
+        .pill-info { background: var(--pill-info); }
+
+        .no-violations { background: #11321b; border: 1px solid #1f5d2f; border-radius: 6px; padding: 1rem; color: #b7f7c0; font-weight: 600; }
+        [data-theme="light"] .no-violations { background: #e8f5e9; border-color: #c8e6c9; color: #2e7d32; }
+
+        .back-link:focus,
+        .download-link:focus,
+        .search-input:focus,
+        .severity-header:focus,
+        .debug-accordion summary:focus,
+        .theme-toggle:focus {
+            outline: 2px solid var(--header-text);
+            outline-offset: 2px;
         }
         @media (min-width: 901px) {
             th.options-col, td.options-cell { display: none; }
@@ -508,14 +551,16 @@ function renderRunPage(runId, runRelPath, results, stats) {
                 <h3>🤖 CI Scanner</h3>
                 <p>Runs in GitHub Actions against a list of URLs. Automatically scans on push, generates reports, and deploys to GitHub Pages.</p>
             </div>
-            <div class="feature">
-                <h3>🏠 Standalone Scanner</h3>
-                <p>Deploy a single HTML file to your site for same-origin scanning. Perfect for local testing, VPNs, or staging environments.</p>
-                <p><a href="#standalone">Learn more →</a></p>
-            </div>
-            <div class="feature">
-                <h3>📊 Oobee Reports</h3>
-                <p>Beautiful, professional reports inspired by GovTechSG's Oobee. Search issues, filter by severity, view top pages.</p>
+            <a href="#" class="site-logo" id="homeLogo">🎩 O-Hat Scanner</a>
+            <h1>Accessibility Scan Report</h1>
+            <p class="meta">
+                <strong>Scan ID:</strong> ${esc(runId)} · <strong>Date:</strong> ${runDate.toLocaleString()} · <strong>Mode:</strong> ${esc(results.mode || 'unknown')} · <strong>Viewport:</strong> ${viewportLabel} · <strong>Color:</strong> ${colorLabel} · <strong>Max pages:</strong> ${esc(maxPagesLabel)} · <strong>Sampling:</strong> ${esc(samplingLabel)}
+            </p>
+            <div class="header-actions">
+                <a href="report.csv" class="download-link" download>Download CSV</a>
+                <a href="results.json" class="download-link" download>Download JSON</a>
+                <a href="report.mhtml" class="download-link" download>Download MHTML</a>
+                <button id="printButton" class="download-link" type="button" aria-label="Save this report as a PDF">Save as PDF</button>
             </div>
         </div>
         
@@ -648,12 +693,16 @@ function renderRunPage(runId, runRelPath, results, stats) {
             }
         }
 
-        function applySort(key) {
-            if (sortState.key === key) {
-                sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
-            } else {
-                sortState = { key, dir: key === 'startedAt' ? 'desc' : 'asc' };
-            }
+        const homeLogo = document.getElementById('homeLogo');
+        if (homeLogo) {
+            const root = siteRootPath().replace(/\\\/$/, '');
+            homeLogo.href = root + '/index.html';
+        }
+
+        const printButton = document.getElementById('printButton');
+        printButton?.addEventListener('click', () => {
+            window.print();
+        });
 
             const rows = Array.from(tbody.querySelectorAll('tr'));
             rows.sort((a, b) => {

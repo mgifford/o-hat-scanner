@@ -1,4 +1,4 @@
-# A11y Dual Scanner
+# O-Hat Accessibility Scanner
 
 [![GitHub Pages](https://img.shields.io/badge/Pages-O--Hat--Scanner-blue?logo=github&label=pages)](https://mgifford.github.io/o-hat-scanner/)
 
