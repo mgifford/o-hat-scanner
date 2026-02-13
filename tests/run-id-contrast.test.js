@@ -63,7 +63,7 @@ describe('run-id color contrast', () => {
 
     // Check that .run-id has color: #505050 specified
     // This ensures the contrast ratio meets WCAG 2.1 AA (4.5:1) when combined with opacity: 0.8
-    // Effective color: #707070 gives ~4.54:1 contrast on white background
+    // Effective color: #737373 gives 4.74:1 contrast on white background
     expect(html).toMatch(/\.run-id\s*\{[^}]*color:\s*#505050/);
     
     // Ensure opacity is still 0.8 (design requirement for subtle appearance)
