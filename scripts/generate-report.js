@@ -1515,9 +1515,9 @@ function generate404Page() {
         .error-code { font-size: 96px; font-weight: 700; color: var(--muted); margin: 0; line-height: 1; }
         .error-message { font-size: 24px; color: var(--text); margin: 1rem 0 2rem; }
         .error-description { color: var(--muted); line-height: 1.6; margin-bottom: 2rem; }
-        .home-link { display: inline-block; padding: 12px 24px; background: var(--accent); color: #fff; border-radius: 4px; font-weight: 600; border: 1px solid var(--accent); text-decoration: none; }
-        .home-link:hover { background: #0b3a82; color: #fff; text-decoration: none; }
-        .home-link:focus { outline: 2px solid var(--link); outline-offset: 3px; }
+        .home-link { display: inline-block; padding: 12px 24px; background: var(--accent); color: #fff; border-radius: 4px; font-weight: 600; border: 1px solid var(--accent); text-decoration: underline; }
+        .home-link:hover { background: #0b3a82; color: #fff; text-decoration: underline; }
+        .home-link:focus { outline: 2px solid var(--link); outline-offset: 3px; text-decoration: underline; }
         footer { text-align: center; padding: 2rem 1rem; color: var(--muted); font-size: 14px; }
         footer a { color: var(--link); text-decoration: underline; }
     </style>
