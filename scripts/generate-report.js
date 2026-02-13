@@ -66,12 +66,15 @@ function main() {
     if (!fs.existsSync(SITE_DIR)) {
         fs.mkdirSync(SITE_DIR, { recursive: true });
     }
-    // Only skip if both runs and archives are empty
-    if (!fs.existsSync(RUNS_DIR) && !fs.existsSync(ARCHIVES_DIR)) {
+    // Ensure runs dir exists
+    if (!fs.existsSync(RUNS_DIR)) {
         fs.mkdirSync(RUNS_DIR, { recursive: true });
-        console.log('No runs found. Skipping report generation to preserve existing data.');
-        return;
     }
+    // Note: previously the script returned early when neither runs nor archives
+    // existed to avoid overwriting an existing `site` folder. For tests and
+    // automation we still want a usable `site/index.html` to be generated even
+    // when there are no runs. Continue and let `generateMainIndex` create a
+    // minimal index if no summaries are found.
 
     const runEntries = collectRunEntries();
     const runSummaries = [];
