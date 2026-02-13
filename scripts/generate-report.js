@@ -513,7 +513,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
         a { color: var(--link); text-decoration: underline; }
-        a:hover { text-decoration: underline; }
+        a:hover { opacity: 0.8; }
         a:visited { color: var(--link-visited); }
         h1, h2, h3, h4 { margin: 0; }
 
