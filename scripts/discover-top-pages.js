@@ -994,9 +994,10 @@ async function discoverTopPages(baseUrl, maxPages, serpProvider, apiKey, customQ
       final: final.length
     },
     serp: {
-      enabled: discoverySource === 'serp' && !!apiKey,
-      provider: discoverySource === 'serp' ? (apiKey ? process.env.BING_API_KEY ? 'bing' : 'duckduckgo' : 'none') : discoverySource,
-      queries: discoverySource === 'serp' ? (serpResult.queries || []) : []
+      enabled: serpProvider !== 'none',
+      provider: serpProvider,
+      source: discoverySource,
+      queries: serpProvider !== 'none' ? (serpResult.queries || []) : []
     },
     requiredPages
   };
@@ -1054,7 +1055,7 @@ async function main() {
   const maxPages = parseInt(args.maxPages, 10) || DEFAULT_MAX_PAGES;
   const outDir = args.outDir || 'site/targets';
   const siteKey = args.siteKey || 'unknown';
-  const serpProvider = args.serpProvider || 'none';
+  const serpProvider = args.serpProvider || 'duckduckgo';
   const apiKey = serpProvider === 'bing' ? process.env.BING_API_KEY : null;
   
   // Custom queries can be passed as JSON via --customQueries or env variable
@@ -1103,7 +1104,10 @@ async function main() {
     console.log(`  Base URL: ${baseUrl}`);
     console.log(`  Requested: ${maxPages}, Found: ${discovery.pages.length}`);
     console.log(`  Stats: candidates=${discovery.stats.candidates}, normalized=${discovery.stats.afterNormalize}, validated=${discovery.stats.afterValidate}, dedupe=${discovery.stats.afterDedupe}, final=${discovery.stats.final}`);
-    console.log(`  SERP: ${discovery.serp.enabled ? `enabled (${discovery.serp.provider})` : 'disabled'}`);
+    const serpStatus = discovery.serp.enabled
+      ? `enabled (${discovery.serp.provider}), used: ${discovery.serp.source}`
+      : 'disabled';
+    console.log(`  SERP: ${serpStatus}`);
     console.log(`  Required pages: ${Object.keys(discovery.requiredPages).filter(k => discovery.requiredPages[k]).join(', ') || '(none)'}`);
 
     process.exit(0);

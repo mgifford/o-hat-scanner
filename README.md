@@ -70,6 +70,37 @@ sites:
 - Manual dispatch can also pass a `site` filter and `override_label` input to rename that run without editing `targets.yml`.
 
 The workflow resolves which sites are “due” for the current cron tick and runs them sequentially (low concurrency, capped pages) for efficiency. If no sites are due, it skips browser install and just regenerates the static site.
+
+## ▶️ Manual Run (GitHub Actions)
+
+Use a manual workflow run to trigger discovery + scans on demand and regenerate GitHub Pages from scratch.
+
+### Run the Workflow Now
+
+1. Go to your repo on GitHub → **Actions**
+2. Select the **a11y-scan** workflow
+3. Click **Run workflow**
+4. Choose the branch (usually `main`)
+5. Optional inputs:
+  - `site`: run a single target from `targets.yml`
+  - `override_label`: rename the run folder/report
+  - leave blank to run all due targets
+6. Click **Run workflow** and monitor the run
+
+### Clear GitHub Pages and Start Fresh
+
+If old reports still appear at https://mgifford.github.io/o-hat-scanner/, remove the existing Pages deployment and re-run:
+
+1. GitHub → **Settings** → **Branches**
+2. Delete the `gh-pages` branch if it exists
+3. GitHub → **Settings** → **Pages**
+4. Ensure **Source = GitHub Actions**
+5. Run the **a11y-scan** workflow (steps above) to publish a clean report set
+
+Notes:
+- The `site/` folder is generated and not committed.
+- A fresh workflow run will recreate `gh-pages` and republish reports.
+
 ## 🔎 Discovery Mode (Quarterly Baseline Discovery)
 
 The **`discover`** mode runs less frequently (quarterly by default) to build a stable, curated list of canonical URLs for a domain. This is useful when you don't have a reliable sitemap or want to refresh your understanding of a site's key pages.

@@ -5,10 +5,10 @@
  * Helper script to run discovery on all targets (or filter to discover-mode only).
  * 
  * Usage:
- *   node scripts/run-discovery-batch.js [--discover-only] [--dry-run] [--serp bing|duckduckgo|none]
+ *   node scripts/run-discovery-batch.js [--discover-only] [--dry-run] [--serp duckduckgo|bing|none]
  * 
  * Examples:
- *   # Run discovery on all discover-mode targets with nav-only
+ *   # Run discovery on all discover-mode targets (DuckDuckGo SERP default)
  *   node scripts/run-discovery-batch.js --discover-only
  * 
  *   # Use DuckDuckGo for SERP (no API key needed, respectful rate limiting applied)
@@ -33,7 +33,7 @@ function parseArgs() {
   const args = {
     discoverOnly: false,
     dryRun: false,
-    serp: 'none'  // none | bing | duckduckgo
+    serp: 'duckduckgo'  // duckduckgo | bing | none
   };
 
   for (let i = 0; i < process.argv.length; i++) {
@@ -130,9 +130,9 @@ async function main() {
   });
 
   const apiKey = process.env.BING_API_KEY || '';
-  if (!apiKey && !args.dryRun) {
-    console.log(`\n⚠️  No BING_API_KEY set; will use nav-only discovery.`);
-    console.log(`   To enable SERP, run: export BING_API_KEY=your-key\n`);
+  if (!apiKey && !args.dryRun && args.serp === 'bing') {
+    console.log(`\n⚠️  No BING_API_KEY set; Bing SERP disabled.`);
+    console.log(`   Use DuckDuckGo (default) or set BING_API_KEY to enable Bing.\n`);
   }
 
   if (args.dryRun) {
