@@ -33,7 +33,8 @@ describe('Logo link accessibility on run pages', () => {
         ({ generateRunPage, analyzeResults } = await import('../scripts/generate-report.js'));
         fs.rmSync(runDir, { recursive: true, force: true });
         
-        // Generate the run page
+        // Create directory and generate the run page
+        fs.mkdirSync(runDir, { recursive: true });
         const stats = analyzeResults(results);
         generateRunPage(runId, runRelPath, results, stats);
         

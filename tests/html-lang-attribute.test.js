@@ -61,6 +61,7 @@ describe('HTML lang attribute accessibility (html-has-lang)', () => {
 
     test('run page HTML must have lang="en" attribute for WCAG 2.1 Level A compliance', () => {
         // Generate a run page
+        fs.mkdirSync(runDir, { recursive: true });
         const stats = analyzeResults(testResults);
         generateRunPage(runId, runRelPath, testResults, stats);
         
@@ -81,7 +82,8 @@ describe('HTML lang attribute accessibility (html-has-lang)', () => {
     });
 
     test('main index page HTML must have lang="en" attribute', () => {
-        // Create results.json for the run
+        // Create directory and results.json for the run
+        fs.mkdirSync(runDir, { recursive: true });
         fs.writeFileSync(
             path.join(runDir, 'results.json'),
             JSON.stringify(testResults)
@@ -151,6 +153,7 @@ describe('HTML lang attribute accessibility (html-has-lang)', () => {
         // WCAG: 3.1.1 Language of Page (Level A)
         // Reference: https://dequeuniversity.com/rules/axe/4.11/html-has-lang
         
+        fs.mkdirSync(runDir, { recursive: true });
         const stats = analyzeResults(testResults);
         generateRunPage(runId, runRelPath, testResults, stats);
         
