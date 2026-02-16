@@ -44,7 +44,11 @@ describe('Logo link accessibility on run pages', () => {
 
     afterAll(async () => {
         await browser?.close();
-        fs.rmSync(path.join(ROOT, 'site'), { recursive: true, force: true });
+        try {
+            fs.rmSync(runDir, { recursive: true, force: true });
+        } catch (err) {
+            // Ignore cleanup errors
+        }
     });
 
     test('logo link has discernible text (link-name)', async () => {
