@@ -34,6 +34,9 @@ const NAV_CRAWL_DEPTH_LIMIT = 10; // Limit one-hop nav expansion to 10 pages
 const MAX_REDIRECT_HOPS = 10;
 const DEFAULT_USER_AGENT = 'o-hat-discovery/1.0 (+https://github.com/civicactions/o-hat-scanner)';
 
+// SERP sampling configuration (buffer to offset duplicates)
+const SERP_RESULTS_PER_QUERY = Math.max(10, parseInt(process.env.SERP_RESULTS_PER_QUERY || '80', 10));
+
 // Sitemap sampling configuration
 const SITEMAP_SAMPLE_STRATEGY = (process.env.INPUT_SITEMAP_SAMPLE_STRATEGY || 'shuffle').toLowerCase();
 const SITEMAP_SAMPLE_SEED = process.env.INPUT_SITEMAP_SAMPLE_SEED || '';
@@ -373,7 +376,7 @@ async function fetchBingResults(query, apiKey, endpoint) {
   try {
     const searchUrl = new URL('search', endpoint);
     searchUrl.searchParams.set('q', query);
-    searchUrl.searchParams.set('count', '50');
+    searchUrl.searchParams.set('count', String(SERP_RESULTS_PER_QUERY));
     searchUrl.searchParams.set('mkt', 'en-US');
     searchUrl.searchParams.set('textFormat', 'HTML');
 
@@ -441,7 +444,7 @@ async function fetchDuckDuckGoResults(query) {
     let match;
     let position = 1;
 
-    while ((match = resultPattern.exec(html)) !== null && position <= 50) {
+    while ((match = resultPattern.exec(html)) !== null && position <= SERP_RESULTS_PER_QUERY) {
       try {
         const url = new URL(match[1], 'https://duckduckgo.com').toString();
         const title = match[2].replace(/<[^>]+>/g, '').trim();
