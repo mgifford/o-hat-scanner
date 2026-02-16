@@ -51,6 +51,11 @@ on:
         required: false
         default: true
         type: boolean
+      reset_history:
+        description: 'true to clear GitHub Pages history and start fresh (one-time reset)'
+        required: false
+        default: false
+        type: boolean
       simulated_time:
         description: 'Simulate a specific date/time (ISO string) for schedule testing'
         required: false
@@ -94,6 +99,7 @@ jobs:
           ruby -e "require 'yaml'; YAML.load_file('targets.yml')"
 
       - name: Restore prior Pages artifact
+        if: ${{ !inputs.reset_history }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -135,6 +141,13 @@ jobs:
             rsync -a "$RESTORE_ROOT/" site/ || true
           fi
           echo "Restored previous site content into site/."
+
+      - name: Reset GitHub Pages history (if requested)
+        if: ${{ inputs.reset_history }}
+        run: |
+          echo "Clearing GitHub Pages history (reset_history=true)"
+          rm -rf site/
+          mkdir -p site
 
       - name: Debug list restored site (pre-scan)
         run: |
