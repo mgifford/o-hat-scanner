@@ -70,7 +70,161 @@ sites:
 - Manual dispatch can also pass a `site` filter and `override_label` input to rename that run without editing `targets.yml`.
 
 The workflow resolves which sites are “due” for the current cron tick and runs them sequentially (low concurrency, capped pages) for efficiency. If no sites are due, it skips browser install and just regenerates the static site.
+## 🔎 Discovery Mode (Quarterly Baseline Discovery)
 
+The **`discover`** mode runs less frequently (quarterly by default) to build a stable, curated list of canonical URLs for a domain. This is useful when you don't have a reliable sitemap or want to refresh your understanding of a site's key pages.
+
+### How Discovery Works
+
+For each target with `mode: discover`, the workflow will:
+
+1. **Run discovery** using `scripts/discover-top-pages.js`:
+   - Fetches SERP results via Bing Web Search API (if `BING_API_KEY` secret is set; otherwise nav-only).
+   - Crawls the site navigation (homepage header/footer/nav + one-hop expansion).
+   - Deduplicates candidates across sources, normalizes URLs, and resolves redirects.
+   - Filters out error pages and near-duplicate content.
+   - Ensures required pages (accessibility, privacy, search, terms, security) are included.
+   - Scores pages by SERP prominence, nav depth, and policy keywords.
+   - Outputs a curated list of up to `maxPages` canonical URLs.
+
+2. **Scan the discovered URLs** using the existing Playwright + axe pipeline (equivalent to `mode: list`).
+
+3. **Publish results** to GitHub Pages with discovery metadata (JSON + stats).
+
+### Configuration
+
+Add a discover-mode target to `targets.yml`:
+
+```yaml
+sites:
+  - name: digital-gov
+    baseUrl: https://digital.gov
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 5 1 1,4,7,10 *"  # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: discover-digital-gov
+    notes: Quarterly discovery run to refresh top pages
+```
+
+**Key settings:**
+- `mode: discover` - Enables discovery.
+- `maxPages: 100` - Maximum discovered URLs (default 100); actual count may be lower if fewer unique pages found.
+- `schedule` - Cron expression for when discovery runs. Default quarterly (first day of each quarter).
+
+### SERP API Setup (Optional)
+
+To enable Bing Web Search API discovery:
+
+1. **Create a Bing Search v7 subscription** on Azure.
+2. **Store the API key** as a GitHub Secret:
+   - Go to your repo **Settings → Secrets and variables → Actions**.
+   - Add secret `BING_API_KEY` with your subscription key.
+   - Optionally add `BING_ENDPOINT` (defaults to `https://api.bing.microsoft.com/v7.0/`).
+3. **If no key is set**, discovery falls back to navigation-only crawling and clearly reports that SERP was unavailable.
+
+### Output
+
+For each discover-mode target, the workflow generates:
+
+- `site/targets/<siteKey>.urls.json` - Detailed discovery metadata:
+  ```json
+  {
+    "baseUrl": "https://example.gov",
+    "maxPages": 100,
+    "generatedAt": "2026-02-16T...",
+    "serp": {
+      "enabled": true,
+      "provider": "bing",
+      "queries": ["site:example.gov", "site:example.gov accessibility", ...]
+    },
+    "stats": {
+      "candidates": 1200,
+      "afterNormalize": 980,
+      "afterValidate": 850,
+      "afterDedupe": 820,
+      "final": 100
+    },
+    "requiredPages": {
+      "accessibility": "https://example.gov/accessibility",
+      "privacy": "https://example.gov/privacy"
+    },
+    "pages": [
+      {
+        "url": "https://example.gov/",
+        "score": 5000,
+        "category": "top-task",
+        "signals": { "serp": {...}, "nav": {...} },
+        "redirectChain": null,
+        "http": { "status": 200, "contentType": "text/html" },
+        "title": "...",
+        "h1": "...",
+        "fingerprint": "sha256-hash",
+        "duplicateOf": null
+      }
+    ],
+    "excluded": [...]
+  }
+  ```
+
+- `site/targets/<siteKey>.urls.txt` - Newline-delimited list of discovered URLs (for easy Copy/Paste if needed).
+
+- Standard scan results (in `site/runs/<runId>/`) from the subsequent accessibility scan.
+
+### Required Pages
+
+Discovery automatically prioritizes these page types (matched by URL pattern or keyword):
+
+- **Accessibility Statement**: `/accessibility`, `/a11y`, `/wcag` or text matching "accessibility", "a11y", "wcag"
+- **Privacy**: `/privacy` or matching "privacy", "data protection", "gdpr"
+- **Search**: `/search` or matching "search"
+- **Terms**: `/terms`, `/terms-of-service` or matching "terms", "conditions"
+- **Cookies**: `/cookies` or matching "cookie policy"
+- **Security**: `/security` or matching "security policy"
+- **Home**: Always included first.
+
+If a required page is found, it is guaranteed to be in the final list. If missing, it is reported in metadata but not invented.
+
+### Testing Discovery Locally
+
+Run discovery for a single domain without deploying:
+
+```bash
+export BING_API_KEY=your-api-key  # Optional; omit for nav-only
+node scripts/discover-top-pages.js \
+  --baseUrl https://example.gov \
+  --maxPages 50 \
+  --outDir ./test-discover \
+  --siteKey example-gov \
+  --serpProvider bing  # or 'none' to skip SERP
+```
+
+This will output:
+- `./test-discover/example-gov.urls.json` - Metadata
+- `./test-discover/example-gov.urls.txt` - URL list
+
+### Discovery Heuristics
+
+**Scoring** combines:
+- SERP position (1st result scores higher than 10th).
+- Navigation prominence (linked from homepage scores higher than secondary pages).
+- Required page match (policy pages get bonus).
+- Home page (always highest score).
+
+**Filtering**:
+- Removes HTTP errors (non-200), non-HTML content.
+- Detects error pages by title/body keywords (404, not found, access denied, etc.) in multiple languages.
+- Removes near-duplicates by comparing main text fingerprint (SHA-256).
+
+**Deduplication**:
+- Normalizes URLs (removes tracking params, fragments, trailing slashes).
+- Resolves redirects up to 10 hops.
+- Merges evidence across SERP and navigation sources.
+
+**Rate Limiting**:
+- Respects HTTP 429/`Retry-After` (if implemented; currently logs warnings).
+- Caps body fetches at ~300 pages to limit discovery time.
+- Default 15-second timeout per request.
 ## 🧪 Local Testing
 
 Test the scanner against local test pages:
@@ -191,12 +345,12 @@ Each scan run generates:
 
 **CI Scanner Env Vars:**
 - `INPUT_URLS`: Newline separated list of URLs (used for `mode=list` or manual runs).
-- `INPUT_BASE_URL`: Base origin for `mode=sitemap`/`crawl` runs.
-- `INPUT_MODE`: `sitemap` (default), `crawl`, or `list`.
+- `INPUT_BASE_URL`: Base origin for `mode=sitemap`/`crawl`/`discover` runs.
+- `INPUT_MODE`: `sitemap` (default), `crawl`, `list`, or `discover`.
 - `INPUT_LABEL`: Optional label appended to the run folder/report name.
 - `INPUT_VIEWPORT_PROFILE`: `desktop` (default) or `mobile`.
 - `INPUT_COLOR_SCHEME`: `light` (default) or `dark`.
-- `INPUT_MAX_PAGES`: Max pages per run (default 50, capped at 200).
+- `INPUT_MAX_PAGES`: Max pages per run (default 50, capped at 200); for `discover` mode, controls the target number of discovered URLs (default 100).
 - `INPUT_CONCURRENCY`: Parallel tabs (default 2).
 - `INPUT_SITEMAP_SAMPLE_STRATEGY`: `shuffle` (default) randomly shuffles sitemap URLs before capping; `sequential` keeps the first entries.
 - `INPUT_SITEMAP_SAMPLE_SEED`: Optional seed for deterministic sampling when using `shuffle` (helpful for reproducible manual runs).
@@ -204,6 +358,10 @@ Each scan run generates:
 - `INPUT_SITEMAP_FALLBACK_TO_CRAWL`: When `true` (default), if a sitemap is missing/empty, the scanner falls back to crawling same-origin links starting from the base URL.
 - `INPUT_BROWSER`: `chromium` (default), `firefox`, or `webkit`.
 - `DISCOVER`: Set `true` to crawl links beyond sitemap (used with care).
+
+**Discovery Secrets** (Optional; only needed if using Bing SERP API):
+- `BING_API_KEY`: Bing Web Search v7 API subscription key. If not set, discovery falls back to navigation-only.
+- `BING_ENDPOINT`: Optional custom Bing endpoint (defaults to `https://api.bing.microsoft.com/v7.0/`).
 
 **Manual workflow inputs:**
 - `site` to pick one target from `targets.yml`.

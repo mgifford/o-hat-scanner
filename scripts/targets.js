@@ -37,7 +37,7 @@ function normalizeSite(site) {
   if (!name) throw new Error('Each site must have a name');
 
   const mode = site.mode || DEFAULT_MODE;
-  if (!['sitemap', 'crawl', 'list'].includes(mode)) {
+  if (!['sitemap', 'crawl', 'list', 'discover'].includes(mode)) {
     throw new Error(`Invalid mode for ${name}: ${mode}`);
   }
 

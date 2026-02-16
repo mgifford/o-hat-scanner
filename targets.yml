@@ -282,11 +282,35 @@ sites:
     label: ontario-weekly
     notes: Province of Ontario portal
 
+  # --- DISCOVERY MODE TARGETS ---
+  # Discovery mode runs less frequently (quarterly) to build a stable list of canonical URLs.
+  # It uses Bing Web Search API (if BING_API_KEY secret is configured) plus site navigation
+  # to find the top N pages, then performs a standard a11y scan on that curated list.
+  # Schedule: First day of each quarter at 5am UTC (Jan 1, Apr 1, Jul 1, Oct 1)
+  #
+  # For each discover-mode target, the workflow will:
+  #   1. Run discover-top-pages.js to find candidates
+  #   2. Output JSON metadata + newline-delimited URL list to site/targets/
+  #   3. Convert to list mode and scan those URLs
+  #   4. Publish results to GitHub Pages alongside regular scans
+
+  - name: discover-example-site
+    baseUrl: https://www.example.gov
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: discover-example
+    notes: "Example discover-mode target. Replace baseUrl with a real gov domain to enable."
+
   # --- TEST TARGETS / TIME TRAVEL ---
   # To test specific times, ensure this schedule matches the cron in .github/workflows/a11y-scan.yml
   # To test "Time Travel", use the "simulated_time" input in GitHub Actions "Run workflow" dispatch.
   #   Example: Set simulated_time to "2026-01-01T17:30:00Z" to trigger this target (and backlog history).
-  
+  #
+  # To test discover mode without waiting for quarterly schedule:
+  #   1. Edit discover-example-site schedule above to match test-daytime-check cron
+  #   2. Or manually dispatch a11y-scan workflow with site=discover-example-site
   - name: test-daytime-check
     baseUrl: https://www.civicactions.com
     mode: sitemap

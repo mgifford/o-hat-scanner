@@ -64,6 +64,8 @@ on:
     # Run hourly during nighttime window 11pm-5am ET (4am-10am UTC)
     # This aligns with target schedules which are spread across this window
     - cron: '0 4-10 * * *'  # Every hour at :00, 4am-10am UTC (11pm-5am ET)
+    # Quarterly discovery run (first day of each quarter at 5am UTC)
+    - cron: '0 5 1 1,4,7,10 *'  # Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
     # UNCOMMENT THE LINE BELOW TO ENABLE A TEST RUN
     # Adjust the cron expression to a time ~10 mins in the future to test the scheduler.
     # IMPORTANT: Keep this in sync with test-daytime-check in targets.yml (single-line schedule).
@@ -252,6 +254,62 @@ jobs:
       - name: Install Playwright Browsers
         if: steps.resolve.outputs.count != '0'
         run: npx playwright install --with-deps
+
+      - name: Discover candidates for discover-mode targets
+        if: steps.resolve.outputs.count != '0'
+        env:
+          BING_API_KEY: ${{ secrets.BING_API_KEY }}
+          BING_ENDPOINT: ${{ secrets.BING_ENDPOINT }}
+        run: |
+          set -euo pipefail
+          mkdir -p site/targets
+          jq -c '.[]' /tmp/due-sites.json | while read -r site; do
+            mode=$(echo "$site" | jq -r '.mode // "sitemap"')
+            if [ "$mode" != "discover" ]; then
+              echo "⏭️  Skipping $mode mode"
+              continue
+            fi
+            
+            name=$(echo "$site" | jq -r '.name')
+            baseUrl=$(echo "$site" | jq -r '.baseUrl')
+            maxPages=$(echo "$site" | jq -r '.maxPages // "100"')
+            siteKey=$(echo "$name" | tr '.' '-' | tr '/' '-')
+            
+            echo "🔍 Discovering top pages for $name ($baseUrl)"
+            node scripts/discover-top-pages.js \
+              --baseUrl "$baseUrl" \
+              --maxPages "$maxPages" \
+              --outDir site/targets \
+              --siteKey "$siteKey" \
+              --serpProvider bing || echo "⚠️  Discovery failed for $name (continuing)"
+          done
+
+      - name: Convert discover output to scannable URLs
+        if: steps.resolve.outputs.count != '0'
+        run: |
+          set -euo pipefail
+          jq -c '.[]' /tmp/due-sites.json | while read -r site; do
+            mode=$(echo "$site" | jq -r '.mode // "sitemap"')
+            if [ "$mode" != "discover" ]; then
+              continue
+            fi
+            
+            name=$(echo "$site" | jq -r '.name')
+            siteKey=$(echo "$name" | tr '.' '-' | tr '/' '-')
+            urlsFile="site/targets/${siteKey}.urls.txt"
+            
+            if [ -f "$urlsFile" ]; then
+              echo "📋 Using discovered URLs for $name from $urlsFile"
+              # Update the site object to use list mode with discovered URLs
+              urls=$(cat "$urlsFile" | jq -R -s 'split("\n") | map(select(length>0))')
+              jq --arg name "$name" --argjson urls "$urls" \
+                'map(if .name == $name then .mode = "list" | .urls = $urls else . end)' \
+                /tmp/due-sites.json > /tmp/due-sites.updated.json
+              mv /tmp/due-sites.updated.json /tmp/due-sites.json
+            else
+              echo "⚠️  No discovered URLs found for $name; skipping"
+            fi
+          done
 
       - name: Run per-site scans
         if: steps.resolve.outputs.count != '0'
