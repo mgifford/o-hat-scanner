@@ -8,278 +8,255 @@
 sites:
   - name: govt.nz
     baseUrl: https://www.govt.nz
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 4 * * MON" # 11:00pm ET Sunday / 4:00 UTC Monday
-    label: nz-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: nz-quarterly
     notes: New Zealand government portal
 
   - name: government.nl
     baseUrl: https://www.government.nl
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 5 * * MON" # 12:00am ET Monday / 5:00 UTC Monday
-    label: netherlands-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: netherlands-quarterly
     notes: Netherlands government portal
 
   - name: gsa.gov
     baseUrl: https://www.gsa.gov
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 6 * * MON" # 1:00am ET Monday / 6:00 UTC Monday
-    label: gsa-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: gsa-quarterly
     notes: US General Services Administration
 
   - name: gov.uk
     baseUrl: https://www.gov.uk
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 7 * * MON" # 2:00am ET Monday / 7:00 UTC Monday
-    label: govuk-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: govuk-quarterly
     notes: UK government portal
-
-  - name: civicactions.com
-    baseUrl: https://www.civicactions.com
-    mode: sitemap
-    maxPages: 50
-    schedule:
-      - "0 8 * * MON" # 3:00am ET Monday / 8:00 UTC Monday
-    label: civicactions-weekly
-    notes: Weekly sitemap sample of civicactions.com
 
   - name: digital.georgia.gov
     baseUrl: https://digital.georgia.gov
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 4 * * TUE" # 11:00pm ET Monday / 4:00 UTC Tuesday
-    label: digital-georgia-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: digital-georgia-quarterly
     notes: Georgia Digital Services
 
   - name: va.gov
     baseUrl: https://www.va.gov
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 5 * * TUE" # 12:00am ET Tuesday / 5:00 UTC Tuesday
-    label: va-weekly
-    notes: Weekly sitemap sample of VA.gov
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: va-quarterly
+    notes: Quarterly discovery baseline for VA.gov
 
   - name: georgia.gov
     baseUrl: https://georgia.gov
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 6 * * TUE" # 1:00am ET Tuesday / 6:00 UTC Tuesday
-    label: georgia-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: georgia-quarterly
     notes: State of Georgia portal
 
   - name: oit.colorado.gov
     baseUrl: https://oit.colorado.gov
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 7 * * TUE" # 2:00am ET Tuesday / 7:00 UTC Tuesday
-    label: colorado-oit-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: colorado-oit-quarterly
     notes: Colorado Office of IT
 
   - name: cms.gov
     baseUrl: https://www.cms.gov
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 4 * * WED" # 11:00pm ET Tuesday / 4:00 UTC Wednesday
-    label: cms-random-sitemap
-    notes: Midweek sitemap sample
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: cms-quarterly
+    notes: Centers for Medicare & Medicaid Services
 
   - name: colorado.gov
     baseUrl: https://www.colorado.gov
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 5 * * WED" # 12:00am ET Wednesday / 5:00 UTC Wednesday
-    label: colorado-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: colorado-quarterly
     notes: State of Colorado portal
 
   - name: ca.gov
     baseUrl: https://www.ca.gov
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 6 * * WED" # 1:00am ET Wednesday / 6:00 UTC Wednesday
-    label: ca-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: ca-quarterly
     notes: State of California portal
 
   - name: medicare.gov
     baseUrl: https://www.medicare.gov
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 7 * * WED" # 2:00am ET Wednesday / 7:00 UTC Wednesday
-    label: medicare-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: medicare-quarterly
+    notes: Centers for Medicare & Medicaid Services
 
   - name: sf.gov
     baseUrl: https://sf.gov
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 4 * * THU" # 11:00pm ET Wednesday / 4:00 UTC Thursday
-    label: sf-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: sf-quarterly
     notes: City and County of San Francisco
 
   - name: texas.gov
     baseUrl: https://www.texas.gov
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 5 * * THU" # 12:00am ET Thursday / 5:00 UTC Thursday
-    label: texas-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: texas-quarterly
     notes: State of Texas portal
 
   - name: healthcare.gov
     baseUrl: https://www.healthcare.gov
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 6 * * THU" # 1:00am ET Thursday / 6:00 UTC Thursday
-    label: healthcare-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: healthcare-quarterly
+    notes: US Centers for Medicare & Medicaid Services
 
   - name: bundesregierung.de
     baseUrl: https://www.bundesregierung.de
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 7 * * THU" # 2:00am ET Thursday / 7:00 UTC Thursday
-    label: bundesregierung-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: bundesregierung-quarterly
     notes: German Federal Government
 
   - name: digital-strategy.ec.europa.eu
     baseUrl: https://digital-strategy.ec.europa.eu
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 4 * * FRI" # 11:00pm ET Thursday / 4:00 UTC Friday
-    label: eu-digital-strategy-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: eu-digital-strategy-quarterly
     notes: European Commission digital strategy
 
   - name: diplomatie.gouv.fr
     baseUrl: https://www.diplomatie.gouv.fr
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 5 * * FRI" # 12:00am ET Friday / 5:00 UTC Friday
-    label: france-diplomatie-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: france-diplomatie-quarterly
     notes: France Ministry for Europe and Foreign Affairs
 
   - name: nsf.gov
     baseUrl: https://www.nsf.gov
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 6 * * FRI" # 1:00am ET Friday / 6:00 UTC Friday
-    label: nsf-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: nsf-quarterly
+    notes: US National Science Foundation
 
   - name: ec.europa.eu
     baseUrl: https://ec.europa.eu
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 7 * * FRI" # 2:00am ET Friday / 7:00 UTC Friday
-    label: ec-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: ec-quarterly
     notes: European Commission portal
 
   - name: usa.gov
     baseUrl: https://www.usa.gov
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 8 * * FRI" # 3:00am ET Friday / 8:00 UTC Friday
-    label: usa-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: usa-quarterly
     notes: US government portal
 
   - name: ny.gov
     baseUrl: https://www.ny.gov
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 4 * * SAT" # 11:00pm ET Friday / 4:00 UTC Saturday
-    label: ny-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: ny-quarterly
     notes: State of New York portal
 
   - name: nyc.gov
     baseUrl: https://www.nyc.gov
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 5 * * SAT" # 12:00am ET Saturday / 5:00 UTC Saturday
-    label: nyc-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: nyc-quarterly
     notes: City of New York portal
 
   - name: australia.gov.au
     baseUrl: https://www.australia.gov.au
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 6 * * SAT" # 1:00am ET Saturday / 6:00 UTC Saturday
-    label: australia-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: australia-quarterly
     notes: Australian Government portal
-
-  - name: drupal.org
-    baseUrl: https://www.drupal.org
-    mode: sitemap
-    maxPages: 50
-    schedule:
-      - "0 7 * * SAT" # 2:00am ET Saturday / 7:00 UTC Saturday
-    label: drupal-weekly
-    notes: Core CMS project
 
   - name: canada.ca
     baseUrl: https://www.canada.ca
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 8 * * SAT" # 3:00am ET Saturday / 8:00 UTC Saturday
-    label: canada-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: canada-quarterly
     notes: Government of Canada portal
 
   - name: gov.bc.ca
     baseUrl: https://www.gov.bc.ca
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 4 * * SUN" # 11:00pm ET Saturday / 4:00 UTC Sunday
-    label: bc-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: bc-quarterly
     notes: Province of British Columbia portal
 
   - name: novascotia.ca
     baseUrl: https://novascotia.ca
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 5 * * SUN" # 12:00am ET Sunday / 5:00 UTC Sunday
-    label: novascotia-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: novascotia-quarterly
     notes: Province of Nova Scotia portal
 
-  - name: digitalservicescoalition.org
-    baseUrl: https://www.digitalservicescoalition.org
-    mode: sitemap
-    maxPages: 50
-    schedule:
-      - "0 6 * * SUN" # 1:00am ET Sunday / 6:00 UTC Sunday
-    label: dsc-weekly
-    notes: Digital Services Coalition
 
   - name: ontario.ca
     baseUrl: https://www.ontario.ca
-    mode: sitemap
-    maxPages: 50
+    mode: discover
+    maxPages: 100
     schedule:
-      - "0 7 * * SUN" # 2:00am ET Sunday / 7:00 UTC Sunday
-    label: ontario-weekly
+      - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
+    label: ontario-quarterly
     notes: Province of Ontario portal
 
   # --- DISCOVERY MODE TARGETS ---
@@ -301,13 +278,13 @@ sites:
     schedule:
       - "0 5 1 1,4,7,10 *" # Quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 5am UTC
     label: discover-example
-    notes: "Example discover-mode target. Replace baseUrl with a real gov domain to enable."
+    notes: "Example discover-mode target. Replace baseUrl with a real gov domain to enable. Uses Tier 1 core 7 default queries."
 
   # Real site for testing
   - name: discover-civicactions
     baseUrl: https://www.civicactions.com
     mode: discover
-    maxPages: 50
+    maxPages: 100
     schedule:
       - "0 5 1 1,4,7,10 *" # Quarterly
     label: discover-civicactions
@@ -370,10 +347,12 @@ sites:
   #     - "site:{host} requirements"
   #     - "site:{host} contact"
   #   notes: "Custom queries for licensing/professional board discovery"
-  - name: test-daytime-check
-    baseUrl: https://www.civicactions.com
-    mode: sitemap
-    maxPages: 10
-    # schedule: ["0 * * * *"] # 12:30 PM ET / 17:30 UTC; comment/uncomment this single line to toggle
-    label: test-run
-    notes: Quick daytime test target. MUST MATCH CRON IN .github/workflows/a11y-scan.yml
+  # Commented out: test-daytime-check (non-government domain)
+  # To enable this test target, uncomment the block and set the cron schedule
+  # - name: test-daytime-check
+  #   baseUrl: https://www.gsa.gov
+  #   mode: sitemap
+  #   maxPages: 10
+  #   # schedule: ["0 * * * *"] # 12:30 PM ET / 17:30 UTC; uncomment to enable
+  #   label: test-run
+  #   notes: Quick daytime test target. MUST MATCH CRON IN .github/workflows/a11y-scan.yml

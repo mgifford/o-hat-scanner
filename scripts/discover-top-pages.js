@@ -21,6 +21,7 @@ import fs from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
 import { URL } from 'url';
+import { parseStringPromise } from 'xml2js';
 
 // ============================================================================
 // CONFIG
@@ -32,6 +33,13 @@ const MAX_BODY_FETCH_LIMIT = 300; // Limit HTML fetches for fingerprinting to ~3
 const NAV_CRAWL_DEPTH_LIMIT = 10; // Limit one-hop nav expansion to 10 pages
 const MAX_REDIRECT_HOPS = 10;
 const DEFAULT_USER_AGENT = 'o-hat-discovery/1.0 (+https://github.com/civicactions/o-hat-scanner)';
+
+// Sitemap sampling configuration
+const SITEMAP_SAMPLE_STRATEGY = (process.env.INPUT_SITEMAP_SAMPLE_STRATEGY || 'shuffle').toLowerCase();
+const SITEMAP_SAMPLE_SEED = process.env.INPUT_SITEMAP_SAMPLE_SEED || '';
+
+// File extensions to skip in sitemap sampling
+const SKIP_EXTENSIONS = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.gz', '.tgz', '.tar', '.rar', '.7z'];
 
 // Multilingual keywords for identifying required pages
 const REQUIRED_PAGE_PATTERNS = {
@@ -92,6 +100,84 @@ function parseArgs() {
   }
   return result;
 }
+
+// ============================================================================
+// SAMPLING UTILITIES
+// ============================================================================
+
+function stringToSeed(input) {
+  const str = input || 'sitemap';
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+  }
+  return hash || 1; // avoid zero seed
+}
+
+function mulberry32(seed) {
+  let t = seed >>> 0;
+  return function() {
+    t = (t + 0x6D2B79F5) | 0;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function seededShuffle(list, seed) {
+  const arr = list.slice();
+  const rand = mulberry32(seed);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function isLikelyHtmlUrl(target) {
+  try {
+    const url = new URL(target);
+    const pathname = (url.pathname || '').toLowerCase();
+    const trimmedPath = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+    if (isPdfLike(target)) return false;
+    for (const ext of SKIP_EXTENSIONS) {
+      if (trimmedPath.endsWith(ext)) return false;
+      const bare = ext.startsWith('.') ? ext.slice(1) : ext;
+      if (bare && trimmedPath.endsWith(bare)) return false;
+    }
+    const idx = trimmedPath.lastIndexOf('.');
+    if (idx === -1) return true; // no dot extension, assume HTML route
+    const ext = trimmedPath.slice(idx);
+    if (SKIP_EXTENSIONS.includes(ext)) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function isPdfLike(target) {
+  try {
+    const url = new URL(target);
+    const pathname = (url.pathname || '').toLowerCase();
+    return pathname.endsWith('.pdf') || pathname.includes('.pdf?');
+  } catch {
+    return false;
+  }
+}
+
+function sampleSitemapUrls(urls, { maxPages, strategy = 'shuffle', seed = 'sitemap' } = {}) {
+  if (!Array.isArray(urls)) return [];
+  const filtered = urls.filter(isLikelyHtmlUrl);
+  const limit = Math.max(0, Math.min(maxPages ?? filtered.length, filtered.length));
+  if (limit === 0) return [];
+  if (strategy === 'sequential') {
+    return filtered.slice(0, limit);
+  }
+  const seeded = stringToSeed(seed);
+  const shuffled = seededShuffle(filtered, seeded);
+  return shuffled.slice(0, limit);
+}
+
 
 // ============================================================================
 // HTTP HELPERS
@@ -405,6 +491,106 @@ function buildDiscoveryQueries(hostname, customQueries = null) {
 
   return coreQueries;
 }
+
+// ============================================================================
+// SITEMAP DISCOVERY
+// ============================================================================
+
+async function fetchSitemap(url, options = {}) {
+  const maxPages = options.maxPages || DEFAULT_MAX_PAGES;
+  const strategy = options.strategy || 'shuffle';
+  const seed = options.seed || 'sitemap';
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) return [];
+    const text = await resp.text();
+    const result = await parseStringPromise(text);
+    
+    let urls = [];
+    // Handle sitemap index (recursive)
+    if (result.sitemapindex && result.sitemapindex.sitemap) {
+      const childSitemaps = result.sitemapindex.sitemap.map(s => s.loc[0]);
+      let toProcess = childSitemaps;
+      if (childSitemaps.length > 15) {
+        const sampled = seededShuffle(childSitemaps, stringToSeed(`${seed}-sitemapindex`)).slice(0, 10);
+        console.log(`  Sitemap index has ${childSitemaps.length} entries; sampling ${sampled.length} child sitemaps using ${strategy} (seed=${seed})`);
+        toProcess = sampled;
+      } else {
+        console.log(`  Found sitemap index with ${childSitemaps.length} sitemaps. Fetching...`);
+      }
+      for (const childUrl of toProcess) {
+        const childUrls = await fetchSitemap(childUrl, { maxPages, strategy, seed });
+        urls = urls.concat(childUrls);
+      }
+    }
+    if (result.urlset && result.urlset.url) {
+      let consecutivePdf = 0;
+      for (const entry of result.urlset.url) {
+        const loc = entry.loc[0];
+        if (isPdfLike(loc)) {
+          consecutivePdf += 1;
+          if (consecutivePdf >= 5) {
+            console.log('  Skipping remainder of sitemap after 5 pdf-like entries in a row.');
+            break; // jump to next sitemap
+          }
+          continue; // do not include pdf-like URLs
+        }
+        consecutivePdf = 0;
+        urls.push(loc);
+      }
+    }
+
+    urls = Array.from(new Set(urls)).filter(u => isLikelyHtmlUrl(u));
+
+    const sampled = sampleSitemapUrls(urls, { maxPages, strategy, seed });
+    if (sampled.length < urls.length) {
+      console.log(`  Sampling ${sampled.length} of ${urls.length} URLs from sitemap using ${strategy} (seed=${seed || 'auto'})`);
+    }
+    return sampled;
+  } catch (e) {
+    return [];
+  }
+}
+
+async function discoverViaSitemap(baseUrl, maxPages) {
+  console.log('🗺️  Running sitemap discovery...');
+  
+  const sitemapUrls = [
+    `${baseUrl}/sitemap.xml`,
+    `${baseUrl}/sitemap-index.xml`
+  ];
+
+  const strategy = SITEMAP_SAMPLE_STRATEGY;
+  const seed = SITEMAP_SAMPLE_SEED || baseUrl;
+
+  for (const sitemapUrl of sitemapUrls) {
+    try {
+      const urls = await fetchSitemap(sitemapUrl, {
+        maxPages: maxPages || DEFAULT_MAX_PAGES,
+        strategy,
+        seed
+      });
+      if (urls.length > 0) {
+        const candidates = urls.map(url => ({
+          url,
+          source: 'sitemap',
+          sitemapUrl
+        }));
+        console.log(`  Found ${candidates.length} candidates from sitemap`);
+        return { candidates, sitemapUrl };
+      }
+    } catch {
+      // Continue to next sitemap URL
+    }
+  }
+
+  console.log('  No sitemap found or accessible');
+  return { candidates: [] };
+}
+
+// ============================================================================
+// SERP DISCOVERY
+// ============================================================================
 
 async function discoverViaSERP(baseUrl, serpProvider, apiKey, customQueries = null) {
   if (serpProvider === 'none') {
@@ -730,16 +916,27 @@ async function discoverTopPages(baseUrl, maxPages, serpProvider, apiKey, customQ
   console.log(`\n🚀 Discovering top pages for ${baseUrl} (max: ${maxPages})`);
   console.log('');
 
-  // Step 1: Gather candidates
+  // Step 1: 3-Tier Fallover Discovery
+  // Tier 1: Try SERP
   const serpResult = await discoverViaSERP(baseUrl, serpProvider, apiKey, customQueries);
-  const navResult = await discoverViaNavigation(baseUrl);
+  let allCandidates = [...serpResult.candidates];
+  let discoverySource = 'serp';
 
-  const allCandidates = [
-    ...serpResult.candidates,
-    ...navResult.candidates
-  ];
+  // Tier 2: If SERP returned no results, try sitemap
+  if (allCandidates.length === 0) {
+    const sitemapResult = await discoverViaSitemap(baseUrl, maxPages);
+    allCandidates = [...sitemapResult.candidates];
+    discoverySource = sitemapResult.candidates.length > 0 ? 'sitemap' : 'navigation';
+  }
 
-  console.log(`\n📋 Combined sources: ${allCandidates.length} candidates`);
+  // Tier 3: If SERP and sitemap both empty, use navigation
+  if (allCandidates.length === 0) {
+    const navResult = await discoverViaNavigation(baseUrl);
+    allCandidates = [...navResult.candidates];
+    discoverySource = 'navigation';
+  }
+
+  console.log(`📋 Primary source: ${discoverySource.toUpperCase()} (${allCandidates.length} candidates)`);
 
   // Step 2: Deduplicate and normalize
   const dedupedCandidates = deduplicateCandidates(allCandidates, baseUrl);
@@ -797,9 +994,9 @@ async function discoverTopPages(baseUrl, maxPages, serpProvider, apiKey, customQ
       final: final.length
     },
     serp: {
-      enabled: !!apiKey,
-      provider: apiKey ? 'bing' : 'none',
-      queries: serpResult.queries || []
+      enabled: discoverySource === 'serp' && !!apiKey,
+      provider: discoverySource === 'serp' ? (apiKey ? process.env.BING_API_KEY ? 'bing' : 'duckduckgo' : 'none') : discoverySource,
+      queries: discoverySource === 'serp' ? (serpResult.queries || []) : []
     },
     requiredPages
   };
