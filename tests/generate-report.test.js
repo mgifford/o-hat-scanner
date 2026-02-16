@@ -10,7 +10,7 @@ let formatRunIdShort;
 
 describe('generate-report run page', () => {
     const runId = 'test-run-report';
-    const domainSlug = 'example-com';
+    const domainSlug = 'report-test-domain';
     const runRelPath = path.join(domainSlug, runId);
     const runDir = path.join(ROOT, 'site', 'runs', runRelPath);
     const results = {
@@ -188,22 +188,24 @@ describe('generate-report run page', () => {
 describe('generate-report data loss protection', () => {
     const siteDir = path.join(ROOT, 'site');
     const runsDir = path.join(siteDir, 'runs');
-
-    beforeEach(() => {
-        // Clean up before each test
-        fs.rmSync(siteDir, { recursive: true, force: true });
-    });
+    const dummyIndexPath = path.join(siteDir, 'index.html');
 
     afterEach(() => {
-        fs.rmSync(siteDir, { recursive: true, force: true });
+        // Only clean up the specific file this test creates
+        try {
+            if (fs.existsSync(dummyIndexPath)) {
+                fs.unlinkSync(dummyIndexPath);
+            }
+        } catch (err) {
+            // Ignore cleanup errors
+        }
     });
 
     test('skips report generation when no runs found (prevents data loss)', async () => {
-        // Create empty site/runs directory
+        // Ensure site/runs directory exists
         fs.mkdirSync(runsDir, { recursive: true });
 
         // Write a dummy index.html to site/ to simulate existing reports
-        const dummyIndexPath = path.join(siteDir, 'index.html');
         fs.writeFileSync(dummyIndexPath, '<html><body>Existing Report</body></html>');
         const originalContent = fs.readFileSync(dummyIndexPath, 'utf-8');
 
