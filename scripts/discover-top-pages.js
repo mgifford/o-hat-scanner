@@ -35,7 +35,7 @@ const MAX_REDIRECT_HOPS = 10;
 const DEFAULT_USER_AGENT = 'o-hat-discovery/1.0 (+https://github.com/civicactions/o-hat-scanner)';
 
 // SERP sampling configuration (buffer to offset duplicates)
-const SERP_RESULTS_PER_QUERY = Math.max(10, parseInt(process.env.SERP_RESULTS_PER_QUERY || '80', 10));
+const SERP_RESULTS_PER_QUERY = Math.max(10, parseInt(process.env.SERP_RESULTS_PER_QUERY || '120', 10));
 
 // Sitemap sampling configuration
 const SITEMAP_SAMPLE_STRATEGY = (process.env.INPUT_SITEMAP_SAMPLE_STRATEGY || 'shuffle').toLowerCase();
