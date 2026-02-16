@@ -49,7 +49,7 @@ on:
       ignore_schedule:
         description: 'true to bypass cron windows and run all configured targets now'
         required: false
-        default: 'true'
+        default: true
         type: boolean
       simulated_time:
         description: 'Simulate a specific date/time (ISO string) for schedule testing'
@@ -166,8 +166,8 @@ jobs:
         run: |
           set -euo pipefail
           FLAGS=""
-          # If manual dispatch or explicit input, ignore schedule windows so runs always happen.
-          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] || [ "${IGNORE_SCHEDULE:-false}" = "true" ]; then
+          # Ignore schedule only when explicitly requested.
+          if [ "${IGNORE_SCHEDULE:-false}" = "true" ]; then
             FLAGS="--ignore-schedule"
           fi
           # Manual URL/site inputs also imply ignore schedule.
