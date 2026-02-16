@@ -1,0 +1,26 @@
+{
+  "baseUrl": "https://example.gov",
+  "maxPages": 50,
+  "generatedAt": "2026-02-16T19:53:19.545Z",
+  "serp": {
+    "enabled": true,
+    "provider": "bing",
+    "queries": [
+      "site:example.gov",
+      "site:example.gov accessibility",
+      "site:example.gov privacy",
+      "site:example.gov contact",
+      "site:example.gov about"
+    ]
+  },
+  "stats": {
+    "candidates": 0,
+    "afterNormalize": 0,
+    "afterValidate": 0,
+    "afterDedupe": 0,
+    "final": 0
+  },
+  "requiredPages": {},
+  "pages": [],
+  "excluded": []
+}

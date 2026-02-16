@@ -10,7 +10,7 @@
  *     --maxPages 100 \
  *     --outDir site/targets \
  *     --siteKey example-gov \
- *     --serpProvider bing|none
+ *     --serpProvider bing|duckduckgo|none
  * 
  * Outputs:
  *   - {outDir}/{siteKey}.urls.txt    : newline-delimited list of final URLs
@@ -325,9 +325,68 @@ async function fetchBingResults(query, apiKey, endpoint) {
   }
 }
 
-async function discoverViaSERP(baseUrl, apiKey) {
-  if (!apiKey) {
-    console.log('ℹ️  No SERP API key; skipping SERP discovery');
+async function fetchDuckDuckGoResults(query) {
+  try {
+    // DuckDuckGo Lite does not require auth; we parse HTML respectfully with delays
+    const searchUrl = new URL('https://duckduckgo.com/lite/');
+    searchUrl.searchParams.set('q', query);
+
+    // Respectful delay between searches (DuckDuckGo doesn't require auth but respects politeness)
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const response = await fetch(searchUrl.toString(), {
+      headers: {
+        'User-Agent': DEFAULT_USER_AGENT
+      },
+      timeout: MAX_FETCH_TIMEOUT_MS
+    });
+
+    if (!response.ok) {
+      console.log(`⚠️ DuckDuckGo returned ${response.status}`);
+      return [];
+    }
+
+    const html = await response.text();
+    const results = [];
+
+    // Parse DuckDuckGo Lite HTML (simple table-based format)
+    // Look for result rows with href and title
+    const resultPattern = /<tr class='result'>.*?<a href="([^"]+)"[^>]*>([^<]+)<\/a>/gs;
+    let match;
+    let position = 1;
+
+    while ((match = resultPattern.exec(html)) !== null && position <= 50) {
+      try {
+        const url = new URL(match[1], 'https://duckduckgo.com').toString();
+        const title = match[2].replace(/<[^>]+>/g, '').trim();
+
+        results.push({
+          url,
+          title: title || query,
+          snippet: '',
+          position
+        });
+        position++;
+      } catch {
+        // Skip malformed URLs
+      }
+    }
+
+    return results;
+  } catch (err) {
+    console.log(`⚠️ DuckDuckGo error: ${err.message}`);
+    return [];
+  }
+}
+
+async function discoverViaSERP(baseUrl, serpProvider, apiKey) {
+  if (serpProvider === 'none') {
+    console.log('ℹ️  SERP discovery disabled; skipping');
+    return { candidates: [], queries: [] };
+  }
+
+  if (serpProvider === 'bing' && !apiKey) {
+    console.log('ℹ️  No BING_API_KEY found; skipping Bing SERP discovery');
     return { candidates: [], queries: [] };
   }
 
@@ -342,19 +401,26 @@ async function discoverViaSERP(baseUrl, apiKey) {
     `site:${hostName} about`
   ];
 
-  const endpoint = process.env.BING_ENDPOINT || 'https://api.bing.microsoft.com/v7.0/';
   const candidates = [];
   const resultsByQuery = {};
 
   for (const query of queries) {
-    const results = await fetchBingResults(query, apiKey, endpoint);
+    let results = [];
+
+    if (serpProvider === 'bing') {
+      const endpoint = process.env.BING_ENDPOINT || 'https://api.bing.microsoft.com/v7.0/';
+      results = await fetchBingResults(query, apiKey, endpoint);
+    } else if (serpProvider === 'duckduckgo') {
+      results = await fetchDuckDuckGoResults(query);
+    }
+
     resultsByQuery[query] = results;
 
     for (const res of results) {
       candidates.push({
         url: res.url,
         title: res.title,
-        snippet: res.snippet,
+        snippet: res.snippet || '',
         source: 'serp',
         serpQuery: query,
         serpPosition: res.position,
@@ -363,7 +429,7 @@ async function discoverViaSERP(baseUrl, apiKey) {
     }
   }
 
-  console.log(`  Found ${candidates.length} SERP candidates across ${queries.length} queries`);
+  console.log(`  Found ${candidates.length} SERP candidates across ${queries.length} queries (${serpProvider})`);
   return { candidates, queries, resultsByQuery };
 }
 
@@ -639,12 +705,12 @@ function scorePages(pages, requiredPages) {
 // DISCOVERY ORCHESTRATION
 // ============================================================================
 
-async function discoverTopPages(baseUrl, maxPages, apiKey) {
+async function discoverTopPages(baseUrl, maxPages, serpProvider, apiKey) {
   console.log(`\n🚀 Discovering top pages for ${baseUrl} (max: ${maxPages})`);
   console.log('');
 
   // Step 1: Gather candidates
-  const serpResult = await discoverViaSERP(baseUrl, apiKey);
+  const serpResult = await discoverViaSERP(baseUrl, serpProvider, apiKey);
   const navResult = await discoverViaNavigation(baseUrl);
 
   const allCandidates = [
@@ -770,7 +836,8 @@ async function main() {
   const maxPages = parseInt(args.maxPages, 10) || DEFAULT_MAX_PAGES;
   const outDir = args.outDir || 'site/targets';
   const siteKey = args.siteKey || 'unknown';
-  const apiKey = args.serpProvider !== 'none' ? process.env.BING_API_KEY : null;
+  const serpProvider = args.serpProvider || 'none';
+  const apiKey = serpProvider === 'bing' ? process.env.BING_API_KEY : null;
 
   if (!baseUrl) {
     console.error('❌ --baseUrl is required');
@@ -783,7 +850,7 @@ async function main() {
   }
 
   try {
-    const discovery = await discoverTopPages(baseUrl, maxPages, apiKey);
+    const discovery = await discoverTopPages(baseUrl, maxPages, serpProvider, apiKey);
     const metadata = generateMetadata(discovery, baseUrl, maxPages);
 
     // Write JSON

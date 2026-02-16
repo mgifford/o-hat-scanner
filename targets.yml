@@ -303,14 +303,15 @@ sites:
     label: discover-example
     notes: "Example discover-mode target. Replace baseUrl with a real gov domain to enable."
 
-  # --- TEST TARGETS / TIME TRAVEL ---
-  # To test specific times, ensure this schedule matches the cron in .github/workflows/a11y-scan.yml
-  # To test "Time Travel", use the "simulated_time" input in GitHub Actions "Run workflow" dispatch.
-  #   Example: Set simulated_time to "2026-01-01T17:30:00Z" to trigger this target (and backlog history).
-  #
-  # To test discover mode without waiting for quarterly schedule:
-  #   1. Edit discover-example-site schedule above to match test-daytime-check cron
-  #   2. Or manually dispatch a11y-scan workflow with site=discover-example-site
+  # Real site for testing
+  - name: discover-civicactions
+    baseUrl: https://www.civicactions.com
+    mode: discover
+    maxPages: 50
+    schedule:
+      - "0 5 1 1,4,7,10 *" # Quarterly
+    label: discover-civicactions
+    notes: "Quarterly discovery baseline for CivicActions (real test site)"
   - name: test-daytime-check
     baseUrl: https://www.civicactions.com
     mode: sitemap
