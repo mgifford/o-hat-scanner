@@ -12,7 +12,7 @@ let page;
 
 describe('Logo link accessibility on run pages', () => {
     const runId = 'test-logo-link';
-    const domainSlug = 'example-com';
+    const domainSlug = 'logo-test-domain';
     const runRelPath = path.join(domainSlug, runId);
     const runDir = path.join(ROOT, 'site', 'runs', runRelPath);
     
