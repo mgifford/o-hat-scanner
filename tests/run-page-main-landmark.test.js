@@ -42,10 +42,15 @@ describe('Run page main landmark (landmark-one-main)', () => {
     });
 
     afterAll(() => {
-        fs.rmSync(path.join(ROOT, 'site'), { recursive: true, force: true });
+        try {
+            fs.rmSync(runDir, { recursive: true, force: true });
+        } catch (err) {
+            // Ignore cleanup errors
+        }
     });
 
     test('run page must have a main landmark element', () => {
+        fs.mkdirSync(runDir, { recursive: true });
         const stats = analyzeResults(results);
         generateRunPage(runId, runRelPath, results, stats);
         const htmlPath = path.join(runDir, 'index.html');

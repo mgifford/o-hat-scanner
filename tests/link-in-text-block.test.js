@@ -31,10 +31,15 @@ describe('link-in-text-block accessibility (WCAG 2.1 SC 1.4.1)', () => {
     });
 
     afterAll(() => {
-        fs.rmSync(path.join(ROOT, 'site'), { recursive: true, force: true });
+        try {
+            fs.rmSync(runDir, { recursive: true, force: true });
+        } catch (err) {
+            // Ignore cleanup errors
+        }
     });
 
     test('links have text-decoration underline to meet WCAG 2.1 SC 1.4.1 (Use of Color)', () => {
+        fs.mkdirSync(runDir, { recursive: true });
         const stats = analyzeResults(results);
         generateRunPage(runId, runRelPath, results, stats);
         const htmlPath = path.join(runDir, 'index.html');

@@ -37,10 +37,15 @@ describe('error message color contrast', () => {
   });
 
   afterAll(() => {
-    fs.rmSync(path.join(ROOT, 'site'), { recursive: true, force: true });
+    try {
+      fs.rmSync(runDir, { recursive: true, force: true });
+    } catch (err) {
+      // Ignore cleanup errors
+    }
   });
 
   test('error messages meet WCAG AA 4.5:1 contrast ratio', () => {
+    fs.mkdirSync(runDir, { recursive: true });
     const stats = analyzeResults(results);
     generateRunPage(runId, runRelPath, results, stats);
     const html = fs.readFileSync(path.join(runDir, 'index.html'), 'utf-8');
