@@ -25,12 +25,15 @@ describe('run-id color contrast', () => {
   beforeAll(async () => {
     process.env.NODE_ENV = 'test';
     ({ generateMainIndex } = await import('../scripts/generate-report.js'));
-    fs.rmSync(siteDir, { recursive: true, force: true });
     fs.mkdirSync(siteDir, { recursive: true });
   });
 
   afterAll(() => {
-    fs.rmSync(siteDir, { recursive: true, force: true });
+    try {
+      fs.rmSync(indexHtml, { force: true });
+    } catch (err) {
+      // Ignore cleanup errors
+    }
   });
 
   test('.target-meta uses #505050 to meet WCAG 2.1 AA contrast when .run-id has 0.8 opacity', () => {

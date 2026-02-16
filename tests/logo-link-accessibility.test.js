@@ -31,25 +31,29 @@ describe('Logo link accessibility on run pages', () => {
     beforeAll(async () => {
         process.env.NODE_ENV = 'test';
         ({ generateRunPage, analyzeResults } = await import('../scripts/generate-report.js'));
-        fs.rmSync(runDir, { recursive: true, force: true });
-        
-        // Create directory and generate the run page
-        fs.mkdirSync(runDir, { recursive: true });
-        const stats = analyzeResults(results);
-        generateRunPage(runId, runRelPath, results, stats);
-        
-        // Launch browser
+
+        // Launch browser once for the suite
         browser = await chromium.launch();
         page = await browser.newPage();
     });
 
-    afterAll(async () => {
-        await browser?.close();
+    beforeEach(() => {
+        fs.rmSync(runDir, { recursive: true, force: true });
+        fs.mkdirSync(runDir, { recursive: true });
+        const stats = analyzeResults(results);
+        generateRunPage(runId, runRelPath, results, stats);
+    });
+
+    afterEach(() => {
         try {
             fs.rmSync(runDir, { recursive: true, force: true });
         } catch (err) {
             // Ignore cleanup errors
         }
+    });
+
+    afterAll(async () => {
+        await browser?.close();
     });
 
     test('logo link has discernible text (link-name)', async () => {

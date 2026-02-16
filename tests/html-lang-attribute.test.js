@@ -52,11 +52,21 @@ describe('HTML lang attribute accessibility (html-has-lang)', () => {
         generateMainIndex = module.generateMainIndex;
         generateTrendsPage = module.generateTrendsPage;
         analyzeResults = module.analyzeResults;
-        fs.rmSync(siteDir, { recursive: true, force: true });
     });
 
     afterAll(() => {
-        fs.rmSync(siteDir, { recursive: true, force: true });
+        try {
+            fs.rmSync(runDir, { recursive: true, force: true });
+        } catch (err) {
+            // Ignore cleanup errors
+        }
+        try {
+            fs.rmSync(path.join(siteDir, 'index.html'), { force: true });
+            fs.rmSync(path.join(siteDir, 'trends.html'), { force: true });
+            fs.rmSync(path.join(siteDir, 'aggregate.csv'), { force: true });
+        } catch (err) {
+            // Ignore cleanup errors
+        }
     });
 
     test('run page HTML must have lang="en" attribute for WCAG 2.1 Level A compliance', () => {
