@@ -603,7 +603,7 @@ async function discoverViaSERP(baseUrl, serpProvider, apiKey, customQueries = nu
     return { candidates: [], queries: [] };
   }
 
-  console.log('🔍 Running SERP discovery...');
+  console.log(`🔍 Running SERP discovery (${serpProvider})...`);
 
   const hostName = new URL(baseUrl).hostname;
   const queries = buildDiscoveryQueries(hostName, customQueries);

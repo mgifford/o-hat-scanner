@@ -281,7 +281,7 @@ jobs:
               --maxPages "$maxPages" \
               --outDir site/targets \
               --siteKey "$siteKey" \
-              --serpProvider bing || echo "⚠️  Discovery failed for $name (continuing)"
+              --serpProvider duckduckgo || echo "⚠️  Discovery failed for $name (continuing)"
           done
 
       - name: Convert discover output to scannable URLs
