@@ -185,6 +185,92 @@ Discovery automatically prioritizes these page types (matched by URL pattern or 
 
 If a required page is found, it is guaranteed to be in the final list. If missing, it is reported in metadata but not invented.
 
+### Tier 1 Discovery Queries (Government Focus)
+
+Discovery uses a **two-tier query strategy** optimized for government and public-facing websites:
+
+#### Tier 1: Core 7 Universal Queries (Default)
+
+By default, all discover-mode targets use these 7 government-focused search queries:
+
+| Query | Focus | Why It Matters |
+|-------|-------|----------|
+| `site:{host}` | General content | Baseline to establish primary domain content |
+| `site:{host} accessibility` | Inclusive access | Critical for WCAG compliance; direct visitor need |
+| `site:{host} services` | What government offers | Citizens search "what services are available" |
+| `site:{host} forms` | Applications & processes | How citizens interact with government |
+| `site:{host} help` | Support & troubleshooting | FAQ, contact, support pages essential for user success |
+| `site:{host} privacy` | Trust & legal | Privacy statements, data handling; trust signal |
+| `site:{host} contact` | Engagement | Phone, email, hours; critical for all users |
+
+These 7 queries reflect how actual government website visitors search, emphasizing inclusivity, services, and interaction over generic "about" pages.
+
+#### Tier 2: Custom Queries (Optional Per-Target)
+
+To override Tier 1 for domain-specific discovery, add `discoveryQueries` to `targets.yml`:
+
+```yaml
+sites:
+  - name: benefits-portal
+    baseUrl: https://benefits.example.gov
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 5 1 1,4,7,10 *"
+    discoveryQueries:
+      - "site:benefits.example.gov "
+      - "site:benefits.example.gov apply"
+      - "site:benefits.example.gov eligibility"
+      - "site:benefits.example.gov income limits"
+      - "site:benefits.example.gov documentation"
+      - "site:benefits.example.gov application status"
+      - "site:benefits.example.gov faq"
+
+  - name: healthcare-provider
+    baseUrl: https://health.example.gov
+    mode: discover
+    maxPages: 100
+    discoveryQueries:
+      - "site:health.example.gov "
+      - "site:health.example.gov programs"
+      - "site:health.example.gov health information"
+      - "site:health.example.gov resources"
+      - "site:health.example.gov insurance"
+      - "site:health.example.gov enrollment"
+      - "site:health.example.gov coverage"
+
+  - name: licensing-board
+    baseUrl: https://license.example.gov
+    mode: discover
+    maxPages: 100
+    discoveryQueries:
+      - "site:license.example.gov "
+      - "site:license.example.gov apply"
+      - "site:license.example.gov renew"
+      - "site:license.example.gov fees"
+      - "site:license.example.gov requirements"
+      - "site:license.example.gov exam"
+      - "site:license.example.gov status"
+```
+
+**Notes:**
+- The `{host}` placeholder is automatically replaced with your `baseUrl` hostname.
+- Custom queries completely override Tier 1 (all 7 default queries are replaced).
+- Each custom list should be about 5–10 queries for best results.
+- Queries can include operators like `site:`, filetype restrictions, and keyword combinations.
+
+#### Choosing Custom Queries
+
+Ask: **"What do visitors actually search for on this site?"**
+
+- **Benefits/Assistance Sites**: apply, eligibility, income limits, documentation, status, faq
+- **Healthcare Sites**: programs, providers, coverage, enrollment, insurance, resources
+- **Licensing/Permit Boards**: apply, renew, fees, requirements, exam, status
+- **Educational Institutions**: admissions, programs, courses, tuition, research, careers
+- **Government Agencies**: services, reports, data, compliance, regulations, contact
+
+If you're unsure, stick with **Tier 1 defaults** (do not set `discoveryQueries`).
+
 ### Testing Discovery Locally
 
 Run discovery for a single domain without deploying:
@@ -196,11 +282,23 @@ node scripts/discover-top-pages.js \
   --maxPages 50 \
   --outDir ./test-discover \
   --siteKey example-gov \
-  --serpProvider bing  # or 'none' to skip SERP
+  --serpProvider bing  # or 'duckduckgo' or 'none' to skip SERP
+```
+
+To use custom queries in local testing:
+
+```bash
+node scripts/discover-top-pages.js \
+  --baseUrl https://example.gov \
+  --maxPages 100 \
+  --customQueries '["site:example.gov ","site:example.gov apply","site:example.gov eligibility"]' \
+  --outDir ./test-discover \
+  --siteKey example-gov \
+  --serpProvider duckduckgo
 ```
 
 This will output:
-- `./test-discover/example-gov.urls.json` - Metadata
+- `./test-discover/example-gov.urls.json` - Metadata (includes which queries were used)
 - `./test-discover/example-gov.urls.txt` - URL list
 
 ### Discovery Heuristics
@@ -357,6 +455,7 @@ Each scan run generates:
 - `INPUT_SKIP_EXTENSIONS`: Comma-separated extensions to skip during sitemap discovery (default: .pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.gz,.tgz,.tar,.rar,.7z).
 - `INPUT_SITEMAP_FALLBACK_TO_CRAWL`: When `true` (default), if a sitemap is missing/empty, the scanner falls back to crawling same-origin links starting from the base URL.
 - `INPUT_BROWSER`: `chromium` (default), `firefox`, or `webkit`.
+- `INPUT_DISCOVERY_QUERIES`: JSON array of custom discovery queries for `discover` mode (optional; Tier 1 defaults used if omitted). Example: `["site:example.gov","site:example.gov apply"]`.
 - `DISCOVER`: Set `true` to crawl links beyond sitemap (used with care).
 
 **Discovery Secrets** (Optional; only needed if using Bing SERP API):
