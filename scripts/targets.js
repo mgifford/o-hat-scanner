@@ -46,6 +46,7 @@ function normalizeSite(site) {
   const urls = Array.isArray(site.urls) ? site.urls : [];
   const schedule = Array.isArray(site.schedule) ? site.schedule : [];
   const label = sanitizeLabel(site.label || name);
+  const discoveryQueries = Array.isArray(site.discoveryQueries) ? site.discoveryQueries : [];
 
   return {
     name,
@@ -55,6 +56,7 @@ function normalizeSite(site) {
     maxPages,
     schedule,
     label,
+    discoveryQueries,
     notes: site.notes || ''
   };
 }

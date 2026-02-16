@@ -76,11 +76,18 @@ async function runDiscovery(target, options = {}) {
       '--serpProvider', serpProvider
     ];
 
+    // Add custom queries if defined in target
+    if (target.discoveryQueries && Array.isArray(target.discoveryQueries) && target.discoveryQueries.length > 0) {
+      args.push('--customQueries');
+      args.push(JSON.stringify(target.discoveryQueries));
+    }
+
     console.log(`\n${'='.repeat(70)}`);
     console.log(`🔍 Discovering: ${target.name}`);
     console.log(`   Base URL: ${baseUrl}`);
     console.log(`   Max Pages: ${maxPages}`);
     console.log(`   SERP: ${serpProvider}`);
+    if (target.discoveryQueries?.length > 0) console.log(`   Custom Queries: ${target.discoveryQueries.length}`);
     if (dryRun) console.log(`   ⚠️  DRY RUN - nav-only`);
     console.log(`${'='.repeat(70)}\n`);
 

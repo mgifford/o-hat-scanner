@@ -1,0 +1,1382 @@
+{
+  "baseUrl": "https://canada.ca",
+  "maxPages": 50,
+  "generatedAt": "2026-02-16T20:13:33.302Z",
+  "serp": {
+    "enabled": false,
+    "provider": "none",
+    "queries": [
+      "site:canada.ca",
+      "site:canada.ca accessibility",
+      "site:canada.ca privacy",
+      "site:canada.ca contact",
+      "site:canada.ca about"
+    ]
+  },
+  "stats": {
+    "candidates": 202,
+    "afterNormalize": 95,
+    "afterValidate": 95,
+    "afterDedupe": 95,
+    "final": 50
+  },
+  "requiredPages": {
+    "accessibility": "https://www.canada.ca/en.html",
+    "privacy": "https://www.canada.ca/en/transparency/privacy.html",
+    "terms": "https://www.canada.ca/en/transparency/terms.html",
+    "security": "https://www.canada.ca/en/services/defence.html"
+  },
+  "pages": [
+    {
+      "url": "https://www.canada.ca/en.html",
+      "score": 920,
+      "category": "policy|accessibility",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Skip to &#34;About government&#34;"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Home - Canada.ca",
+      "h1": "Canada.ca",
+      "fingerprint": "549ad5e558335ab678397a59a031a49eedb7de1e1ee33d06d21e9e1c3e47e301",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/transparency/privacy.html",
+      "score": 920,
+      "category": "policy|privacy",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Privacy"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/transparency/privacy.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/transparency/privacy.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Privacy - Canada.ca",
+      "h1": "Privacy",
+      "fingerprint": "23702c92cdfde6d156306cb23f92635330f0beaed59a5d9c09e4daf14516725c",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/transparency/terms.html",
+      "score": 920,
+      "category": "policy|terms",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "terms and conditions for doing so"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/transparency/terms.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/transparency/terms.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Terms and conditions - Canada.ca",
+      "h1": "Terms and conditions",
+      "fingerprint": "c880586213571932c099715c955f2b063416d88ee752448781e117ba0f38fe8c",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/services/defence.html",
+      "score": 920,
+      "category": "policy|security",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "National security and defence"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/services/defence.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/services/defence.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "National security and defence - Canada.ca",
+      "h1": "National security and defence",
+      "fingerprint": "ec7b44b45a8f38bc913286de0626c82cd4f43cdcb2790ee50229e0e57d5f972e",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/fr.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Passer à « Au sujet du gouvernement »"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/fr.html",
+          "status": 302,
+          "location": "https://www.canada.ca/fr.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Accueil - Canada.ca",
+      "h1": "Canada.ca",
+      "fingerprint": "283c6af3eaccfe5031d627f3af72c50e8e1693aa4a9f3e31230935431629e6e9",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/fr/transparence/avis.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "conditions connexes"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/fr/transparence/avis.html",
+          "status": 302,
+          "location": "https://www.canada.ca/fr/transparence/avis.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Avis - Canada.ca",
+      "h1": "Avis",
+      "fingerprint": "6094cab7a592abd8d47c0d1c72c30c2a2536eb1915c2c94cadd53c8ad05ffc75",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/services/jobs.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Jobs"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/services/jobs.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/services/jobs.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Jobs and the workplace - Canada.ca",
+      "h1": "Jobs and the workplace",
+      "fingerprint": "a96097427ec8df1d525e9497bf4d1b8593dbbda876112c5c5e6614cde9e1a80c",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/services/immigration-citizenship.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Immigration and citizenship"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/services/immigration-citizenship.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/services/immigration-citizenship.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Immigration and citizenship - Canada.ca",
+      "h1": "Immigration and citizenship",
+      "fingerprint": "a1b160cc2b1e72c30b1cd4880cab1c8dbaea0588241f4c968eee32519db9437d",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/services/business.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Business"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/services/business.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/services/business.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Business and industry - Canada.ca",
+      "h1": "Business and industry",
+      "fingerprint": "fbdf30b6bc1afbfefcf5b813f13cb2447e33cb99f37e1cf027a727f0b0a2e733",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/services/benefits.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Benefits"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/services/benefits.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/services/benefits.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Benefits - Canada.ca",
+      "h1": "Benefits",
+      "fingerprint": "ce3e73446ba2643623d09961335db79b05a77df3af440d0c83885395a7902274",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/services/taxes.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Taxes"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/services/taxes.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/services/taxes.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Taxes - Canada.ca",
+      "h1": "Taxes",
+      "fingerprint": "a0916de398ac1bb6225cdba9d571bf85a050e81fcf0409e3bc13726b97789911",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/services/health.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Health"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/services/health.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/services/health.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Health - Canada.ca",
+      "h1": "Health",
+      "fingerprint": "ebc3c8cd00bc28207e96f0861503c90c4213d03b245b543ceb577163f4f3c72c",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/services/environment.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Environment and natural resources"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/services/environment.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/services/environment.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Environment and natural resources - Canada.ca",
+      "h1": "Environment and natural resources",
+      "fingerprint": "784fa63d7b2ce956ff845ad2fc34c46be3e798789a4606e84b87054b611af774",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/services/finance.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Money and finances"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/services/finance.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/services/finance.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Money and finances - Canada.ca",
+      "h1": "Money and finances",
+      "fingerprint": "4b61592783cd3c2aca62d619b3b7d961e89c511453dea0cc1fa39be177f6b16d",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/contact.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "All contacts"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/contact.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/contact.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Contact the Government of Canada - Canada.ca",
+      "h1": "Government of Canada contacts",
+      "fingerprint": "b6b07598ea2dcdbeaa551a07391674579ccc54fdf343dffd3717cf8666af01a7",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/government/dept.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Departments and agencies"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/government/dept.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/government/dept.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Departments and agencies - Canada.ca",
+      "h1": "Departments and agencies",
+      "fingerprint": "6e0be7079b0a623e3ce142a3c784021713546795480d8f6ae4bd4a756ac37758",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/government/system.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "About government"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/government/system.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/government/system.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "About government - Canada.ca",
+      "h1": "About government",
+      "fingerprint": "1f3c1bfa0a68771556722944ed13a703d3c5d480e1936c8b0af167db55db8f85",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/canadian-heritage/campaigns/canada-pass.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Your Canadian summer starts here"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/canadian-heritage/campaigns/canada-pass.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/canadian-heritage/campaigns/canada-pass.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Canada Strong Pass - Canada.ca",
+      "h1": "Canada Strong Pass",
+      "fingerprint": "fb03f7393f631ed9d784b06270cf04af96effc108393a9210a6dd7fa7d986a5b",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/canadian-heritage/campaigns/olympic-paralympic-games.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Milano Cortina 2026"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/canadian-heritage/campaigns/olympic-paralympic-games.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/canadian-heritage/campaigns/olympic-paralympic-games.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Milano Cortina 2026 Olympic and Paralympic Winter Games - Canada.ca",
+      "h1": "Milano Cortina 2026 Olympic and Paralympic Winter Games",
+      "fingerprint": "d61c91e68e39bb9e7f0fd1a5bc0d01cebce7955b37c7fcf2c2ba16ef45c2555c",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/campaign/building-strong-economy.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Building a strong economy"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/campaign/building-strong-economy.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/campaign/building-strong-economy.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Building a Strong Economy - Canada.ca",
+      "h1": "Building a strong economy",
+      "fingerprint": "566e6c36d62fd304c901d36c5919c07c762047cbbfc2a93444432ee47caaee64",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/department-finance/programs/international-trade-finance-policy/canadas-response-us-tariffs/support-canadian-workers-employers.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Help for those affected by tariffs"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/department-finance/programs/international-trade-finance-policy/canadas-response-us-tariffs/support-canadian-workers-employers.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/department-finance/programs/international-trade-finance-policy/canadas-response-us-tariffs/support-canadian-workers-employers.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Support for workers and employers impacted by tariffs - Canada.ca",
+      "h1": "Support for workers and employers impacted by tariffs",
+      "fingerprint": "2672f8ec499f5b3584fe3bae84065242aca8489111d7656cc677e0a727d13a45",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/public-safety-canada/campaigns/firearms-buyback.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Assault-Style Firearms Compensation Program"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/public-safety-canada/campaigns/firearms-buyback.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/public-safety-canada/campaigns/firearms-buyback.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Assault-Style Firearms Compensation Program - Canada.ca",
+      "h1": "Firearms Buyback Program",
+      "fingerprint": "8c301d46adf5083724ef33d60512916ff3783aafe073e5bd0a6428f03138b66f",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/canadian-heritage/campaigns/national-flag-canada-day/community-flag-bearer-contest.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "National Flag of Canada Day Contest"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/canadian-heritage/campaigns/national-flag-canada-day/community-flag-bearer-contest.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/canadian-heritage/campaigns/national-flag-canada-day/community-flag-bearer-contest.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Contest — Our Community Flag Bearers - Canada.ca",
+      "h1": "Contest — Our Community Flag Bearers",
+      "fingerprint": "9da417181cdfa374ccfbd3e828a68889bb4fcf5e3b9f602b91b264de3c9dd6c1",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/financial-consumer-agency/campaigns/it-pays-to-know.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Make the most of your money"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/financial-consumer-agency/campaigns/it-pays-to-know.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/financial-consumer-agency/campaigns/it-pays-to-know.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Making the most of your money - Canada.ca",
+      "h1": "Making the most of your money",
+      "fingerprint": "ea73287fcaff7c0ca54215ba0b5c3aa89f482ef3e2d692a91376cad4fbe4aa64",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/canadian-heritage/campaigns/winterlude.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Celebrate our Canadian winter!"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/canadian-heritage/campaigns/winterlude.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/canadian-heritage/campaigns/winterlude.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Winterlude 2026 - Canada.ca",
+      "h1": "Winterlude 2026",
+      "fingerprint": "13c5902a41b169265f2649f13d03ba08f9f52347e51c7e09f77dc5117973a9a5",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/canadian-heritage/campaigns/black-history-month.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Celebrate Black History Month"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/canadian-heritage/campaigns/black-history-month.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/canadian-heritage/campaigns/black-history-month.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "February is Black History Month - Canada.ca",
+      "h1": "February is Black History Month",
+      "fingerprint": "e91c581af8e5d770070a341f10c2e51249975f3fc6a3afa7506bb07f018d0385",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/health-canada/services/health-risks-safety/radiation/radon/participate-study.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Participate in a radon study"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/health-canada/services/health-risks-safety/radiation/radon/participate-study.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/health-canada/services/health-risks-safety/radiation/radon/participate-study.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Participate in a radon study  - Canada.ca",
+      "h1": "Participate in a radon study",
+      "fingerprint": "97ce379825419af5fffd3f84b46c9d9571ae67bce91ee94fd4a9cb7bcfa89f97",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/campaign/online-disinformation.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Apprenez à repérer la désinformation"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/campaign/online-disinformation.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/campaign/online-disinformation.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Online disinformation - Canada.ca",
+      "h1": "Online disinformation",
+      "fingerprint": "eec9ae8b236349093e74b3cb867dfd8814e624feb59ff240faf5e53ec3d4a9f0",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/services/culture.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Culture, history and sport"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/services/culture.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/services/culture.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Culture, history and sport - Canada.ca",
+      "h1": "Culture, history and sport",
+      "fingerprint": "b693f7703bbf015f2f71c7ca0cf94e81e75e147653c55b22eb24ad3f7a2ea01a",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/services/policing.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Policing, justice and emergencies"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/services/policing.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/services/policing.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Policing, justice and emergencies - Canada.ca",
+      "h1": "Policing, justice and emergencies",
+      "fingerprint": "6a5a03d85e78fa849b121701aa0e19510f89a97f83d6a19215173fbe8df273d9",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/services/transport.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Transport and infrastructure"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/services/transport.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/services/transport.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Transport and infrastructure - Canada.ca",
+      "h1": "Transport and infrastructure",
+      "fingerprint": "8e1b5d3bf660ad8fd714a16ab6477d402fbb6a80f7e5ced7344dfb39f017bce3",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/services/science.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Science and innovation"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/services/science.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/services/science.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Science and innovation - Canada.ca",
+      "h1": "Science and innovation",
+      "fingerprint": "dc2d44641ad07da5543c7f7b0049399554da22f01cc099597f4785ce52d7b5cc",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/services/indigenous-peoples.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Indigenous Peoples"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/services/indigenous-peoples.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/services/indigenous-peoples.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Indigenous peoples - Canada.ca",
+      "h1": "Indigenous Peoples",
+      "fingerprint": "e348a98f45e5b7e290906414d15cce76ec4194dcc4b8ac765cceb731c04c3e9c",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/services/veterans-military.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Veterans and military"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/services/veterans-military.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/services/veterans-military.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Veterans and military - Canada.ca",
+      "h1": "Veterans and military",
+      "fingerprint": "3b7672ffe76c8ab0006b1632f5982dba262ffdbcc3e27ce58e8c469cbd53e76c",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/services/youth.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Youth"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/services/youth.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/services/youth.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Youth in Canada - Canada.ca",
+      "h1": "",
+      "fingerprint": "7f2bf2a741367ffeb03105e03be99f3b334e69515cdaaa481c81683575a216e4",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/en/services/life-events.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Manage life events"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/en/services/life-events.html",
+          "status": 302,
+          "location": "https://www.canada.ca/en/services/life-events.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Manage life events - Canada.ca",
+      "h1": "Manage life events",
+      "fingerprint": "606b967f57afad7f262c520005b0e691c719189758dcb61021ffc786fdf35bb6",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/fr/services/emplois.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Emplois"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/fr/services/emplois.html",
+          "status": 302,
+          "location": "https://www.canada.ca/fr/services/emplois.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Emplois et milieu de travail - Canada.ca",
+      "h1": "Emplois et milieu de travail",
+      "fingerprint": "be3360966bac3f9826cbf0f6e3944d172f512d737b9cb445366c53d460e0ec96",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/fr/services/immigration-citoyennete.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Immigration et citoyenneté"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/fr/services/immigration-citoyennete.html",
+          "status": 302,
+          "location": "https://www.canada.ca/fr/services/immigration-citoyennete.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Immigration et citoyenneté - Canada.ca",
+      "h1": "Immigration et citoyenneté",
+      "fingerprint": "ff9c637b96df9b3a49c332ed95cf26d8790e5b48a73c8faa4e64648eea647e37",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/fr/services/entreprises.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Entreprises"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/fr/services/entreprises.html",
+          "status": 302,
+          "location": "https://www.canada.ca/fr/services/entreprises.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Entreprises et industrie - Canada.ca",
+      "h1": "Entreprises et industrie",
+      "fingerprint": "e94ab27710437503e385e47e474c289a5615147dbb9e847492a1f67935b54773",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/fr/services/prestations.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Prestations"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/fr/services/prestations.html",
+          "status": 302,
+          "location": "https://www.canada.ca/fr/services/prestations.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Prestations - Canada.ca",
+      "h1": "Prestations",
+      "fingerprint": "a007ed2ce9c4e54cafeb21d14db170f34a97e76dd9a68525e437aafca440167a",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/fr/services/impots.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Impôts"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/fr/services/impots.html",
+          "status": 302,
+          "location": "https://www.canada.ca/fr/services/impots.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Impôts - Canada.ca",
+      "h1": "Impôts",
+      "fingerprint": "388d9a5bdc2dabc803a160cd2141ebe0a8cc83bfbefff690255f280c3e804757",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/fr/services/sante.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Santé"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/fr/services/sante.html",
+          "status": 302,
+          "location": "https://www.canada.ca/fr/services/sante.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Santé - Canada.ca",
+      "h1": "Santé",
+      "fingerprint": "30c8e7edb242f9832bb32c9d6c1686c503f462d2ed667f650f287507976eb9d4",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/fr/services/environnement.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Environnement et ressources naturelles"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/fr/services/environnement.html",
+          "status": 302,
+          "location": "https://www.canada.ca/fr/services/environnement.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Environnement et ressources naturelles  - Canada.ca",
+      "h1": "Environnement et ressources naturelles",
+      "fingerprint": "82f98575d1b331949af4df3212af9f4ed4ba7d9148239d0042bbabb82758ad8f",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/fr/services/finance.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Argent et finances"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/fr/services/finance.html",
+          "status": 302,
+          "location": "https://www.canada.ca/fr/services/finance.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Argent et finances - Canada.ca",
+      "h1": "Argent et finances",
+      "fingerprint": "8a2429c929b0cd87f74debda014e67a446b1b8803e061e3dddcb936cf57709d5",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/fr/contact.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Toutes les coordonnées"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/fr/contact.html",
+          "status": 302,
+          "location": "https://www.canada.ca/fr/contact.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Contacter le gouvernement du Canada - Canada.ca",
+      "h1": "Coordonnées du Gouvernement du Canada",
+      "fingerprint": "203fe2ed68e7553d2ed50b88f56318a491cb5fd0489462785acbc74feac603fd",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/fr/gouvernement/min.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Ministères et organismes"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/fr/gouvernement/min.html",
+          "status": 302,
+          "location": "https://www.canada.ca/fr/gouvernement/min.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Ministères et organismes - Canada.ca",
+      "h1": "Ministères et organismes",
+      "fingerprint": "1b8e097f008512535394a709173f9c8b24a61dec7ba766123066da0a12bca334",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/fr/gouvernement/systeme.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "À propos du gouvernement"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/fr/gouvernement/systeme.html",
+          "status": 302,
+          "location": "https://www.canada.ca/fr/gouvernement/systeme.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "À propos du gouvernement - Canada.ca",
+      "h1": "À propos du gouvernement",
+      "fingerprint": "44ebd9a68b3b32b19df819de2a074273c53b2b0e509c9699178ba543ef015ee9",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/fr/patrimoine-canadien/campagnes/laissez-passer-canada.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Votre été canadien commence ici"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/fr/patrimoine-canadien/campagnes/laissez-passer-canada.html",
+          "status": 302,
+          "location": "https://www.canada.ca/fr/patrimoine-canadien/campagnes/laissez-passer-canada.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Laissez-passer Un Canada fort - Canada.ca",
+      "h1": "Laissez-passer Un Canada fort",
+      "fingerprint": "b240a8cecbdeeb1cf81c7af4ec6f55159d9cfb5b142dd024df4809a0875ff971",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/fr/patrimoine-canadien/campagnes/jeux-olympiques-paralympiques.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Milano Cortina 2026"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/fr/patrimoine-canadien/campagnes/jeux-olympiques-paralympiques.html",
+          "status": 302,
+          "location": "https://www.canada.ca/fr/patrimoine-canadien/campagnes/jeux-olympiques-paralympiques.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Jeux olympiques et paralympiques d’hiver de Milano Cortina 2026 - Canada.ca",
+      "h1": "Jeux olympiques et paralympiques d’hiver de Milano Cortina 2026",
+      "fingerprint": "c1a23a3d3c457d2fdde1cb2d58098f141fd3ee4afec5241707f24da65a987588",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://www.canada.ca/fr/campagne/batir-economie-forte.html",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Bâtir une économie forte"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://canada.ca/fr/campagne/batir-economie-forte.html",
+          "status": 302,
+          "location": "https://www.canada.ca/fr/campagne/batir-economie-forte.html"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html;charset=utf-8"
+      },
+      "title": "Bâtir une économie forte  - Canada.ca",
+      "h1": "Bâtir une économie forte",
+      "fingerprint": "41675226b7694c70fbef1425f685ac0bfbe0febb73affca95f65087353430a14",
+      "duplicateOf": null,
+      "excludedReason": null
+    }
+  ],
+  "excluded": []
+}

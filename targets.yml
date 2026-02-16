@@ -311,7 +311,65 @@ sites:
     schedule:
       - "0 5 1 1,4,7,10 *" # Quarterly
     label: discover-civicactions
-    notes: "Quarterly discovery baseline for CivicActions (real test site)"
+    notes: "Quarterly discovery baseline for CivicActions (uses core 7 default queries)"
+
+  # Example: Custom discovery queries for benefits/assistance site
+  # Uncomment and update baseUrl to test custom queries on a benefits site
+  # - name: discover-benefits-site
+  #   baseUrl: https://www.benefits.example.gov
+  #   mode: discover
+  #   maxPages: 100
+  #   schedule:
+  #     - "0 5 1 1,4,7,10 *" # Quarterly
+  #   label: discover-benefits
+  #   discoveryQueries:
+  #     - "site:{host}"                 # Generic site search
+  #     - "site:{host} accessibility"   # Inclusive access (Tier 1 default)
+  #     - "site:{host} services"        # What's available (Tier 1 default)
+  #     - "site:{host} forms"           # How to interact (Tier 1 default)
+  #     - "site:{host} help"            # Support (Tier 1 default)
+  #     - "site:{host} privacy"         # Trust (Tier 1 default)
+  #     - "site:{host} contact"         # Engagement (Tier 1 default)
+  #     - "site:{host} benefits"        # What can I get?
+  #     - "site:{host} apply"           # How do I apply?
+  #     - "site:{host} eligibility"     # Am I eligible?
+  #   notes: "Custom queries optimized for benefits/assistance discovery"
+
+  # Example: Healthcare site with custom discovery queries
+  # - name: discover-health-dept
+  #   baseUrl: https://www.health.example.gov
+  #   mode: discover
+  #   maxPages: 100
+  #   schedule:
+  #     - "0 5 1 1,4,7,10 *" # Quarterly
+  #   label: discover-health
+  #   discoveryQueries:
+  #     - "site:{host}"
+  #     - "site:{host} accessibility"
+  #     - "site:{host} services"
+  #     - "site:{host} programs"
+  #     - "site:{host} health information"
+  #     - "site:{host} resources"
+  #     - "site:{host} contact"
+  #   notes: "Custom queries for health/medical service discovery"
+
+  # Example: Real estate/licensing agency with custom queries
+  # - name: discover-licensing-board
+  #   baseUrl: https://www.licensing.example.gov
+  #   mode: discover
+  #   maxPages: 100
+  #   schedule:
+  #     - "0 5 1 1,4,7,10 *" # Quarterly
+  #   label: discover-licensing
+  #   discoveryQueries:
+  #     - "site:{host}"
+  #     - "site:{host} accessibility"
+  #     - "site:{host} apply"
+  #     - "site:{host} renew"
+  #     - "site:{host} fees"
+  #     - "site:{host} requirements"
+  #     - "site:{host} contact"
+  #   notes: "Custom queries for licensing/professional board discovery"
   - name: test-daytime-check
     baseUrl: https://www.civicactions.com
     mode: sitemap

@@ -379,7 +379,34 @@ async function fetchDuckDuckGoResults(query) {
   }
 }
 
-async function discoverViaSERP(baseUrl, serpProvider, apiKey) {
+// ============================================================================
+// DISCOVERY QUERIES (TIER 1: CORE 7 GOVERNMENT QUERIES)
+// ============================================================================
+
+function buildDiscoveryQueries(hostname, customQueries = null) {
+  // If custom queries provided, use those instead of defaults
+  if (customQueries && Array.isArray(customQueries) && customQueries.length > 0) {
+    console.log(`  Using ${customQueries.length} custom discovery queries`);
+    // Replace {host} placeholder in custom queries
+    return customQueries.map(q => q.replace('{host}', hostname));
+  }
+
+  // Default Tier 1: Core 7 universal government queries
+  // These reflect what citizens search for on ANY government site
+  const coreQueries = [
+    `site:${hostname}`,                 // Baseline: what's on this domain?
+    `site:${hostname} accessibility`,   // Inclusive access (WCAG/required)
+    `site:${hostname} services`,        // What can I get/do here?
+    `site:${hostname} forms`,           // How do I interact/apply?
+    `site:${hostname} help`,            // Support & troubleshooting
+    `site:${hostname} privacy`,         // Trust & data handling
+    `site:${hostname} contact`          // Engagement & assistance
+  ];
+
+  return coreQueries;
+}
+
+async function discoverViaSERP(baseUrl, serpProvider, apiKey, customQueries = null) {
   if (serpProvider === 'none') {
     console.log('ℹ️  SERP discovery disabled; skipping');
     return { candidates: [], queries: [] };
@@ -393,13 +420,7 @@ async function discoverViaSERP(baseUrl, serpProvider, apiKey) {
   console.log('🔍 Running SERP discovery...');
 
   const hostName = new URL(baseUrl).hostname;
-  const queries = [
-    `site:${hostName}`,
-    `site:${hostName} accessibility`,
-    `site:${hostName} privacy`,
-    `site:${hostName} contact`,
-    `site:${hostName} about`
-  ];
+  const queries = buildDiscoveryQueries(hostName, customQueries);
 
   const candidates = [];
   const resultsByQuery = {};
@@ -705,12 +726,12 @@ function scorePages(pages, requiredPages) {
 // DISCOVERY ORCHESTRATION
 // ============================================================================
 
-async function discoverTopPages(baseUrl, maxPages, serpProvider, apiKey) {
+async function discoverTopPages(baseUrl, maxPages, serpProvider, apiKey, customQueries = null) {
   console.log(`\n🚀 Discovering top pages for ${baseUrl} (max: ${maxPages})`);
   console.log('');
 
   // Step 1: Gather candidates
-  const serpResult = await discoverViaSERP(baseUrl, serpProvider, apiKey);
+  const serpResult = await discoverViaSERP(baseUrl, serpProvider, apiKey, customQueries);
   const navResult = await discoverViaNavigation(baseUrl);
 
   const allCandidates = [
@@ -838,6 +859,22 @@ async function main() {
   const siteKey = args.siteKey || 'unknown';
   const serpProvider = args.serpProvider || 'none';
   const apiKey = serpProvider === 'bing' ? process.env.BING_API_KEY : null;
+  
+  // Custom queries can be passed as JSON via --customQueries or env variable
+  let customQueries = null;
+  if (args.customQueries) {
+    try {
+      customQueries = typeof args.customQueries === 'string' ? JSON.parse(args.customQueries) : args.customQueries;
+    } catch (e) {
+      console.warn(`⚠️  Failed to parse customQueries: ${e.message}`);
+    }
+  } else if (process.env.INPUT_DISCOVERY_QUERIES) {
+    try {
+      customQueries = JSON.parse(process.env.INPUT_DISCOVERY_QUERIES);
+    } catch (e) {
+      console.warn(`⚠️  Failed to parse INPUT_DISCOVERY_QUERIES env var: ${e.message}`);
+    }
+  }
 
   if (!baseUrl) {
     console.error('❌ --baseUrl is required');
@@ -850,7 +887,7 @@ async function main() {
   }
 
   try {
-    const discovery = await discoverTopPages(baseUrl, maxPages, serpProvider, apiKey);
+    const discovery = await discoverTopPages(baseUrl, maxPages, serpProvider, apiKey, customQueries);
     const metadata = generateMetadata(discovery, baseUrl, maxPages);
 
     // Write JSON

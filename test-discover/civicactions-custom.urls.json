@@ -1,0 +1,692 @@
+{
+  "baseUrl": "https://www.civicactions.com",
+  "maxPages": 30,
+  "generatedAt": "2026-02-16T20:18:42.910Z",
+  "serp": {
+    "enabled": false,
+    "provider": "none",
+    "queries": [
+      "site:www.civicactions.com",
+      "site:www.civicactions.com accessibility",
+      "site:www.civicactions.com services",
+      "site:www.civicactions.com team",
+      "site:www.civicactions.com careers",
+      "site:www.civicactions.com case studies",
+      "site:www.civicactions.com contact"
+    ]
+  },
+  "stats": {
+    "candidates": 443,
+    "afterNormalize": 26,
+    "afterValidate": 25,
+    "afterDedupe": 25,
+    "final": 25
+  },
+  "requiredPages": {
+    "accessibility": "https://civicactions.com/accessibility-statement/",
+    "privacy": "https://civicactions.com/privacy/",
+    "search": "https://civicactions.com/case-studies/nsf-website-redesign/",
+    "security": "https://civicactions.com/case-studies/globalnet-platform-support/"
+  },
+  "pages": [
+    {
+      "url": "https://civicactions.com/accessibility-statement/",
+      "score": 920,
+      "category": "policy|accessibility",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Accessibility"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/accessibility-statement/",
+          "status": 301,
+          "location": "https://civicactions.com/accessibility-statement/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "Accessibility Statement | CivicActions",
+      "h1": "Accessibility statement",
+      "fingerprint": "34ca91a078d0fac44c6e631cd2bb41147745fe0fc8760763e00d5cf2231dd8a4",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/privacy/",
+      "score": 920,
+      "category": "policy|privacy",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Privacy"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/privacy/",
+          "status": 301,
+          "location": "https://civicactions.com/privacy/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "Privacy policy | CivicActions",
+      "h1": "Our privacy policy",
+      "fingerprint": "0599cddfeed20e05f95f4084ddd3ff16b4278af4817c80b6fad23a72b7940f31",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/case-studies/nsf-website-redesign/",
+      "score": 920,
+      "category": "policy|search",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Improved user experience to support science research"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/case-studies/nsf-website-redesign/",
+          "status": 301,
+          "location": "https://civicactions.com/case-studies/nsf-website-redesign/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "A smoother path to scientific research and discovery | CivicActions",
+      "h1": "A smoother path to scientific research and discovery",
+      "fingerprint": "7b6e4d304c01ba9673eb81083a5bda00d608b57fe4eba4dcb97d499da11979a1",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/case-studies/globalnet-platform-support/",
+      "score": 920,
+      "category": "policy|security",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Supporting international peace partners with continuous compliance"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/case-studies/globalnet-platform-support/",
+          "status": 301,
+          "location": "https://civicactions.com/case-studies/globalnet-platform-support/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "A global professional networking platform for security practitioners | CivicActions",
+      "h1": "A global professional networking platform for security practitioners",
+      "fingerprint": "c1f577d929e96488f31964c81d2f3fcefec993ecbe9dc8120d58d777db0d7a58",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/",
+      "score": 5000,
+      "category": "top-task",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Skip to footer"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/",
+          "status": 301,
+          "location": "https://civicactions.com/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "Home | CivicActions",
+      "h1": "We help government deliver better public services through open technology and design.",
+      "fingerprint": "ac25f9021c7a3317dc18c51da24d18694da92f04a74b125f02a7173bc4aa1a27",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/team/",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Skip to footer"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/team/",
+          "status": 301,
+          "location": "https://civicactions.com/team/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "Team | CivicActions",
+      "h1": "Meet the humans of CivicActions",
+      "fingerprint": "78af3a4147860331892a8896d1df1c39a4e0fd9be2b99a168f2730f8444bff32",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/press/",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Skip to footer"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/press/",
+          "status": 301,
+          "location": "https://civicactions.com/press/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "Press | CivicActions",
+      "h1": "This work is worth talking about.",
+      "fingerprint": "d77c812bb226a0a19f4d4c046bee30d22014661b96d9935ec2d748e6eba876ee",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/services/",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Services"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/services/",
+          "status": 301,
+          "location": "https://civicactions.com/services/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "Services | CivicActions",
+      "h1": "Government services that build public trust",
+      "fingerprint": "3c1005312f7990e6a3081465f2b318bd174b2ed24538156bf1149f7822a5a93b",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/services/ditap/",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "DITAP program certification"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/services/ditap/",
+          "status": 301,
+          "location": "https://civicactions.com/services/ditap/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "Digital IT Acquisition Professional (DITAP) certification program | CivicActions",
+      "h1": "Digital IT Acquisition Professional (DITAP) training",
+      "fingerprint": "8536124fc0ea0830c544fc522cc08d31ea08e668fe0d17fb3bdf182829f764fa",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/case-studies/",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Case Studies"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/case-studies/",
+          "status": 301,
+          "location": "https://civicactions.com/case-studies/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "Case Studies | CivicActions",
+      "h1": "Work that makes a difference",
+      "fingerprint": "73a21ce9e406f1f7ce79e8d9b6f132b84be9e4f8fd83bce86b1244284b6838e4",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/contracting/",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Contracting"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/contracting/",
+          "status": 301,
+          "location": "https://civicactions.com/contracting/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "Contracting information | CivicActions",
+      "h1": "",
+      "fingerprint": "51e8623278042ffbb764aa387f21953e3ddb61301475922980430103625e378e",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/careers/",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Careers"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/careers/",
+          "status": 301,
+          "location": "https://civicactions.com/careers/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "Careers | CivicActions",
+      "h1": "Work for the public good.",
+      "fingerprint": "0f61c39e1a346d83d4c40c5dd42248f29b981aedf115252dbfde28536177c467",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/contact/",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Contact"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/contact/",
+          "status": 301,
+          "location": "https://civicactions.com/contact/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "Contact | CivicActions",
+      "h1": "Put us to work",
+      "fingerprint": "1c792617e92d92ffd5fccd69910abd9b9c9bbc7d5d9ef7f8a2b825d22e2e7c42",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/licensing/",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Licensing"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/licensing/",
+          "status": 301,
+          "location": "https://civicactions.com/licensing/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "Licensing policy | CivicActions",
+      "h1": "Licensing policy",
+      "fingerprint": "ac9cc07e28ffca089a72bc712dacb8f9c309f6779251a491faec85d9d1c1e40c",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/sustainability/",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Sustainability"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/sustainability/",
+          "status": 301,
+          "location": "https://civicactions.com/sustainability/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "Sustainability | CivicActions",
+      "h1": "Sustainability",
+      "fingerprint": "7ac4c5aac9bab7c24093218e0c12486d5faa86503dab7ec4cfb4e1c73cdc7318",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/feedback/",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Feedback"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/feedback/",
+          "status": 301,
+          "location": "https://civicactions.com/feedback/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "Feedback or update requests | CivicActions",
+      "h1": "Feedback",
+      "fingerprint": "9ac0e995a2410e1d3bacc533f1366464ee9e95f89d617d992fd19e42e09fafa5",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/case-studies/va-cms-modernization/",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Built a modern CMS for VA.gov"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/case-studies/va-cms-modernization/",
+          "status": 301,
+          "location": "https://civicactions.com/case-studies/va-cms-modernization/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "Helping Veterans access care and benefits online | CivicActions",
+      "h1": "Helping Veterans access care and benefits online",
+      "fingerprint": "1bdd71651bbc6f9406de708d3f4a2ae352540da2868322f458e36fc6c62303e6",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/case-studies/cms-web-experience-services/",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Designed a user-friendly health journey for seniors"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/case-studies/cms-web-experience-services/",
+          "status": 301,
+          "location": "https://civicactions.com/case-studies/cms-web-experience-services/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "Improving the online experience for Medicare beneficiaries | CivicActions",
+      "h1": "Improving the online experience for Medicare beneficiaries with WECMS",
+      "fingerprint": "e89954bc374e3abced2f3be9671d542bbc08121a75183cb9ac6190cb8b8ea77d",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/case-studies/cms-design-challenge-mvp/",
+      "score": 620,
+      "category": "hub",
+      "signals": {
+        "nav": {
+          "depth": 1,
+          "text": "Designed a persona-driven strategy for Medicare benefits"
+        }
+      },
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/case-studies/cms-design-challenge-mvp/",
+          "status": 301,
+          "location": "https://civicactions.com/case-studies/cms-design-challenge-mvp/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "Building an MVP for Medicare.gov with human-centered design | CivicActions",
+      "h1": "Building an MVP for Medicare.gov with human-centered design",
+      "fingerprint": "dc2d05d128a401231159fe894f86ca9f15e01b3729f15d2a5f63cd9ef0ea87a4",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/press/2024-07-09-CivicActions-Appoints-Mike-Gifford/",
+      "score": 500,
+      "category": "hub",
+      "signals": {},
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/press/2024-07-09-CivicActions-Appoints-Mike-Gifford/",
+          "status": 301,
+          "location": "https://civicactions.com/press/2024-07-09-CivicActions-Appoints-Mike-Gifford/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "CivicActions Appoints Mike Gifford as Open Standards &amp; Practices Lead, Expanding Commitment to an Open Ecosystem of Vendors and Agencies | CivicActions",
+      "h1": "CivicActions Appoints Mike Gifford as Open Standards &amp; Practices Lead, Expanding Commitment to an Open Ecosystem of Vendors and Agencies",
+      "fingerprint": "8427658658f01d15d5f6b641a54ae2de577b9083120089f057994eb247a36ce2",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/press/2024-01-16-CivicActions-Announces-Impact-Report/",
+      "score": 500,
+      "category": "hub",
+      "signals": {},
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/press/2024-01-16-CivicActions-Announces-Impact-Report/",
+          "status": 301,
+          "location": "https://civicactions.com/press/2024-01-16-CivicActions-Announces-Impact-Report/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "CivicActions Announces 2023 Impact Report | CivicActions",
+      "h1": "CivicActions Announces 2023 Impact Report",
+      "fingerprint": "ac6c25e8aa3ca0dad7ea97de58e629aab1666f09608fa51859e05c582c05f105",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/press/2024-01-05-CivicActions-Partners-with-aamdsif/",
+      "score": 500,
+      "category": "hub",
+      "signals": {},
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/press/2024-01-05-CivicActions-Partners-with-aamdsif/",
+          "status": 301,
+          "location": "https://civicactions.com/press/2024-01-05-CivicActions-Partners-with-aamdsif/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "CivicActions Partners with Aplastic Anemia &amp; MDS International Foundation (AAMDSIF) for Drupal 10 Migration | CivicActions",
+      "h1": "CivicActions Partners with Aplastic Anemia &amp; MDS International Foundation (AAMDSIF) for Drupal 10 Migration",
+      "fingerprint": "667831c3b26cf67fef0479757c6d82d58800e7ceb5a79ca732620953b6ee4bda",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/press/2022-04-21-civicactions-announces-Ryerson-partnership-digital-accessibility/",
+      "score": 500,
+      "category": "hub",
+      "signals": {},
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/press/2022-04-21-civicactions-announces-Ryerson-partnership-digital-accessibility/",
+          "status": 301,
+          "location": "https://civicactions.com/press/2022-04-21-civicactions-announces-Ryerson-partnership-digital-accessibility/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "Ryerson University partners with CivicActions to advance digital accessibility | CivicActions",
+      "h1": "Ryerson University partners with CivicActions to advance digital accessibility",
+      "fingerprint": "41d097fe1937faeeaa1e2f0b3596531b10bb3182ec1094f39162b7975f4deab1",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/press/2022-01-05-civicactions-named-govtech-100-top-government-technology-companies-list/",
+      "score": 500,
+      "category": "hub",
+      "signals": {},
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/press/2022-01-05-civicactions-named-govtech-100-top-government-technology-companies-list/",
+          "status": 301,
+          "location": "https://civicactions.com/press/2022-01-05-civicactions-named-govtech-100-top-government-technology-companies-list/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "CivicActions Named to 2022 GovTech 100 Top Government Technology Companies List | CivicActions",
+      "h1": "CivicActions Named to 2022 GovTech 100 Top Government Technology Companies List",
+      "fingerprint": "6e123706eeed85fcda6101070bdb763533379e3cbe9d5c7a344d14a91659d041",
+      "duplicateOf": null,
+      "excludedReason": null
+    },
+    {
+      "url": "https://civicactions.com/press/2/",
+      "score": 500,
+      "category": "hub",
+      "signals": {},
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/press/2/",
+          "status": 301,
+          "location": "https://civicactions.com/press/2/"
+        }
+      ],
+      "http": {
+        "status": 200,
+        "contentType": "text/html; charset=utf-8"
+      },
+      "title": "Press | CivicActions",
+      "h1": "This work is worth talking about.",
+      "fingerprint": "ea4a096f9fc921fb1e4207127f097535bfc9e2a4a0718a64cf6afa61ee4e3887",
+      "duplicateOf": null,
+      "excludedReason": null
+    }
+  ],
+  "excluded": [
+    {
+      "url": "https://www.civicactions.com/case-studies/nyc-metro-transit-digital-clocks%20/",
+      "title": "Services | CivicActions",
+      "redirectChain": [
+        {
+          "url": "https://www.civicactions.com/case-studies/nyc-metro-transit-digital-clocks%20/",
+          "status": 301,
+          "location": "https://civicactions.com/case-studies/nyc-metro-transit-digital-clocks%20/"
+        }
+      ],
+      "excludedReason": "http_404"
+    }
+  ]
+}
