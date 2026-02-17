@@ -259,6 +259,235 @@ sites:
     label: ontario-quarterly
     notes: Province of Ontario portal
 
+  # --- INTERNATIONAL SAMPLE TARGETS ---
+  # Representative sample of G7, EU member states, EU, and UN sites.
+  # Distributed evenly across the week (UTC) to spread scanning load.
+
+  - name: japan.go.jp
+    baseUrl: https://www.japan.go.jp/
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 4 * * MON"
+    label: japan-weekly
+    notes: Japan government portal
+
+  - name: italia.it
+    baseUrl: https://www.italia.it/
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 5 * * TUE"
+    label: italy-weekly
+    notes: Italy government portal
+
+  - name: elysee.fr
+    baseUrl: https://www.elysee.fr/en/
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 6 * * WED"
+    label: france-weekly
+    notes: France government (Elysee)
+
+  - name: regeringen.se
+    baseUrl: https://www.regeringen.se/
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 7 * * THU"
+    label: sweden-weekly
+    notes: Sweden government portal
+
+  - name: sanidad.gob.es
+    baseUrl: https://www.sanidad.gob.es/
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 8 * * FRI"
+    label: spain-weekly
+    notes: Spain government (Health Ministry)
+
+  - name: gov.pl
+    baseUrl: https://www.gov.pl/
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 9 * * SAT"
+    label: poland-weekly
+    notes: Poland government portal
+
+  - name: denmark.dk
+    baseUrl: https://www.denmark.dk/
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 10 * * SUN"
+    label: denmark-weekly
+    notes: Denmark government portal
+
+  - name: valtioneuvosto.fi
+    baseUrl: https://valtioneuvosto.fi/en
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 5 * * MON"
+    label: finland-weekly
+    notes: Finland government portal
+
+  - name: gov.ie
+    baseUrl: https://www.gov.ie/
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 6 * * TUE"
+    label: ireland-weekly
+    notes: Ireland government portal
+
+  - name: portugal.gov.pt
+    baseUrl: https://www.portugal.gov.pt/
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 7 * * WED"
+    label: portugal-weekly
+    notes: Portugal government portal
+
+  - name: belgium.be
+    baseUrl: https://www.belgium.be/
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 8 * * THU"
+    label: belgium-weekly
+    notes: Belgium government portal
+
+  - name: oesterreich.gv.at
+    baseUrl: https://www.oesterreich.gv.at/
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 9 * * FRI"
+    label: austria-weekly
+    notes: Austria government portal
+
+  - name: vlada.cz
+    baseUrl: https://www.vlada.cz/en/
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 10 * * SAT"
+    label: czechia-weekly
+    notes: Czech Republic government portal
+
+  - name: kormany.hu
+    baseUrl: https://www.kormany.hu/en
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 4 * * SUN"
+    label: hungary-weekly
+    notes: Hungary government portal
+
+  - name: gov.ro
+    baseUrl: https://gov.ro/en
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 6 * * MON"
+    label: romania-weekly
+    notes: Romania government portal
+
+  - name: government.bg
+    baseUrl: https://www.government.bg/en
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 7 * * TUE"
+    label: bulgaria-weekly
+    notes: Bulgaria government portal
+
+  - name: vlada.gov.hr
+    baseUrl: https://vlada.gov.hr/en
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 8 * * WED"
+    label: croatia-weekly
+    notes: Croatia government portal
+
+  - name: gov.si
+    baseUrl: https://www.gov.si/en
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 9 * * THU"
+    label: slovenia-weekly
+    notes: Slovenia government portal
+
+  - name: latvia.eu
+    baseUrl: https://www.latvia.eu/en
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 10 * * FRI"
+    label: latvia-weekly
+    notes: Latvia government portal
+
+  - name: valitsus.ee
+    baseUrl: https://www.valitsus.ee/en
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 4 * * SAT"
+    label: estonia-weekly
+    notes: Estonia government portal
+
+  - name: gouvernement.lu
+    baseUrl: https://gouvernement.lu/en
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 5 * * SUN"
+    label: luxembourg-weekly
+    notes: Luxembourg government portal
+
+  - name: europa.eu
+    baseUrl: https://europa.eu/
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 7 * * MON"
+    label: eu-weekly
+    notes: European Union portal
+
+  - name: europarl.europa.eu
+    baseUrl: https://www.europarl.europa.eu/
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 8 * * TUE"
+    label: eu-parliament-weekly
+    notes: European Parliament portal
+
+  - name: un.org
+    baseUrl: https://www.un.org/en/
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 9 * * WED"
+    label: un-weekly
+    notes: United Nations portal
+
+  - name: who.int
+    baseUrl: https://www.who.int/
+    mode: discover
+    maxPages: 100
+    schedule:
+      - "0 10 * * THU"
+    label: who-weekly
+    notes: World Health Organization
+
   # --- DISCOVERY MODE TARGETS ---
   # Discovery mode runs less frequently (quarterly) to build a stable list of canonical URLs.
   # It uses Bing Web Search API (if BING_API_KEY secret is configured) plus site navigation
