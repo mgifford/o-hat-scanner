@@ -1,0 +1,10 @@
+{
+    "feature_number": "001",
+    "slug": "001-oobee-style-report-revamp",
+    "friendly_name": "Oobee-Style Report Revamp",
+    "mission": "software-dev",
+    "source_description": "Revamp the reports to look like Oobee reports, focusing first on HTML/CSS revamp to adopting the Oobee design language including visual refresh, enhanced navigation, and grouped findings, while remaining lightweight for automated CI runs.",
+    "created_at": "2026-02-17T16:15:00Z",
+    "target_branch": "main",
+    "vcs": "git"
+}

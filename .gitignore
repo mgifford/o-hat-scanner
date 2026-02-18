@@ -1,5 +1,21 @@
 node_modules
+.DS_Store
 
 # Generated reports (built into gh-pages, not tracked on main)
 site/
 .vscode/
+
+# Added by Spec Kitty CLI (auto-managed)
+.claude/
+.codex/
+.opencode/
+.windsurf/
+.gemini/
+.cursor/
+.qwen/
+.kilocode/
+.augment/
+.roo/
+.amazonq/
+.github/copilot/
+.kittify/.dashboard

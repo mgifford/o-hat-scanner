@@ -581,12 +581,42 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         .violation-id { font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color: var(--text); }
         .violation-help { color: var(--muted); margin: 4px 0 6px 0; }
         .violation-meta { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
-        .node-list { background: var(--card-bg); border: 1px solid var(--panel-border); border-radius: 4px; padding: 10px; font-size: 13px; }
-        .node-item { margin-bottom: 8px; }
-        .node-item:last-child { margin-bottom: 0; }
+        .node-list { background: var(--card-bg); border: 1px solid var(--panel-border); border-radius: 4px; padding: 0; font-size: 13px; overflow: hidden; }
+        .node-item { margin-bottom: 0; padding: 10px; border-bottom: 1px solid var(--panel-border); }
+        .node-item:nth-child(odd) { background: var(--panel-bg); }
+        .node-item:nth-child(even) { background: var(--code-bg); }
+        .node-item:last-child { border-bottom: none; }
         .node-url { font-weight: 700; color: var(--text); }
-        .node-selector { color: #005a9c; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-        .node-html { margin-top: 4px; color: var(--text); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; overflow-wrap: anywhere; background: var(--code-bg); padding: 6px; border-radius: 4px; }
+        .node-selector { color: #005a9c; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; margin-top: 4px; }
+        .node-html { margin-top: 4px; color: var(--text); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; overflow-wrap: anywhere; background: var(--card-bg); padding: 6px; border-radius: 4px; max-height: 300px; overflow-y: auto; }
+        .see-more-btn { display: inline-block; margin-top: 0.75rem; padding: 8px 12px; background: var(--link); color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 13px; }
+        .see-more-btn:hover { opacity: 0.9; }
+        .see-more-btn:focus { outline: 2px solid var(--focus); outline-offset: 2px; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal.open { display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: var(--panel-bg); padding: 2rem; border-radius: 8px; width: 90%; max-width: 900px; max-height: 80vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--panel-border); padding-bottom: 1rem; }
+        .modal-header h2 { margin: 0; color: var(--text); font-size: 20px; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text); }
+        .modal-close:hover { opacity: 0.7; }
+        .modal-node-item { padding: 10px; border-bottom: 1px solid var(--panel-border); }
+        .modal-node-item:nth-child(odd) { background: var(--panel-bg); }
+        .modal-node-item:nth-child(even) { background: var(--code-bg); }
+        .modal-node-item:last-child { border-bottom: none; }
+
+        .modal-node-list { background: var(--card-bg); border: 1px solid var(--panel-border); border-radius: 4px; padding: 0; margin-top: 8px; overflow: hidden; }
+        .page-violation-item { border-bottom: 1px solid var(--panel-border); padding: 12px; }
+        .page-violation-item:last-child { border-bottom: none; }
+        .page-violation-item:nth-child(odd) { background: var(--card-bg); }
+        .page-violation-item:nth-child(even) { background: var(--panel-bg); }
+        .page-violation-item .violation-id { font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color: var(--text); font-size: 13px; }
+        .page-violation-item .violation-help { color: var(--muted); margin: 4px 0; font-size: 13px; }
+        .page-violation-item .violation-meta { font-size: 12px; color: var(--muted); margin: 6px 0; }
+        .page-violation-item a { color: var(--link); }
+        .modal-page-violations { display: flex; flex-direction: column; gap: 0; }
+        .page-row button.pill { border: none; cursor: pointer; background: inherited; padding: 4px 10px; font-weight: 700; font-size: 12px; color: #fff; border-radius: 999px; }
+        .page-row button.pill:hover { opacity: 0.9; }
+        .page-row button.pill:focus { outline: 2px solid var(--focus); outline-offset: 2px; }
 
         .pill-critical { background: var(--pill-critical); }
         .pill-warning { background: var(--pill-warning); }
@@ -607,6 +637,21 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         }
 
         .theme-toggle { background: var(--panel-bg); color: var(--text); border: 1px solid var(--panel-border); border-radius: 4px; padding: 8px 12px; cursor: pointer; font-weight: 600; }
+        @media (prefers-reduced-motion: reduce) { .modal { animation: none; } }
+
+        footer {
+            margin-top: 3rem;
+            padding: 2rem 1rem;
+            border-top: 1px solid var(--panel-border);
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+            background: var(--card-bg);
+        }
+        footer a { color: var(--link); text-decoration: underline; }
+        footer a:hover { text-decoration: underline; }
+        footer strong { color: var(--text); }
+        footer p { margin: 0; line-height: 1.6; }
 
         @media print {
             :root { color-scheme: light; }
@@ -619,6 +664,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             .severity-content { display: block !important; }
             .severity-header { page-break-inside: avoid; }
             .page-row, .card, .panel { page-break-inside: avoid; }
+            footer { border: none; background: #fff; }
         }
     </style>
 </head>
@@ -695,12 +741,52 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
                 <div class="panel" style="margin-top: 1rem;">
                     <h3>Top pages to review</h3>
                     <div class="top-pages">
-                        ${topPages.map(({ url, count, severity }) => `
-                            <div class="page-row">
-                                <div class="url"><a href="${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a></div>
-                                <span class="pill ${severity === 'critical' ? 'pill-critical' : severity === 'moderate' ? 'pill-warning' : 'pill-info'}">${count} issues</span>
-                            </div>
-                        `).join('')}
+                        ${topPages.map(({ url, count, severity, violations, title }) => {
+                            const pageModalId = `modal-page-${esc(url).replace(/[^a-zA-Z0-9]/g, '-')}`;
+                            const violationsByType = {};
+                            for (const v of violations) {
+                                const vid = v.id;
+                                if (!violationsByType[vid]) {
+                                    violationsByType[vid] = { ...v, nodes: [] };
+                                }
+                                if (v.nodes) {
+                                    violationsByType[vid].nodes.push(...v.nodes);
+                                }
+                            }
+                            const violationsList = Object.values(violationsByType).map(v => {
+                                const impact = v.impact || 'unknown';
+                                return `
+                                    <div class="page-violation-item">
+                                        <div class="violation-id">${esc(v.id)}</div>
+                                        <div class="violation-help">${esc(v.help || 'No description')}</div>
+                                        <div class="violation-meta">Impact: ${esc(impact)} · ${v.nodes?.length || 0} node${v.nodes?.length !== 1 ? 's' : ''}</div>
+                                        ${v.helpUrl ? '<div><a href="' + esc(v.helpUrl) + '" target="_blank" rel="noopener">Learn more</a></div>' : ''}
+                                        ${v.nodes?.length ? '<div class="modal-node-list">' + v.nodes.slice(0, 3).map(node => `
+                                            <div class="modal-node-item">
+                                                <div class="node-selector">Selector: ${esc(node.target?.join(', ') || 'N/A')}</div>
+                                                ${node.html ? '<div class="node-html">' + esc(node.html.substring(0, 150)) + '</div>' : ''}
+                                                ${node.failureSummary ? '<div class="node-html">' + esc(node.failureSummary.substring(0, 200)) + '</div>' : ''}
+                                            </div>
+                                        `).join('') + (v.nodes.length > 3 ? '<div style="padding: 8px; text-align: center; font-size: 12px; color: var(--muted);">... ' + (v.nodes.length - 3) + ' more node' + (v.nodes.length - 3 !== 1 ? 's' : '') + '</div>' : '') + '</div>' : ''}
+                                    </div>
+                                `;
+                            }).join('');
+                            return `
+                                <div class="page-row">
+                                    <div class="url"><a href="${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a></div>
+                                    <button class="pill ${severity === 'critical' ? 'pill-critical' : severity === 'moderate' ? 'pill-warning' : 'pill-info'}" onclick="document.getElementById('${pageModalId}').classList.add('open')" type="button">${count} issues</button>
+                                    <div id="${pageModalId}" class="modal">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h2>Issues on ${esc(title || url)}</h2>
+                                                <button class="modal-close" onclick="this.closest('.modal').classList.remove('open')" type="button" aria-label="Close">×</button>
+                                            </div>
+                                            <div class="modal-page-violations">${violationsList}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 </div>` : ''}
 
@@ -725,19 +811,49 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
                                         <div class="violation-help">${esc(help)}</div>
                                         <div class="violation-meta">Impact: ${esc(impact || 'unknown')} · Pages with issue: ${pages.size}</div>
                                         ${helpUrl ? `<div><a href="${esc(helpUrl)}" target="_blank" rel="noopener">Learn more</a></div>` : ''}
-                                        <div class="node-list">
-                                            ${[...pages.values()].slice(0, 5).map(({ url, nodes }) => `
+                                        ${(() => {
+                                            const allPages = [...pages.values()];
+                                            const displayPages = allPages.slice(0, 10);
+                                            const hasMore = allPages.length > 10;
+                                            const modalId = `modal-${esc(violationId).replace(/[^a-zA-Z0-9]/g, '-')}`;
+                                            const sampleHtml = displayPages.map(({ url, nodes }) => `
                                                 <div class="node-item">
                                                     <div class="node-url"><a href="${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a> (${nodes.length} node${nodes.length !== 1 ? 's' : ''})</div>
                                                     ${nodes.slice(0, 1).map(node => `
                                                         <div class="node-selector">Selector: ${esc(node.target?.join(', ') || 'N/A')}</div>
-                                                        ${node.html ? `<div class="node-html">${esc(node.html.substring(0, 200))}</div>` : ''}
+                                                        ${node.html ? `<div class="node-html">${esc(node.html)}</div>` : ''}
                                                         ${node.failureSummary ? `<div class="node-html">${esc(node.failureSummary)}</div>` : ''}
                                                     `).join('')}
                                                 </div>
-                                            `).join('')}
-                                            ${pages.size > 5 ? `<div class="node-item">... ${pages.size - 5} more page${pages.size - 5 === 1 ? '' : 's'}</div>` : ''}
-                                        </div>
+                                            `).join('');
+                                            const allHtml = allPages.map(({ url, nodes }) => `
+                                                <div class="modal-node-item">
+                                                    <div class="node-url"><a href="${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a> (${nodes.length} node${nodes.length !== 1 ? 's' : ''})</div>
+                                                    ${nodes.map(node => `
+                                                        <div class="node-selector">Selector: ${esc(node.target?.join(', ') || 'N/A')}</div>
+                                                        ${node.html ? `<div class="node-html">${esc(node.html)}</div>` : ''}
+                                                        ${node.failureSummary ? `<div class="node-html">${esc(node.failureSummary)}</div>` : ''}
+                                                    `).join('')}
+                                                </div>
+                                            `).join('');
+                                            return `
+                                                <div class="node-list">${sampleHtml}</div>
+                                                ${hasMore ? `
+                                                    <button class="see-more-btn" onclick="document.getElementById('${modalId}').classList.add('open')" type="button">
+                                                        See all ${allPages.length} affected pages
+                                                    </button>
+                                                    <div id="${modalId}" class="modal">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h2>${esc(help)}</h2>
+                                                                <button class="modal-close" onclick="this.closest('.modal').classList.remove('open')" type="button" aria-label="Close">×</button>
+                                                            </div>
+                                                            <div>${allHtml}</div>
+                                                        </div>
+                                                    </div>
+                                                ` : ''}
+                                            `;
+                                        })()}
                                     </div>
                                 `).join('')}
                             </div>
@@ -794,6 +910,14 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         </div>
     </section>
     </main>
+
+    <footer aria-label="Report footer">
+        <p>
+            <strong>O-Hat Scanner</strong> • 
+            <a href="https://github.com/civicactions/o-hat-scanner" target="_blank" rel="noopener">View on GitHub</a> • 
+            Report design inspired by Oobee
+        </p>
+    </footer>
 
     <script>
         // Toggle severity blocks (keyboard accessible)
@@ -962,6 +1086,24 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         }
 
         loadMiniTrend();
+
+        // Modal close on outside click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('open');
+                }
+            });
+        });
+
+        // Escape key closes modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal.open').forEach(modal => {
+                    modal.classList.remove('open');
+                });
+            }
+        });
     </script>
 </body>
 </html>`;
@@ -1441,13 +1583,13 @@ function getTopPages(results) {
                 const sev = mapSeverity(v.impact);
                 return (SEVERITY_MAP[sev]?.order || 999) < (SEVERITY_MAP[max]?.order || 999) ? sev : max;
             }, 'review');
-            pages[url] = { count: nodeCount, severity: maxSeverity };
+            pages[url] = { count: nodeCount, severity: maxSeverity, violations: data.violations, title: data.title };
         }
     }
     return Object.entries(pages)
         .sort((a, b) => b[1].count - a[1].count)
         .slice(0, 5)
-        .map(([url, { count, severity }]) => ({ url, count, severity }));
+        .map(([url, { count, severity, violations, title }]) => ({ url, count, severity, violations, title }));
 }
 
 function getIssuesByViolationType(results, severityFilter) {
