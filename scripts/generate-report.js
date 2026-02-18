@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 
 import { fileURLToPath } from 'url';
 
@@ -13,6 +14,11 @@ function formatRunIdShort(runId = '') {
     if (!safe) return 'n/a';
     if (safe.length <= 28) return safe;
     return `${safe.slice(0, 18)}…${safe.slice(-12)}`;
+}
+
+function hashForNode(url, selector) {
+    const input = `${url || ''}::${selector || ''}`;
+    return crypto.createHash('md5').update(input).digest('hex');
 }
 
 function collectRunEntries() {
@@ -520,6 +526,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
 
         header { background: var(--header-bg); color: var(--header-text); padding: 2rem 1rem; }
         .header-content { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 0.5rem; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
         .header-actions { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
         .site-logo { color: var(--header-text); font-size: 20px; display: inline-block; font-weight: 700; text-decoration: none; }
         .site-logo:hover { color: var(--header-text); text-decoration: underline; }
@@ -589,6 +596,8 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         .node-url { font-weight: 700; color: var(--text); }
         .node-selector { color: #005a9c; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; margin-top: 4px; }
         .node-html { margin-top: 4px; color: var(--text); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; overflow-wrap: anywhere; background: var(--card-bg); padding: 6px; border-radius: 4px; max-height: 300px; overflow-y: auto; }
+        .node-fix { margin-top: 6px; color: var(--muted); font-size: 12px; background: var(--card-bg); padding: 6px; border-radius: 4px; }
+        .node-unique { margin-top: 6px; color: var(--muted); font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
         .see-more-btn { display: inline-block; margin-top: 0.75rem; padding: 8px 12px; background: var(--link); color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 13px; }
         .see-more-btn:hover { opacity: 0.9; }
         .see-more-btn:focus { outline: 2px solid var(--focus); outline-offset: 2px; }
@@ -640,7 +649,11 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             outline-offset: 2px;
         }
 
-        .theme-toggle { background: var(--panel-bg); color: var(--text); border: 1px solid var(--panel-border); border-radius: 4px; padding: 8px 12px; cursor: pointer; font-weight: 600; }
+        .theme-toggle { background: var(--panel-bg); color: var(--text); border: 1px solid var(--panel-border); border-radius: 999px; padding: 6px 10px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+        .theme-toggle .theme-icon { font-size: 14px; }
+        .theme-toggle .theme-label { font-size: 12px; }
+        .learn-more { color: var(--link); text-decoration: underline; }
+        .violation-template { margin-top: 6px; font-size: 12px; color: var(--muted); }
         @media (prefers-reduced-motion: reduce) { .modal { animation: none; } }
 
         footer {
@@ -676,10 +689,14 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
     <a href="#main" style="position:absolute;left:-999px;top:-999px;">Skip to main content</a>
     <header>
         <div class="header-content">
-            <a href="#" class="site-logo" id="homeLogo">🎩 O-Hat Scanner</a>
-            <div class="header-actions">
-                <a href="#" class="back-link" id="backLink">← Back to all runs</a>
-                <button class="theme-toggle" type="button" aria-label="Toggle light or dark mode">Toggle light/dark</button>
+            <div class="header-top">
+                <a href="#" class="site-logo" id="homeLogo">🎩 O-Hat Scanner</a>
+                <div class="header-actions">
+                    <button class="theme-toggle" type="button" aria-label="Toggle light or dark mode" aria-pressed="false">
+                        <span class="theme-icon" aria-hidden="true">☀︎</span>
+                        <span class="theme-label">Light</span>
+                    </button>
+                </div>
             </div>
             <h1>Accessibility Scan Report</h1>
             <p class="meta">
@@ -759,20 +776,39 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
                             }
                             const violationsList = Object.values(violationsByType).map(v => {
                                 const impact = v.impact || 'unknown';
+                                const nodes = v.nodes || [];
+                                const fixSummary = nodes.find(node => node.failureSummary)?.failureSummary || '';
+                                const snippetCounts = new Map();
+                                for (const node of nodes) {
+                                    if (!node.html) continue;
+                                    const key = node.html.trim();
+                                    snippetCounts.set(key, (snippetCounts.get(key) || 0) + 1);
+                                }
+                                let topSnippetCount = 0;
+                                snippetCounts.forEach(count => { if (count > topSnippetCount) topSnippetCount = count; });
+                                const templateHint = topSnippetCount > 1
+                                    ? `<div class="violation-template">Template match: ${topSnippetCount} nodes share the same snippet.</div>`
+                                    : '';
+                                const fixHtml = fixSummary ? `<div class="node-fix">${esc(fixSummary)}</div>` : '';
                                 return `
                                     <div class="page-violation-item">
                                         <div class="violation-id">${esc(v.id)}</div>
                                         <div class="violation-help">${esc(v.help || 'No description')}</div>
-                                        <div class="violation-meta">Impact: ${esc(impact)} · ${v.nodes?.length || 0} node${v.nodes?.length !== 1 ? 's' : ''}</div>
-                                        ${v.helpUrl ? '<div><a href="' + esc(v.helpUrl) + '" target="_blank" rel="noopener">Learn more</a></div>' : ''}
+                                        <div class="violation-meta">Impact: ${esc(impact)} · ${nodes.length} node${nodes.length !== 1 ? 's' : ''}</div>
+                                        ${v.helpUrl ? '<div><a class="learn-more" href="' + esc(v.helpUrl) + '" target="_blank" rel="noopener">Learn more</a></div>' : ''}
+                                        ${templateHint}
+                                        ${fixHtml}
                                         <button class="copy-btn" type="button" data-copy-violation="true">Copy failure details</button>
-                                        ${v.nodes?.length ? '<div class="modal-node-list">' + v.nodes.slice(0, 3).map(node => `
+                                        ${nodes.length ? '<div class="modal-node-list">' + nodes.slice(0, 3).map(node => {
+                                            const selector = node.target?.join(', ') || 'N/A';
+                                            const uniqueHash = hashForNode(url, selector);
+                                            return `
                                             <div class="modal-node-item">
-                                                <div class="node-selector">Selector: ${esc(node.target?.join(', ') || 'N/A')}</div>
+                                                <div class="node-selector">Selector: ${esc(selector)}</div>
                                                 ${node.html ? '<div class="node-html">' + esc(node.html.substring(0, 150)) + '</div>' : ''}
-                                                ${node.failureSummary ? '<div class="node-html">' + esc(node.failureSummary.substring(0, 200)) + '</div>' : ''}
+                                                <div class="node-unique">Unique: ${esc(uniqueHash)}</div>
                                             </div>
-                                        `).join('') + (v.nodes.length > 3 ? '<div style="padding: 8px; text-align: center; font-size: 12px; color: var(--muted);">... ' + (v.nodes.length - 3) + ' more node' + (v.nodes.length - 3 !== 1 ? 's' : '') + '</div>' : '') + '</div>' : ''}
+                                        `;}).join('') + (nodes.length > 3 ? '<div style="padding: 8px; text-align: center; font-size: 12px; color: var(--muted);">... ' + (nodes.length - 3) + ' more node' + (nodes.length - 3 !== 1 ? 's' : '') + '</div>' : '') + '</div>' : ''}
                                     </div>
                                 `;
                             }).join('');
@@ -818,34 +854,56 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
                                         <div class="violation-id">${esc(violationId)}</div>
                                         <div class="violation-help">${esc(help)}</div>
                                         <div class="violation-meta">Impact: ${esc(impact || 'unknown')} · Pages with issue: ${pages.size}</div>
-                                        ${helpUrl ? `<div><a href="${esc(helpUrl)}" target="_blank" rel="noopener">Learn more</a></div>` : ''}
+                                        ${helpUrl ? `<div><a class="learn-more" href="${esc(helpUrl)}" target="_blank" rel="noopener">Learn more</a></div>` : ''}
                                         <button class="copy-btn" type="button" data-copy-violation="true">Copy failure details</button>
                                         ${(() => {
                                             const allPages = [...pages.values()];
                                             const displayPages = allPages.slice(0, 10);
                                             const hasMore = allPages.length > 10;
                                             const modalId = `modal-${esc(violationId).replace(/[^a-zA-Z0-9]/g, '-')}`;
+                                            const allNodes = allPages.flatMap(page => page.nodes || []);
+                                            const fixSummary = allNodes.find(node => node.failureSummary)?.failureSummary || '';
+                                            const snippetCounts = new Map();
+                                            for (const node of allNodes) {
+                                                if (!node.html) continue;
+                                                const key = node.html.trim();
+                                                snippetCounts.set(key, (snippetCounts.get(key) || 0) + 1);
+                                            }
+                                            let topSnippetCount = 0;
+                                            snippetCounts.forEach(count => { if (count > topSnippetCount) topSnippetCount = count; });
+                                            const templateHint = topSnippetCount > 1
+                                                ? `<div class="violation-template">Template match: ${topSnippetCount} nodes share the same snippet.</div>`
+                                                : '';
+                                            const fixHtml = fixSummary ? `<div class="node-fix">${esc(fixSummary)}</div>` : '';
                                             const sampleHtml = displayPages.map(({ url, nodes }) => `
                                                 <div class="node-item">
                                                     <div class="node-url"><a href="${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a> (${nodes.length} node${nodes.length !== 1 ? 's' : ''})</div>
-                                                    ${nodes.slice(0, 1).map(node => `
-                                                        <div class="node-selector">Selector: ${esc(node.target?.join(', ') || 'N/A')}</div>
+                                                    ${nodes.slice(0, 1).map(node => {
+                                                        const selector = node.target?.join(', ') || 'N/A';
+                                                        const uniqueHash = hashForNode(url, selector);
+                                                        return `
+                                                        <div class="node-selector">Selector: ${esc(selector)}</div>
                                                         ${node.html ? `<div class="node-html">${esc(node.html)}</div>` : ''}
-                                                        ${node.failureSummary ? `<div class="node-html">${esc(node.failureSummary)}</div>` : ''}
-                                                    `).join('')}
+                                                        <div class="node-unique">Unique: ${esc(uniqueHash)}</div>
+                                                    `;}).join('')}
                                                 </div>
                                             `).join('');
                                             const allHtml = allPages.map(({ url, nodes }) => `
                                                 <div class="modal-node-item">
                                                     <div class="node-url"><a href="${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a> (${nodes.length} node${nodes.length !== 1 ? 's' : ''})</div>
-                                                    ${nodes.map(node => `
-                                                        <div class="node-selector">Selector: ${esc(node.target?.join(', ') || 'N/A')}</div>
+                                                    ${nodes.map(node => {
+                                                        const selector = node.target?.join(', ') || 'N/A';
+                                                        const uniqueHash = hashForNode(url, selector);
+                                                        return `
+                                                        <div class="node-selector">Selector: ${esc(selector)}</div>
                                                         ${node.html ? `<div class="node-html">${esc(node.html)}</div>` : ''}
-                                                        ${node.failureSummary ? `<div class="node-html">${esc(node.failureSummary)}</div>` : ''}
-                                                    `).join('')}
+                                                        <div class="node-unique">Unique: ${esc(uniqueHash)}</div>
+                                                    `;}).join('')}
                                                 </div>
                                             `).join('');
                                             return `
+                                                ${templateHint}
+                                                ${fixHtml}
                                                 <div class="node-list">${sampleHtml}</div>
                                                 ${hasMore ? `
                                                     <button class="see-more-btn" onclick="document.getElementById('${modalId}').classList.add('open')" type="button">
@@ -857,6 +915,8 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
                                                                 <h2>${esc(help)}</h2>
                                                                 <button class="modal-close" onclick="this.closest('.modal').classList.remove('open')" type="button" aria-label="Close">×</button>
                                                             </div>
+                                                            ${templateHint}
+                                                            ${fixHtml}
                                                             <div>${allHtml}</div>
                                                         </div>
                                                     </div>
@@ -956,13 +1016,27 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         const themeToggle = document.querySelector('.theme-toggle');
         const root = document.documentElement;
         const saved = localStorage.getItem('report-theme');
-        if (saved === 'dark' || (saved === null && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            root.setAttribute('data-theme', 'dark');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        function updateThemeToggle(next) {
+            if (!themeToggle) return;
+            const icon = themeToggle.querySelector('.theme-icon');
+            const label = themeToggle.querySelector('.theme-label');
+            const isDark = next === 'dark';
+            themeToggle.setAttribute('aria-pressed', String(isDark));
+            if (icon) icon.textContent = isDark ? '🌙' : '☀︎';
+            if (label) label.textContent = isDark ? 'Dark' : 'Light';
         }
+
+        const initialTheme = saved === 'dark' || (saved === null && prefersDark) ? 'dark' : 'light';
+        root.setAttribute('data-theme', initialTheme);
+        updateThemeToggle(initialTheme);
+
         themeToggle?.addEventListener('click', () => {
             const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
             root.setAttribute('data-theme', next);
             localStorage.setItem('report-theme', next);
+            updateThemeToggle(next);
         });
 
         function siteRootPath() {
@@ -974,12 +1048,10 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             return '/';
         }
 
-        const backLink = document.getElementById('backLink');
         const homeLogo = document.getElementById('homeLogo');
-        if (backLink || homeLogo) {
+        if (homeLogo) {
             const root = siteRootPath().replace(/\/$/, '');
-            if (backLink) backLink.href = root + '/index.html';
-            if (homeLogo) homeLogo.href = root + '/index.html';
+            homeLogo.href = root + '/index.html';
         }
 
         const printButton = document.getElementById('printButton');
@@ -1069,15 +1141,21 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             const viewport = miniContainer.dataset.viewport || '';
             const color = miniContainer.dataset.color || '';
             const browser = miniContainer.dataset.browser || '';
+            const normalize = (value) => (value || '').replace(/\/$/, '');
+            const loadingTimeout = setTimeout(() => {
+                if (miniStatus && miniStatus.textContent === 'Loading trend…') {
+                    miniStatus.textContent = 'Trend unavailable.';
+                }
+            }, 4000);
 
             const aggUrl = rootPathForAggregate().replace(/\\\/$/, '') + '/aggregate.csv';
-            fetch(aggUrl).then(res => {
+            fetch(aggUrl, { cache: 'no-store' }).then(res => {
                 if (!res.ok) throw new Error('Missing aggregate.csv');
                 return res.text();
             }).then(text => {
                 const rows = parseAggregateCsv(text).filter(r => {
                     return r.metricType === 'summary'
-                        && r.target === target
+                        && normalize(r.target) === normalize(target)
                         && (!viewport || r.viewport === viewport)
                         && (!color || r.colorScheme === color)
                         && (!browser || r.browser === browser);
@@ -1088,8 +1166,10 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
                     miniChart.innerHTML = '';
                     return;
                 }
+                clearTimeout(loadingTimeout);
                 drawMiniTrend(rows);
             }).catch(() => {
+                clearTimeout(loadingTimeout);
                 if (miniStatus) miniStatus.textContent = 'Trend unavailable.';
             });
         }
@@ -1099,20 +1179,21 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         function buildIssueCopyLines(issue) {
             const id = issue.querySelector('.violation-id')?.textContent?.trim() || 'unknown';
             const help = issue.querySelector('.violation-help')?.textContent?.trim() || 'No description';
-            const helpUrl = issue.querySelector('a[href]')?.href || '';
+            const helpUrl = issue.querySelector('.learn-more')?.href || '';
             const selector = issue.querySelector('.node-selector')?.textContent?.replace('Selector: ', '').trim() || 'N/A';
             const htmlSnippets = issue.querySelectorAll('.node-html');
             const htmlSnippet = htmlSnippets?.[0]?.textContent?.trim() || 'N/A';
-            const failureSummary = htmlSnippets?.[1]?.textContent?.trim() || '';
+            const fixText = issue.querySelector('.node-fix')?.textContent?.trim() || '';
             const pageLink = issue.querySelector('.node-url a[href]');
             const modal = issue.closest('.modal');
             const modalHeader = modal?.querySelector('.modal-header h2')?.textContent?.replace('Issues on ', '').trim();
             const modalPageUrl = modal?.closest('.page-row')?.querySelector('a[href]')?.href || '';
             const pageUrl = pageLink?.href || modalPageUrl || '';
             const pageTitle = pageLink?.textContent?.trim() || modalHeader || pageUrl || 'Unknown page';
+            const environment = navigator.userAgent || 'Unknown environment';
 
             const lines = [];
-            lines.push('Title: WCAG: ' + help + ' (' + selector + ')');
+            lines.push('Title: WCAG ' + id + ': ' + help + ' (' + selector + ')');
             lines.push('Tags: Accessibility, WCAG, ' + id);
             lines.push('');
             lines.push('Issue: ' + help + ' (' + id + (helpUrl ? ' - ' + helpUrl : '') + ')');
@@ -1124,13 +1205,13 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             lines.push('Snippet: ' + htmlSnippet);
             lines.push('');
             lines.push('How to fix:');
-            if (failureSummary) {
-                lines.push(failureSummary);
+            if (fixText) {
+                lines.push(fixText);
             } else {
                 lines.push('See Learn more for guidance.');
             }
             lines.push('');
-            lines.push('Environment: O-Hat Scanner (axe-core)');
+            lines.push('Environment: ' + environment);
             return lines;
         }
 
@@ -1144,17 +1225,41 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             return lines.join('\n');
         }
 
+        function copyTextToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(text);
+            }
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'absolute';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                return Promise.resolve();
+            } catch (err) {
+                return Promise.reject(err);
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+
         // Copy single violation details from existing DOM content
         document.addEventListener('click', (e) => {
             if (e.target.matches('[data-copy-violation]')) {
                 const btn = e.target;
                 const issue = btn.closest('.violation-item, .page-violation-item');
                 if (!issue) return;
-                navigator.clipboard.writeText(buildIssueCopyText(issue)).then(() => {
+                copyTextToClipboard(buildIssueCopyText(issue)).then(() => {
                     const oldText = btn.textContent;
                     btn.textContent = 'Copied';
                     btn.classList.add('copied');
                     setTimeout(() => { btn.textContent = oldText; btn.classList.remove('copied'); }, 2000);
+                }).catch(() => {
+                    btn.textContent = 'Copy failed';
+                    setTimeout(() => { btn.textContent = 'Copy failure details'; }, 2000);
                 });
             }
         });
@@ -1177,11 +1282,14 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
                 lines.push('');
                 lines.push('This accessibility issue was found using O-Hat Scanner (axe-core).');
                 lines.push('https://github.com/civicactions/o-hat-scanner');
-                navigator.clipboard.writeText(lines.join('\n')).then(() => {
+                copyTextToClipboard(lines.join('\n')).then(() => {
                     const oldText = btn.textContent;
                     btn.textContent = 'Copied all';
                     btn.classList.add('copied');
                     setTimeout(() => { btn.textContent = oldText; btn.classList.remove('copied'); }, 2000);
+                }).catch(() => {
+                    btn.textContent = 'Copy failed';
+                    setTimeout(() => { btn.textContent = 'Copy all issues'; }, 2000);
                 });
             }
         });

@@ -94,6 +94,10 @@ describe('generate-report run page', () => {
         expect(html).toContain('Manual review');
         expect(html).toContain('clickable-elements');
         expect(html).toContain('image-alt');
+        expect(html).toContain('data-copy-violation="true"');
+        expect(html).toContain('data-copy-page-violations="true"');
+        expect(html).toContain('node-fix');
+        expect(html).toContain('node-unique');
     });
 
     test('renders clickable URLs and correct crawled count', () => {
@@ -113,6 +117,9 @@ describe('generate-report run page', () => {
 
         // Browser is surfaced in sidebar/debug (default chromium)
         expect(html.toLowerCase()).toContain('browser: chromium');
+        // Back link removed; home logo remains
+        expect(html).not.toContain('class="back-link"');
+        expect(html).toContain('site-logo');
     });
 
     test('includes copy buttons for issues and pages', () => {
