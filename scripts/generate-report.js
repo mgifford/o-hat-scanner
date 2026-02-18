@@ -592,6 +592,10 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         .see-more-btn { display: inline-block; margin-top: 0.75rem; padding: 8px 12px; background: var(--link); color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 13px; }
         .see-more-btn:hover { opacity: 0.9; }
         .see-more-btn:focus { outline: 2px solid var(--focus); outline-offset: 2px; }
+        .copy-btn { display: inline-block; padding: 6px 10px; background: var(--link); color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px; margin-top: 0.5rem; }
+        .copy-btn:hover { opacity: 0.9; }
+        .copy-btn:focus { outline: 2px solid var(--focus); outline-offset: 2px; }
+        .copy-btn.copied { background: #4caf50; }
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
         .modal.open { display: flex; align-items: center; justify-content: center; }
         .modal-content { background: var(--panel-bg); padding: 2rem; border-radius: 8px; width: 90%; max-width: 900px; max-height: 80vh; overflow-y: auto; }
@@ -761,6 +765,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
                                         <div class="violation-help">${esc(v.help || 'No description')}</div>
                                         <div class="violation-meta">Impact: ${esc(impact)} · ${v.nodes?.length || 0} node${v.nodes?.length !== 1 ? 's' : ''}</div>
                                         ${v.helpUrl ? '<div><a href="' + esc(v.helpUrl) + '" target="_blank" rel="noopener">Learn more</a></div>' : ''}
+                                        <button class="copy-btn" type="button" data-copy-violation="true">Copy failure details</button>
                                         ${v.nodes?.length ? '<div class="modal-node-list">' + v.nodes.slice(0, 3).map(node => `
                                             <div class="modal-node-item">
                                                 <div class="node-selector">Selector: ${esc(node.target?.join(', ') || 'N/A')}</div>
@@ -779,7 +784,10 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
                                         <div class="modal-content">
                                             <div class="modal-header">
                                                 <h2>Issues on ${esc(title || url)}</h2>
-                                                <button class="modal-close" onclick="this.closest('.modal').classList.remove('open')" type="button" aria-label="Close">×</button>
+                                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                                    <button class="copy-btn" type="button" data-copy-page-violations="true" aria-label="Copy all issues on this page">Copy all issues</button>
+                                                    <button class="modal-close" onclick="this.closest('.modal').classList.remove('open')" type="button" aria-label="Close">×</button>
+                                                </div>
                                             </div>
                                             <div class="modal-page-violations">${violationsList}</div>
                                         </div>
@@ -811,6 +819,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
                                         <div class="violation-help">${esc(help)}</div>
                                         <div class="violation-meta">Impact: ${esc(impact || 'unknown')} · Pages with issue: ${pages.size}</div>
                                         ${helpUrl ? `<div><a href="${esc(helpUrl)}" target="_blank" rel="noopener">Learn more</a></div>` : ''}
+                                        <button class="copy-btn" type="button" data-copy-violation="true">Copy failure details</button>
                                         ${(() => {
                                             const allPages = [...pages.values()];
                                             const displayPages = allPages.slice(0, 10);
@@ -1086,6 +1095,96 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         }
 
         loadMiniTrend();
+
+        function buildIssueCopyLines(issue) {
+            const id = issue.querySelector('.violation-id')?.textContent?.trim() || 'unknown';
+            const help = issue.querySelector('.violation-help')?.textContent?.trim() || 'No description';
+            const helpUrl = issue.querySelector('a[href]')?.href || '';
+            const selector = issue.querySelector('.node-selector')?.textContent?.replace('Selector: ', '').trim() || 'N/A';
+            const htmlSnippets = issue.querySelectorAll('.node-html');
+            const htmlSnippet = htmlSnippets?.[0]?.textContent?.trim() || 'N/A';
+            const failureSummary = htmlSnippets?.[1]?.textContent?.trim() || '';
+            const pageLink = issue.querySelector('.node-url a[href]');
+            const modal = issue.closest('.modal');
+            const modalHeader = modal?.querySelector('.modal-header h2')?.textContent?.replace('Issues on ', '').trim();
+            const modalPageUrl = modal?.closest('.page-row')?.querySelector('a[href]')?.href || '';
+            const pageUrl = pageLink?.href || modalPageUrl || '';
+            const pageTitle = pageLink?.textContent?.trim() || modalHeader || pageUrl || 'Unknown page';
+
+            const lines = [];
+            lines.push('Title: WCAG: ' + help + ' (' + selector + ')');
+            lines.push('Tags: Accessibility, WCAG, ' + id);
+            lines.push('');
+            lines.push('Issue: ' + help + ' (' + id + (helpUrl ? ' - ' + helpUrl : '') + ')');
+            lines.push('');
+            lines.push('Target application: ' + pageTitle + (pageUrl ? ' - ' + pageUrl : ''));
+            lines.push('');
+            lines.push('Element path: ' + selector);
+            lines.push('');
+            lines.push('Snippet: ' + htmlSnippet);
+            lines.push('');
+            lines.push('How to fix:');
+            if (failureSummary) {
+                lines.push(failureSummary);
+            } else {
+                lines.push('See Learn more for guidance.');
+            }
+            lines.push('');
+            lines.push('Environment: O-Hat Scanner (axe-core)');
+            return lines;
+        }
+
+        function buildIssueCopyText(issue) {
+            const lines = buildIssueCopyLines(issue);
+            lines.push('');
+            lines.push('====');
+            lines.push('');
+            lines.push('This accessibility issue was found using O-Hat Scanner (axe-core).');
+            lines.push('https://github.com/civicactions/o-hat-scanner');
+            return lines.join('\n');
+        }
+
+        // Copy single violation details from existing DOM content
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('[data-copy-violation]')) {
+                const btn = e.target;
+                const issue = btn.closest('.violation-item, .page-violation-item');
+                if (!issue) return;
+                navigator.clipboard.writeText(buildIssueCopyText(issue)).then(() => {
+                    const oldText = btn.textContent;
+                    btn.textContent = 'Copied';
+                    btn.classList.add('copied');
+                    setTimeout(() => { btn.textContent = oldText; btn.classList.remove('copied'); }, 2000);
+                });
+            }
+        });
+
+        // Copy all issues on a page from existing DOM content
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('[data-copy-page-violations]')) {
+                const btn = e.target;
+                const modal = btn.closest('.modal');
+                const issues = modal?.querySelectorAll('.page-violation-item') || [];
+                if (!issues.length) return;
+                const header = modal.querySelector('.modal-header h2')?.textContent || 'Page issues';
+                const lines = [header, ''];
+                issues.forEach((issue, idx) => {
+                    lines.push('Issue ' + (idx + 1));
+                    lines.push(...buildIssueCopyLines(issue));
+                    lines.push('');
+                });
+                lines.push('====');
+                lines.push('');
+                lines.push('This accessibility issue was found using O-Hat Scanner (axe-core).');
+                lines.push('https://github.com/civicactions/o-hat-scanner');
+                navigator.clipboard.writeText(lines.join('\n')).then(() => {
+                    const oldText = btn.textContent;
+                    btn.textContent = 'Copied all';
+                    btn.classList.add('copied');
+                    setTimeout(() => { btn.textContent = oldText; btn.classList.remove('copied'); }, 2000);
+                });
+            }
+        });
 
         // Modal close on outside click
         document.querySelectorAll('.modal').forEach(modal => {

@@ -115,6 +115,17 @@ describe('generate-report run page', () => {
         expect(html.toLowerCase()).toContain('browser: chromium');
     });
 
+    test('includes copy buttons for issues and pages', () => {
+        const stats = analyzeResults(results);
+        generateRunPage(runId, runRelPath, results, stats);
+        const htmlPath = path.join(runDir, 'index.html');
+        const html = fs.readFileSync(htmlPath, 'utf-8');
+
+        expect(html).toContain('data-copy-violation="true"');
+        expect(html).toContain('data-copy-page-violations="true"');
+        expect(html).toContain('buildIssueCopyText');
+    });
+
     test('includes a mini trend chart placeholder', () => {
         const stats = analyzeResults(results);
         generateRunPage(runId, runRelPath, results, stats);
