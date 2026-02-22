@@ -1151,12 +1151,15 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             const viewport = miniContainer.dataset.viewport || '';
             const color = miniContainer.dataset.color || '';
             const browser = miniContainer.dataset.browser || '';
+            // Note: This duplicates server-side extractDomain logic intentionally.
+            // Client-side code runs in browser and can't import server functions.
             const extractDomainFromUrl = (urlString) => {
                 if (!urlString) return '';
                 try {
                     const url = new URL(urlString);
                     return url.hostname;
                 } catch {
+                    // Fallback for relative URLs or non-URLs (already normalized strings)
                     return urlString.replace(/\/$/, '');
                 }
             };
@@ -1425,6 +1428,8 @@ function buildAggregateRows(runId, results, pageStats) {
     const metrics = aggregateMetrics(results, pageStats);
     const cfg = results.config || {};
     const rawTarget = (results.targets && results.targets[0]) || cfg.baseUrl || '';
+    // Extract domain from URL for consistent grouping across pages from same site.
+    // Falls back to rawTarget if domain extraction fails (e.g., invalid URL).
     const base = {
         runId,
         startedAt: results.startedAt || '',
