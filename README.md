@@ -472,6 +472,22 @@ Each scan run generates:
 
 ## Configuration
 
+**Language Diversity Filtering:**
+
+The scanner automatically detects and filters multilingual sites to avoid scanning duplicate content in multiple languages. This feature:
+
+- Detects language codes in URLs (e.g., `/en/`, `/fr/`, `en.example.com`, or `/page-en`)
+- Groups pages by their base path (without language component)
+- Limits each page to **maximum 2 language variants** during scanning
+- Promotes language diversity across the entire scan
+
+**Example:** If a sitemap contains `/en/services`, `/fr/services`, `/es/services`, and `/de/services`, the scanner will keep only the first 2 languages encountered (e.g., `/en/services` and `/fr/services`), filtering out the others. This ensures:
+- Better use of scanning budget (maxPages) 
+- More diverse content coverage instead of scanning the same pages in 4+ languages
+- Reduced duplicate violation reports
+
+This filtering is applied automatically after sitemap/crawl discovery and before the scanning phase. No configuration is required.
+
 **CI Scanner Env Vars:**
 - `INPUT_URLS`: Newline separated list of URLs (used for `mode=list` or manual runs).
 - `INPUT_BASE_URL`: Base origin for `mode=sitemap`/`crawl`/`discover` runs.
