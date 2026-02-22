@@ -573,6 +573,9 @@ function shouldAllowDiscovery(mode, crawlFallbackUsed) {
     return mode === 'crawl' || crawlFallbackUsed;
 }
 
+// Common language codes (ISO 639-1 two-letter codes and common locale variants)
+const LANGUAGE_CODES = 'en|fr|es|de|it|pt|nl|pl|ru|ja|zh|ko|ar|hi|sv|no|da|fi|cs|hu|ro|tr|el|he|th|vi|id|ms|uk|bg|hr|sk|sl|lt|lv|et|is|ga|mt|cy|sq|mk|sr|bs|ka|hy|az|be|kk|uz|tk|ky|tg|mn|ne|si|bn|ta|te|mr|gu|kn|ml|pa|ur|fa|ps|ku|am|ti|om|so|sw|zu|xh|st|tn|ts|ss|ve|nso|af|eu|ca|gl|oc|br|co|fo|gd|gv|kw|lb|li|rm|sc|wa|an|ast|ber|fur|lad|lij|lmo|nap|pms|roa|scn|vec|en-us|en-gb|en-ca|en-au|fr-ca|fr-fr|es-es|es-mx|pt-br|pt-pt|zh-cn|zh-tw|zh-hk|de-de|de-at|de-ch|it-it|nl-nl|nl-be|sv-se|no-no|da-dk|fi-fi|pl-pl|cs-cz|hu-hu|ro-ro|bg-bg|hr-hr|sk-sk|sl-si|sr-rs|uk-ua|ru-ru|ja-jp|ko-kr|ar-sa|he-il|th-th|vi-vn|id-id|ms-my|tr-tr';
+
 /**
  * Detects language code from URL patterns like /en/, /fr/, en.example.com, or /page-en
  * @param {string} url - The URL to analyze
@@ -586,8 +589,7 @@ function detectLanguageCode(url) {
         const pathname = urlObj.pathname;
         const hostname = urlObj.hostname;
         
-        // Common language codes (ISO 639-1 two-letter codes and some common variants)
-        const langPattern = /\b(en|fr|es|de|it|pt|nl|pl|ru|ja|zh|ko|ar|hi|sv|no|da|fi|cs|hu|ro|tr|el|he|th|vi|id|ms|uk|bg|hr|sk|sl|lt|lv|et|is|ga|mt|cy|sq|mk|sr|bs|ka|hy|az|be|kk|uz|tk|ky|tg|mn|ne|si|bn|ta|te|mr|gu|kn|ml|pa|ur|fa|ps|ku|am|ti|om|so|sw|zu|xh|st|tn|ts|ss|ve|nso|af|eu|ca|gl|oc|br|co|fo|gd|gv|kw|lb|li|rm|sc|wa|an|ast|ber|fur|lad|lij|lmo|nap|pms|roa|scn|vec|en-us|en-gb|en-ca|en-au|fr-ca|fr-fr|es-es|es-mx|pt-br|pt-pt|zh-cn|zh-tw|zh-hk|de-de|de-at|de-ch|it-it|nl-nl|nl-be|sv-se|no-no|da-dk|fi-fi|pl-pl|cs-cz|hu-hu|ro-ro|bg-bg|hr-hr|sk-sk|sl-si|sr-rs|uk-ua|ru-ru|ja-jp|ko-kr|ar-sa|he-il|th-th|vi-vn|id-id|ms-my|tr-tr)\b/i;
+        const langPattern = new RegExp(`\\b(${LANGUAGE_CODES})\\b`, 'i');
         
         // Pattern 1: /en/ in path (most common for multilingual sites)
         const pathMatch = pathname.match(/^\/([a-z]{2}(?:-[a-z]{2})?)(?:\/|$)/i);
@@ -605,9 +607,10 @@ function detectLanguageCode(url) {
         }
         
         // Pattern 3: -en or -fr suffix in path segments
+        const suffixPattern = new RegExp(`-(${LANGUAGE_CODES})$`, 'i');
         const segments = pathname.split('/').filter(Boolean);
         for (const segment of segments) {
-            const suffixMatch = segment.match(/-(en|fr|es|de|it|pt|nl|pl|ru|ja|zh|ko|ar|hi|sv|no|da|fi|cs|hu|ro|tr|el|he|th|vi|id|ms|uk|bg|hr|sk|sl|lt|lv|et|en-us|en-gb|en-ca|fr-ca|es-es|es-mx|pt-br|pt-pt|zh-cn|zh-tw|de-de|de-at|nl-nl|sv-se)$/i);
+            const suffixMatch = segment.match(suffixPattern);
             if (suffixMatch) {
                 return suffixMatch[1].toLowerCase();
             }
