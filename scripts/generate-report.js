@@ -471,7 +471,8 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
     const topPages = getTopPages(results);
     const runDate = results.startedAt ? new Date(results.startedAt) : new Date();
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const primaryTarget = (results.targets && results.targets[0]) || urls[0] || 'N/A';
+    const rawTarget = (results.targets && results.targets[0]) || urls[0] || 'N/A';
+    const primaryTarget = extractDomain(rawTarget) || rawTarget;
         const runDir = path.join(SITE_DIR, 'runs', runRelPath);
         const cfg = results.config || {};
         const viewportLabel = cfg.viewport === 'mobile' ? 'Mobile' : 'Desktop';
