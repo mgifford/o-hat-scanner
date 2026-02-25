@@ -35,15 +35,15 @@ describe('pill-warning contrast', () => {
     }
   });
 
-  test('uses #b95e00 for --pill-warning in both themes', () => {
+  test('uses appropriate colors for --pill-warning in light and dark themes', () => {
     fs.mkdirSync(runDir, { recursive: true });
     const stats = analyzeResults(results);
     generateRunPage(runId, runRelPath, results, stats);
     const html = fs.readFileSync(path.join(runDir, 'index.html'), 'utf-8');
 
-    // Light theme
+    // Light theme should use #b95e00
     expect(html).toContain('--pill-warning: #b95e00');
-    // Dark theme block also defines same variable
-    expect(html).toMatch(/\[data-theme="dark"\][\s\S]*--pill-warning: #b95e00/);
+    // Dark theme should use #fb923c (lighter orange for better contrast on dark backgrounds)
+    expect(html).toMatch(/\[data-theme="dark"\][\s\S]*--pill-warning: #fb923c/);
   });
 });

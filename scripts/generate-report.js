@@ -1163,7 +1163,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
 
         const homeLogo = document.getElementById('homeLogo');
         if (homeLogo) {
-            const root = siteRootPath().replace(/\/$/, '');
+            const root = siteRootPath().replace(/\\/$/, '');
             homeLogo.href = root + '/index.html';
         }
 
@@ -1263,7 +1263,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
                     return url.hostname;
                 } catch {
                     // Fallback for relative URLs or non-URLs (already normalized strings)
-                    return urlString.replace(/\/$/, '');
+                    return urlString.replace(/\\/$/, '');
                 }
             };
             const targetDomain = extractDomainFromUrl(target);
@@ -1347,7 +1347,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             lines.push('');
             lines.push('This accessibility issue was found using O-Hat Scanner (axe-core).');
             lines.push('https://github.com/civicactions/o-hat-scanner');
-            return lines.join('\n');
+            return lines.join('\\n');
         }
 
         function copyTextToClipboard(text) {
@@ -1407,7 +1407,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
                 lines.push('');
                 lines.push('This accessibility issue was found using O-Hat Scanner (axe-core).');
                 lines.push('https://github.com/civicactions/o-hat-scanner');
-                copyTextToClipboard(lines.join('\n')).then(() => {
+                copyTextToClipboard(lines.join('\\n')).then(() => {
                     const oldText = btn.textContent;
                     btn.textContent = 'Copied all';
                     btn.classList.add('copied');
@@ -1688,7 +1688,7 @@ function generateTrendsPage() {
         const tbody = document.querySelector('#dataTable tbody');
 
         const palette = ['#1976d2','#d32f2f','#f57c00','#388e3c','#6a1b9a','#00796b','#c2185b','#455a64'];
-        const newlineRe = new RegExp('\\r?\\n');
+        const newlineRe = new RegExp('\\\\r?\\\\n');
 
         function parseCsv(text) {
             const lines = text.trim().split(newlineRe);
