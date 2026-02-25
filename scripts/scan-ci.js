@@ -188,6 +188,14 @@ async function main() {
 
     // Convert Set to Array for processing
     let queueArray = Array.from(scanQueue);
+    
+    // Apply language diversity filtering to avoid scanning same page in multiple languages
+    const originalCount = queueArray.length;
+    queueArray = applyLanguageDiversity(queueArray);
+    if (queueArray.length < originalCount) {
+        console.log(`Language diversity filter: reduced from ${originalCount} to ${queueArray.length} URLs (removed ${originalCount - queueArray.length} duplicate language variants)`);
+    }
+    
     let results = {};
 
     const allowDiscovery = shouldAllowDiscovery(MODE, crawlFallbackUsed);
@@ -565,8 +573,190 @@ function shouldAllowDiscovery(mode, crawlFallbackUsed) {
     return mode === 'crawl' || crawlFallbackUsed;
 }
 
+// Common language codes (ISO 639-1 two-letter codes and common locale variants)
+const LANGUAGE_CODES = 'en|fr|es|de|it|pt|nl|pl|ru|ja|zh|ko|ar|hi|sv|no|da|fi|cs|hu|ro|tr|el|he|th|vi|id|ms|uk|bg|hr|sk|sl|lt|lv|et|is|ga|mt|cy|sq|mk|sr|bs|ka|hy|az|be|kk|uz|tk|ky|tg|mn|ne|si|bn|ta|te|mr|gu|kn|ml|pa|ur|fa|ps|ku|am|ti|om|so|sw|zu|xh|st|tn|ts|ss|ve|nso|af|eu|ca|gl|oc|br|co|fo|gd|gv|kw|lb|li|rm|sc|wa|an|ast|ber|fur|lad|lij|lmo|nap|pms|roa|scn|vec|en-us|en-gb|en-ca|en-au|fr-ca|fr-fr|es-es|es-mx|pt-br|pt-pt|zh-cn|zh-tw|zh-hk|de-de|de-at|de-ch|it-it|nl-nl|nl-be|sv-se|no-no|da-dk|fi-fi|pl-pl|cs-cz|hu-hu|ro-ro|bg-bg|hr-hr|sk-sk|sl-si|sr-rs|uk-ua|ru-ru|ja-jp|ko-kr|ar-sa|he-il|th-th|vi-vn|id-id|ms-my|tr-tr';
+
+/**
+ * Detects language code from URL patterns like /en/, /fr/, en.example.com, or /page-en
+ * @param {string} url - The URL to analyze
+ * @returns {string|null} - Language code (e.g., 'en', 'fr', 'en-us') or null if not found
+ */
+function detectLanguageCode(url) {
+    if (!url) return null;
+    
+    try {
+        const urlObj = new URL(url);
+        const pathname = urlObj.pathname;
+        const hostname = urlObj.hostname;
+        
+        const langPattern = new RegExp(`\\b(${LANGUAGE_CODES})\\b`, 'i');
+        
+        // Pattern 1: /en/ in path (most common for multilingual sites)
+        const pathMatch = pathname.match(/^\/([a-z]{2}(?:-[a-z]{2})?)(?:\/|$)/i);
+        if (pathMatch && langPattern.test(pathMatch[1])) {
+            return pathMatch[1].toLowerCase();
+        }
+        
+        // Pattern 2: Subdomain like en.example.com
+        const subdomainParts = hostname.split('.');
+        if (subdomainParts.length > 2) {
+            const subdomain = subdomainParts[0];
+            if (langPattern.test(subdomain) && subdomain.length <= 5) {
+                return subdomain.toLowerCase();
+            }
+        }
+        
+        // Pattern 3: -en or -fr suffix in path segments
+        const suffixPattern = new RegExp(`-(${LANGUAGE_CODES})$`, 'i');
+        const segments = pathname.split('/').filter(Boolean);
+        for (const segment of segments) {
+            const suffixMatch = segment.match(suffixPattern);
+            if (suffixMatch) {
+                return suffixMatch[1].toLowerCase();
+            }
+        }
+        
+        return null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Normalizes a URL by removing the language component to get the base path
+ * @param {string} url - The URL to normalize
+ * @param {string|null} lang - The detected language code
+ * @returns {string} - Normalized URL without language component
+ */
+function normalizePathForGrouping(url, lang) {
+    if (!url || !lang) return url;
+    
+    try {
+        const urlObj = new URL(url);
+        
+        // Remove /lang/ from beginning of path
+        const pathPattern = new RegExp(`^/${lang}(?:/|$)`, 'i');
+        urlObj.pathname = urlObj.pathname.replace(pathPattern, '/');
+        
+        // Remove lang subdomain
+        const hostParts = urlObj.hostname.split('.');
+        if (hostParts.length > 2 && hostParts[0].toLowerCase() === lang.toLowerCase()) {
+            hostParts.shift();
+            urlObj.hostname = hostParts.join('.');
+        }
+        
+        // Remove -lang suffix from path segments
+        const suffixPattern = new RegExp(`-${lang}$`, 'i');
+        urlObj.pathname = urlObj.pathname.split('/').map(segment => 
+            segment.replace(suffixPattern, '')
+        ).join('/');
+        
+        return urlObj.toString();
+    } catch {
+        return url;
+    }
+}
+
+/**
+ * Applies language diversity filtering to ensure good representation across languages
+ * while limiting to maximum 2 languages per base page
+ * @param {string[]} urls - Array of URLs to filter
+ * @returns {string[]} - Filtered array with language diversity applied
+ */
+function applyLanguageDiversity(urls) {
+    if (!Array.isArray(urls) || urls.length === 0) return urls;
+    
+    // Group URLs by their normalized base path
+    const groups = new Map();
+    const urlMetadata = new Map();
+    
+    // First pass: detect languages and group URLs
+    urls.forEach(url => {
+        const lang = detectLanguageCode(url);
+        const normalized = normalizePathForGrouping(url, lang);
+        
+        urlMetadata.set(url, { lang, normalized });
+        
+        if (!groups.has(normalized)) {
+            groups.set(normalized, []);
+        }
+        groups.get(normalized).push(url);
+    });
+    
+    // Second pass: select up to 2 languages per group
+    const result = [];
+    const globalLanguageUsage = new Map(); // Track how many times each language is used
+    
+    groups.forEach((urlsInGroup, normalizedPath) => {
+        if (urlsInGroup.length === 1) {
+            // Only one URL for this page, keep it
+            result.push(urlsInGroup[0]);
+            const meta = urlMetadata.get(urlsInGroup[0]);
+            if (meta.lang) {
+                globalLanguageUsage.set(meta.lang, (globalLanguageUsage.get(meta.lang) || 0) + 1);
+            }
+        } else {
+            // Multiple URLs for same page - select up to 2 languages
+            // Group by language within this page
+            const langGroups = new Map();
+            urlsInGroup.forEach(url => {
+                const meta = urlMetadata.get(url);
+                const lang = meta.lang || 'none';
+                if (!langGroups.has(lang)) {
+                    langGroups.set(lang, []);
+                }
+                langGroups.get(lang).push(url);
+            });
+            
+            // Select up to 2 languages, preferring less-used languages for diversity
+            const languages = Array.from(langGroups.keys());
+            
+            if (languages.length <= 2) {
+                // Keep all if 2 or fewer languages
+                urlsInGroup.forEach(url => result.push(url));
+                urlsInGroup.forEach(url => {
+                    const meta = urlMetadata.get(url);
+                    if (meta.lang) {
+                        globalLanguageUsage.set(meta.lang, (globalLanguageUsage.get(meta.lang) || 0) + 1);
+                    }
+                });
+            } else {
+                // More than 2 languages - select first 2 to maintain consistency
+                const selectedLangs = languages.slice(0, 2);
+                selectedLangs.forEach(lang => {
+                    const urlsForLang = langGroups.get(lang);
+                    // Take first URL for this language
+                    if (urlsForLang && urlsForLang.length > 0) {
+                        result.push(urlsForLang[0]);
+                        if (lang !== 'none') {
+                            globalLanguageUsage.set(lang, (globalLanguageUsage.get(lang) || 0) + 1);
+                        }
+                    }
+                });
+            }
+        }
+    });
+    
+    return result;
+}
+
 if (process.env.NODE_ENV !== 'test') {
     main().catch(console.error);
 }
 
-export { sampleSitemapUrls, seededShuffle, stringToSeed, isLikelyHtmlUrl, fetchSitemap, shouldAllowDiscovery, selectBrowser, normalizeBrowserName, resolveSitemapSeed, shouldAnalyzeResponse, extractLinks };
+export { 
+    sampleSitemapUrls, 
+    seededShuffle, 
+    stringToSeed, 
+    isLikelyHtmlUrl, 
+    fetchSitemap, 
+    shouldAllowDiscovery, 
+    selectBrowser, 
+    normalizeBrowserName, 
+    resolveSitemapSeed, 
+    shouldAnalyzeResponse, 
+    extractLinks,
+    detectLanguageCode,
+    normalizePathForGrouping,
+    applyLanguageDiversity
+};

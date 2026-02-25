@@ -114,6 +114,11 @@ Rules:
 - Concurrency is allowed but must be bounded (default 2).
 - Implement sitemap sampling strategies: `shuffle` (default) and `sequential`.
 - Support seed-based deterministic sampling for reproducibility.
+- **Language diversity filtering**: Automatically detect and filter multilingual URLs to:
+  - Limit each base page to maximum 2 language variants
+  - Promote language diversity across the entire scan
+  - Avoid scanning same content in 3+ languages
+  - Language detection patterns: `/en/`, `/fr/`, `en.example.com`, `/page-en`
 
 Do not implement an uncontrolled crawler that can lock up browsers or CI runners.
 
