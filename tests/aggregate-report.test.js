@@ -65,4 +65,18 @@ describe('aggregate CSV', () => {
     expect(csv).toContain('2'); // critical nodes
     expect(csv).toContain('1'); // moderate nodes
   });
+
+  test('extracts domain from target URL', () => {
+    const resultsWithFullUrl = {
+      ...results,
+      targets: ['https://www.example.com/some/page/path']
+    };
+    const rows = buildAggregateRows('run-2', resultsWithFullUrl, pageStats);
+    generateAggregateCsv(rows);
+    const csv = fs.readFileSync(outPath, 'utf-8');
+    // Should contain the domain, not the full URL
+    expect(csv).toContain('www.example.com');
+    // Should NOT contain the path
+    expect(csv).not.toContain('/some/page/path');
+  });
 });

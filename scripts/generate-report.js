@@ -16,6 +16,16 @@ function formatRunIdShort(runId = '') {
     return `${safe.slice(0, 18)}…${safe.slice(-12)}`;
 }
 
+function extractDomain(urlString) {
+    if (!urlString) return '';
+    try {
+        const url = new URL(urlString);
+        return url.hostname;
+    } catch {
+        return '';
+    }
+}
+
 function hashForNode(url, selector) {
     const input = `${url || ''}::${selector || ''}`;
     return crypto.createHash('md5').update(input).digest('hex');
@@ -1141,7 +1151,19 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             const viewport = miniContainer.dataset.viewport || '';
             const color = miniContainer.dataset.color || '';
             const browser = miniContainer.dataset.browser || '';
-            const normalize = (value) => (value || '').replace(/\/$/, '');
+            // Note: This duplicates server-side extractDomain logic intentionally.
+            // Client-side code runs in browser and can't import server functions.
+            const extractDomainFromUrl = (urlString) => {
+                if (!urlString) return '';
+                try {
+                    const url = new URL(urlString);
+                    return url.hostname;
+                } catch {
+                    // Fallback for relative URLs or non-URLs (already normalized strings)
+                    return urlString.replace(/\/$/, '');
+                }
+            };
+            const targetDomain = extractDomainFromUrl(target);
             const loadingTimeout = setTimeout(() => {
                 if (miniStatus && miniStatus.textContent === 'Loading trend…') {
                     miniStatus.textContent = 'Trend unavailable.';
@@ -1155,7 +1177,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             }).then(text => {
                 const rows = parseAggregateCsv(text).filter(r => {
                     return r.metricType === 'summary'
-                        && normalize(r.target) === normalize(target)
+                        && r.target === targetDomain
                         && (!viewport || r.viewport === viewport)
                         && (!color || r.colorScheme === color)
                         && (!browser || r.browser === browser);
@@ -1405,10 +1427,13 @@ function aggregateMetrics(results, pageStats) {
 function buildAggregateRows(runId, results, pageStats) {
     const metrics = aggregateMetrics(results, pageStats);
     const cfg = results.config || {};
+    const rawTarget = (results.targets && results.targets[0]) || cfg.baseUrl || '';
+    // Extract domain from URL for consistent grouping across pages from same site.
+    // Falls back to rawTarget if domain extraction fails (e.g., invalid URL).
     const base = {
         runId,
         startedAt: results.startedAt || '',
-        target: (results.targets && results.targets[0]) || cfg.baseUrl || '',
+        target: extractDomain(rawTarget) || rawTarget,
         viewport: cfg.viewport || 'desktop',
         colorScheme: cfg.colorScheme || 'light',
         browser: (cfg.browser || 'chromium').toLowerCase(),
@@ -1849,4 +1874,4 @@ function esc(s) {
     return String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }
 
-export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort, generateMainIndex };
+export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort, generateMainIndex, extractDomain };
