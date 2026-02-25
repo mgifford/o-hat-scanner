@@ -483,13 +483,53 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
     fs.mkdirSync(runDir, { recursive: true });
 
     const html = `<!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Scan Report: ${esc(runId)}</title>
     <style>
         :root {
+            color-scheme: light;
+            --bg: #f5f5f5;
+            --panel-bg: #fff;
+            --panel-border: #e0e0e0;
+            --text: #222;
+            --muted: #666;
+            --link: #005a9c;
+            --link-visited: #5e35b1;
+            --header-bg: #0a2540;
+            --header-text: #fff;
+            --pill-critical: #d32f2f;
+            --pill-warning: #b95e00;
+            --pill-info: #0d47a1;
+            --card-bg: #fafafa;
+            --bar-bg: #e0e0e0;
+            --code-bg: #f5f5f5;
+            --focus: #90caf9;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                color-scheme: dark;
+                --bg: #0f141a;
+                --panel-bg: #121826;
+                --panel-border: #1f2937;
+                --text: #e5e7eb;
+                --muted: #9ca3af;
+                --link: #7cb7ff;
+                --link-visited: #c4b5fd;
+                --header-bg: #0a2540;
+                --header-text: #e5e7eb;
+                --pill-critical: #ef4444;
+                --pill-warning: #fb923c;
+                --pill-info: #3b82f6;
+                --card-bg: #1f2937;
+                --bar-bg: #1f2937;
+                --code-bg: #111827;
+                --focus: #7cb7ff;
+            }
+        }
+        [data-theme="light"] {
             color-scheme: light;
             --bg: #f5f5f5;
             --panel-bg: #fff;
@@ -520,7 +560,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             --header-bg: #0a2540;
             --header-text: #e5e7eb;
             --pill-critical: #ef4444;
-            --pill-warning: #b95e00;
+            --pill-warning: #fb923c;
             --pill-info: #3b82f6;
             --card-bg: #1f2937;
             --bar-bg: #1f2937;
@@ -661,11 +701,43 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         }
 
         .theme-toggle { background: var(--panel-bg); color: var(--text); border: 1px solid var(--panel-border); border-radius: 999px; padding: 6px 10px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
-        .theme-toggle .theme-icon { font-size: 14px; }
-        .theme-toggle .theme-label { font-size: 12px; }
+        .theme-toggle .theme-icon { display: block; width: 16px; height: 16px; }
+        
+        /* Default state (light mode): show moon icon */
+        .sun-icon { display: none; }
+        .moon-icon { display: block; }
+        
+        /* If system prefers dark mode, show sun icon before JS loads */
+        @media (prefers-color-scheme: dark) {
+            .sun-icon { display: block; }
+            .moon-icon { display: none; }
+        }
+        
+        /* Show/hide appropriate icon based on theme */
+        [data-theme="dark"] .sun-icon { display: block; }
+        [data-theme="dark"] .moon-icon { display: none; }
+        [data-theme="light"] .sun-icon { display: none; }
+        [data-theme="light"] .moon-icon { display: block; }
+        
         .learn-more { color: var(--link); text-decoration: underline; }
         .violation-template { margin-top: 6px; font-size: 12px; color: var(--muted); }
-        @media (prefers-reduced-motion: reduce) { .modal { animation: none; } }
+        
+        /* Smooth transitions for theme switching */
+        * {
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+        
+        /* Respect reduced motion preference */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition: none;
+            }
+            .modal { animation: none; }
+        }
+        
+        @media (prefers-reduced-motion: no-preference) {
+            .modal { animation: none; }
+        }
 
         footer {
             margin-top: 3rem;
@@ -703,9 +775,14 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             <div class="header-top">
                 <a href="#" class="site-logo" id="homeLogo">🎩 O-Hat Scanner</a>
                 <div class="header-actions">
-                    <button class="theme-toggle" type="button" aria-label="Toggle light or dark mode" aria-pressed="false">
-                        <span class="theme-icon" aria-hidden="true">☀︎</span>
-                        <span class="theme-label">Light</span>
+                    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark mode">
+                        <svg aria-hidden="true" class="theme-icon sun-icon" viewBox="0 0 24 24" width="16" height="16">
+                            <circle cx="12" cy="12" r="5" fill="currentColor"/>
+                            <path fill="currentColor" d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
+                        </svg>
+                        <svg aria-hidden="true" class="theme-icon moon-icon" viewBox="0 0 24 24" width="16" height="16">
+                            <path fill="currentColor" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+                        </svg>
                     </button>
                 </div>
             </div>
@@ -1024,31 +1101,56 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         });
 
         // Theme toggle with persistence
-        const themeToggle = document.querySelector('.theme-toggle');
+        const themeToggle = document.getElementById('theme-toggle');
         const root = document.documentElement;
-        const saved = localStorage.getItem('report-theme');
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-        function updateThemeToggle(next) {
-            if (!themeToggle) return;
-            const icon = themeToggle.querySelector('.theme-icon');
-            const label = themeToggle.querySelector('.theme-label');
-            const isDark = next === 'dark';
-            themeToggle.setAttribute('aria-pressed', String(isDark));
-            if (icon) icon.textContent = isDark ? '🌙' : '☀︎';
-            if (label) label.textContent = isDark ? 'Dark' : 'Light';
+        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+        
+        // Get user preference from localStorage, or default to system preference
+        const savedTheme = localStorage.getItem('report-theme');
+        let currentTheme;
+        let userHasOverride = false;
+        
+        if (savedTheme) {
+            // User has explicitly set a preference
+            currentTheme = savedTheme;
+            userHasOverride = true;
+        } else {
+            // No user override - inherit from browser/OS default
+            currentTheme = prefersDarkScheme.matches ? 'dark' : 'light';
         }
-
-        const initialTheme = saved === 'dark' || (saved === null && prefersDark) ? 'dark' : 'light';
-        root.setAttribute('data-theme', initialTheme);
-        updateThemeToggle(initialTheme);
-
+        
+        function applyTheme(theme) {
+            // Set data-theme on root; descendant CSS selectors control icon visibility
+            root.setAttribute('data-theme', theme);
+            
+            // Update button label to reflect the action
+            if (themeToggle) {
+                if (theme === 'dark') {
+                    themeToggle.setAttribute('aria-label', 'Switch to light mode');
+                } else {
+                    themeToggle.setAttribute('aria-label', 'Switch to dark mode');
+                }
+            }
+        }
+        
         themeToggle?.addEventListener('click', () => {
-            const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            root.setAttribute('data-theme', next);
-            localStorage.setItem('report-theme', next);
-            updateThemeToggle(next);
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            currentTheme = newTheme;
+            userHasOverride = true;
+            localStorage.setItem('report-theme', newTheme);
+            applyTheme(newTheme);
         });
+        
+        // Listen for system theme preference changes (only when no user override exists)
+        prefersDarkScheme.addEventListener('change', (e) => {
+            if (!userHasOverride) {
+                currentTheme = e.matches ? 'dark' : 'light';
+                applyTheme(currentTheme);
+            }
+        });
+        
+        // Apply theme on load
+        applyTheme(currentTheme);
 
         function siteRootPath() {
             const parts = window.location.pathname.split('/');
