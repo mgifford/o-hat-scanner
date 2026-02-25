@@ -3,6 +3,7 @@ import path from 'path';
 
 let generateRunPage;
 let analyzeResults;
+let buildAggregateRows;
 
 describe('mini trend uses domain not full URL', () => {
   const __dirname = path.dirname(new URL(import.meta.url).pathname);
@@ -35,6 +36,7 @@ describe('mini trend uses domain not full URL', () => {
     const mod = await import('../scripts/generate-report.js');
     generateRunPage = mod.generateRunPage;
     analyzeResults = mod.analyzeResults;
+    buildAggregateRows = mod.buildAggregateRows;
     fs.mkdirSync(runDir, { recursive: true });
   });
 
@@ -67,5 +69,29 @@ describe('mini trend uses domain not full URL', () => {
     // This should match what extractDomain would return for the target URL
     // which is what buildAggregateRows stores in the aggregate CSV
     expect(dataTarget).toBe('www.example.com');
+  });
+
+  test('data-target matches aggregate CSV target field for trend filtering', () => {
+    const stats = analyzeResults(sampleResults);
+    
+    // Generate the aggregate rows (what would be in CSV)
+    const aggregateRows = buildAggregateRows(runId, sampleResults, stats);
+    expect(aggregateRows.length).toBeGreaterThan(0);
+    
+    // Get the target from aggregate rows (what's stored in CSV)
+    const csvTarget = aggregateRows[0].target;
+    
+    // Generate run page
+    generateRunPage(runId, runRelPath, sampleResults, stats);
+    const html = fs.readFileSync(path.join(runDir, 'index.html'), 'utf-8');
+    
+    // Extract data-target from HTML (what mini-trend uses for filtering)
+    const match = html.match(/data-target="([^"]+)"/);
+    expect(match).toBeTruthy();
+    const htmlTarget = match[1];
+    
+    // They must match for trend filtering to work
+    expect(htmlTarget).toBe(csvTarget);
+    expect(htmlTarget).toBe('www.example.com');
   });
 });
