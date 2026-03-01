@@ -36,13 +36,13 @@ describe('status-fail color contrast', () => {
     }
   });
 
-  test('.status-fail uses #cc0000 to meet WCAG 2.1 AA contrast ratio on white background', () => {
+  test('.status-fail uses #cc0000 to meet WCAG 2.2 AA contrast ratio on white background', () => {
     generateMainIndex(runSummaries);
     const html = fs.readFileSync(indexHtml, 'utf-8');
     
     // Verify .status-fail has color: #cc0000, not red (#ff0000)
     // #cc0000 provides 4.54:1 contrast ratio on white background (#ffffff)
-    // This meets WCAG 2.1 AA requirement of 4.5:1 for bold text
+    // This meets WCAG 2.2 AA requirement of 4.5:1 for bold text
     // #ff0000 (red) only provides 3.99:1 contrast ratio and fails WCAG AA
     expect(html).toContain('.status-fail { color: #cc0000; font-weight: bold; }');
   });
@@ -63,7 +63,7 @@ describe('status-fail color contrast', () => {
     const html = fs.readFileSync(indexHtml, 'utf-8');
     
     // Verify we're NOT using the CSS color keyword "red" which is #ff0000
-    // and has insufficient contrast (3.99:1) for WCAG 2.1 AA compliance
+    // and has insufficient contrast (3.99:1) for WCAG 2.2 AA compliance
     const statusFailMatch = html.match(/\.status-fail\s*{[^}]*}/);
     expect(statusFailMatch).toBeTruthy();
     
