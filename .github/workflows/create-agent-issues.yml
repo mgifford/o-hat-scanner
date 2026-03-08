@@ -1,0 +1,230 @@
+name: Create Accessibility Agent Issues
+
+on:
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  create-issues:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Issue 1 – AI-Powered Remediation Guidance in Scan Reports
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh issue create \
+            --title "Use GitHub Accessibility Agent for AI-Powered Violation Remediation Guidance" \
+            --label "enhancement" \
+            --body "## Summary
+
+Currently, scan reports surface axe-core violation descriptions and raw HTML snippets, but leave all interpretation and remediation to developers. GitHub's [Accessibility Agent](https://accessibility.github.com/documentation/guide/getting-started-with-agents/) can bridge this gap by generating context-aware, actionable fix suggestions for each violation directly within the report.
+
+## Problem
+
+- Scan reports show generic axe-core descriptions (e.g. \"Elements must meet minimum color contrast ratio thresholds\") with no specific guidance on *how* to fix the detected issue in the context of the actual HTML snippet.
+- Developers unfamiliar with WCAG must research the rule, read external documentation, and then determine the fix themselves.
+- This slows down remediation and increases the barrier for teams new to accessibility.
+
+## Proposed Solution
+
+Integrate a GitHub Accessibility Agent step into the report generation pipeline:
+
+1. After \`scan-ci.js\` produces the JSON results, pass violation entries (axe rule ID + HTML snippet + WCAG criterion) to the GitHub Accessibility Agent.
+2. The agent returns a concrete, code-level fix suggestion (e.g. revised HTML with correct contrast value or added \`aria-label\`).
+3. \`generate-report.js\` embeds these AI-generated suggestions in each violation's expandable detail section alongside the existing axe description and selector.
+
+### Example
+
+**Current output:**
+\`\`\`
+Rule: color-contrast
+Description: Elements must meet minimum color contrast ratio thresholds
+Element: <span style=\"color: #999\">Status: Pending</span>
+\`\`\`
+
+**Enhanced output with agent suggestion:**
+\`\`\`
+Rule: color-contrast
+Description: Elements must meet minimum color contrast ratio thresholds
+Element: <span style=\"color: #999\">Status: Pending</span>
+💡 Suggested fix: Change color to #767676 or darker (e.g. #595959) to achieve a 4.5:1 contrast ratio on white backgrounds. Example: <span style=\"color: #595959\">Status: Pending</span>
+\`\`\`
+
+## Benefits
+
+- Dramatically reduces developer effort to remediate violations.
+- Provides educational context alongside each issue.
+- Keeps reports self-contained without requiring external documentation lookups.
+- Consistent with AGENTS.md requirement that reports be actionable and WCAG 2.2 AA compliant.
+
+## Acceptance Criteria
+
+- [ ] Report HTML includes AI-generated fix suggestion for each violation entry (where available).
+- [ ] Fix suggestions are collapsed by default (progressive disclosure) to avoid overwhelming the reader.
+- [ ] Agent integration is configurable (opt-in via \`targets.yml\` flag or environment variable) so it does not block scans when unavailable.
+- [ ] All new UI elements meet WCAG 2.2 AA contrast and semantic requirements.
+- [ ] Tests updated to validate the presence and structure of suggestion markup.
+
+## References
+
+- [Getting Started with Accessibility Agents](https://accessibility.github.com/documentation/guide/getting-started-with-agents/)
+- \`scripts/generate-report.js\` – violation rendering section
+- \`scripts/scan-ci.js\` – post-scan hook opportunity
+"
+
+      - name: Create Issue 2 – Automated Issue Lifecycle Tracking for Discovered Violations
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh issue create \
+            --title "Implement Agent-Driven GitHub Issue Lifecycle for Discovered Accessibility Violations" \
+            --label "enhancement" \
+            --body "## Summary
+
+Scan results today live only in static HTML/CSV reports. There is no closed-loop tracking of whether discovered violations are ever fixed. By using GitHub Accessibility Agents to automatically create, update, and close GitHub Issues, the project can create an accountability workflow that bridges discovery and remediation.
+
+## Problem
+
+- Violations are found during scans but there is no mechanism to track whether they are ever fixed.
+- Teams operating the scanned sites receive no notifications about new violations.
+- When a violation disappears in a later scan it is unclear if it was fixed or if sampling variance caused it to be missed.
+- Site owners have no single place to monitor their accessibility debt over time.
+
+## Proposed Solution
+
+Add a new script \`scripts/sync-violation-issues.js\` powered by the GitHub Accessibility Agent workflow:
+
+### Behavior
+
+1. **After each scan**, compare \`resultsByUrl\` in the new run with the most recent prior run for the same domain.
+2. **For each new violation rule** (first time seen on that domain): open a GitHub Issue with:
+   - Title: \`[a11y] <rule-id> on <domain> – <wcag-criterion>\`
+   - Labels: \`accessibility\`, \`<impact-level>\` (e.g. \`critical\`), \`automated\`
+   - Body: Top 5 affected pages, violation description, WCAG link, link to full report.
+3. **On subsequent scans**: comment on the existing Issue with updated page counts and trend data (improving / worsening / stable).
+4. **When a violation rule drops to zero instances** on that domain: automatically close the Issue with a \"Resolved\" comment linking to the confirming scan.
+
+### Example Issue Created
+
+\`\`\`
+Title: [a11y] color-contrast on va.gov – WCAG 1.4.3 Contrast (Minimum)
+Labels: accessibility, serious, automated
+
+Detected in scan: 2025-07-01T06:00:00Z
+Affected pages: 23 / 50 scanned
+Top pages:
+  - https://www.va.gov/health-care/ (12 instances)
+  - https://www.va.gov/disability/ (8 instances)
+  ...
+Rule: color-contrast
+WCAG: 1.4.3 AA – Contrast (Minimum)
+Full report: https://mgifford.github.io/o-hat-scanner/runs/2025-07-01T060000Z--va-weekly/
+\`\`\`
+
+## Benefits
+
+- Creates a persistent, searchable record of each site's accessibility debt.
+- Enables site owners to subscribe to issue notifications.
+- Automatically closes issues when regressions are resolved (no manual cleanup).
+- Leverages the GitHub Accessibility Agent's understanding of WCAG semantics to enrich issue content.
+- Complements (does not replace) static HTML reports.
+
+## Acceptance Criteria
+
+- [ ] \`sync-violation-issues.js\` compares current and prior scan results per domain.
+- [ ] New violation rules create Issues with correct labels and structured body.
+- [ ] Recurring violations add a comment with updated counts to the existing Issue.
+- [ ] Resolved violations close the Issue automatically with a comment.
+- [ ] No duplicate Issues are created for the same rule+domain combination.
+- [ ] Script is invoked as an optional step in \`.github/workflows/a11y-scan.yml\`.
+- [ ] Tests cover the diff logic, Issue creation payload, and close conditions.
+
+## References
+
+- [Getting Started with Accessibility Agents](https://accessibility.github.com/documentation/guide/getting-started-with-agents/)
+- \`scripts/shared-schema.js\` – result schema to diff against
+- \`site/aggregate.csv\` – historical data source for trend comparison
+- \`scripts/archive-old-runs.js\` – prior-run resolution pattern
+"
+
+      - name: Create Issue 3 – AI-Driven Scan Prioritization via GitHub Agents
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh issue create \
+            --title "Use GitHub Accessibility Agent to Dynamically Prioritize Scan Pages Based on Violation History" \
+            --label "enhancement" \
+            --body "## Summary
+
+The current scanner samples pages from sitemaps using shuffle or sequential strategies without any knowledge of which pages historically have the most violations. GitHub Accessibility Agents can analyze \`aggregate.csv\` and per-run JSON results to intelligently weight page selection toward high-impact content, maximizing the value of each capped scan.
+
+## Problem
+
+- \`targets.yml\` defines static \`maxPages\` limits (default 50). With large government sitemaps (100k+ URLs), page sampling is essentially random.
+- High-violation pages may be consistently missed while low-risk pages consume the quota.
+- When sites add or restructure content, the scanner has no signal to re-prioritize.
+- The \`discover\` mode uses Bing queries but has no feedback loop from prior violation data to refine what it searches for.
+
+## Proposed Solution
+
+Introduce an **agent-assisted priority scorer** that runs before page sampling in \`scan-ci.js\`:
+
+### Phase 1 – History-Weighted Sampling
+
+1. Before sampling URLs from a sitemap, query the prior 3 runs' \`resultsByUrl\` for the same domain.
+2. Build a URL-level violation history map: \`{ url: { lastViolationCount, lastSeenAt, trend } }\`.
+3. Assign sampling weights: URLs with a history of violations (or that are new since the last scan) receive higher weight; consistently clean URLs receive lower weight.
+4. Apply weighted random sampling instead of pure shuffle, respecting \`maxPages\`.
+
+### Phase 2 – Agent-Assisted URL Scoring (GitHub Accessibility Agent)
+
+1. Pass the weighted URL list to the GitHub Accessibility Agent with context: violation history, page titles, URL patterns (e.g. \`/forms/\`, \`/account/\`).
+2. The agent boosts URLs matching high-risk patterns (form pages, authentication flows, interactive widgets) that axe-core is known to surface violations on.
+3. Return a re-ranked list for final sampling.
+
+### Phase 3 – Discovery Mode Feedback
+
+Use prior violation IDs to enrich \`discoveryQueries\` in \`targets.yml\` automatically:
+- If a site repeatedly shows \`aria-required-attr\` violations, add query terms that target interactive form pages in discovery mode.
+
+### Configuration
+
+\`\`\`yaml
+# targets.yml addition
+sites:
+  - name: va.gov
+    sampling: history-weighted   # new option (default: shuffle)
+    agent_priority: true          # opt-in to Phase 2 agent scoring
+\`\`\`
+
+## Benefits
+
+- Dramatically increases the signal-to-noise ratio of each scan run.
+- Ensures high-impact pages are scanned in every run rather than occasionally.
+- Creates a positive feedback loop: violations found → pages re-prioritized → violations tracked to resolution.
+- Works within existing \`maxPages\` constraints; no infrastructure changes required.
+- Aligned with the AGENTS.md principle of intelligent, bounded crawling.
+
+## Acceptance Criteria
+
+- [ ] \`scan-ci.js\` supports a \`history-weighted\` sampling mode that reads prior run data.
+- [ ] URL weights are computed from violation counts and recency in prior runs.
+- [ ] New/unseen URLs receive a moderate weight to ensure coverage of fresh content.
+- [ ] Agent-priority scoring is optional and does not break existing shuffle/sequential modes.
+- [ ] Unit tests cover the weight computation and sampling correctness.
+- [ ] \`targets.yml\` schema updated to accept \`sampling: history-weighted\`.
+- [ ] Backwards-compatible: existing targets without the new key behave identically.
+
+## References
+
+- [Getting Started with Accessibility Agents](https://accessibility.github.com/documentation/guide/getting-started-with-agents/)
+- \`scripts/scan-ci.js\` – sitemap sampling logic (lines ~200-300)
+- \`scripts/shared-schema.js\` – result schema
+- \`site/aggregate.csv\` – historical metrics
+- \`tests/sitemap-sampling.test.js\` – existing sampling tests to extend
+"
