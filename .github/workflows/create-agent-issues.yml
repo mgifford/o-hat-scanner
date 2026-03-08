@@ -1,6 +1,11 @@
 name: Create Accessibility Agent Issues
 
 on:
+  push:
+    branches:
+      - copilot/create-issues-for-accessibility-techniques
+    paths:
+      - .github/workflows/create-agent-issues.yml
   workflow_dispatch:
 
 permissions:
@@ -9,22 +14,27 @@ permissions:
 jobs:
   create-issues:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
     steps:
       - name: Create Issue 1 – AI-Powered Remediation Guidance in Scan Reports
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
         run: |
-          gh issue create \
-            --title "Use GitHub Accessibility Agent for AI-Powered Violation Remediation Guidance" \
-            --label "enhancement" \
-            --body "## Summary
+          TITLE="Use GitHub Accessibility Agent for AI-Powered Violation Remediation Guidance"
+          if gh issue list --repo "$GH_REPO" --state all --search "$TITLE" --json title | grep -q "AI-Powered Violation Remediation"; then
+            echo "Issue 1 already exists, skipping."
+          else
+            gh issue create \
+              --repo "$GH_REPO" \
+              --title "$TITLE" \
+              --label "enhancement" \
+              --body "## Summary
 
 Currently, scan reports surface axe-core violation descriptions and raw HTML snippets, but leave all interpretation and remediation to developers. GitHub's [Accessibility Agent](https://accessibility.github.com/documentation/guide/getting-started-with-agents/) can bridge this gap by generating context-aware, actionable fix suggestions for each violation directly within the report.
 
 ## Problem
 
-- Scan reports show generic axe-core descriptions (e.g. \"Elements must meet minimum color contrast ratio thresholds\") with no specific guidance on *how* to fix the detected issue in the context of the actual HTML snippet.
+- Scan reports show generic axe-core descriptions (e.g. \`Elements must meet minimum color contrast ratio thresholds\`) with no specific guidance on *how* to fix the detected issue in the context of the actual HTML snippet.
 - Developers unfamiliar with WCAG must research the rule, read external documentation, and then determine the fix themselves.
 - This slows down remediation and increases the barrier for teams new to accessibility.
 
@@ -74,16 +84,20 @@ Element: <span style=\"color: #999\">Status: Pending</span>
 - \`scripts/generate-report.js\` – violation rendering section
 - \`scripts/scan-ci.js\` – post-scan hook opportunity
 "
+            echo "Issue 1 created."
+          fi
 
       - name: Create Issue 2 – Automated Issue Lifecycle Tracking for Discovered Violations
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
         run: |
-          gh issue create \
-            --title "Implement Agent-Driven GitHub Issue Lifecycle for Discovered Accessibility Violations" \
-            --label "enhancement" \
-            --body "## Summary
+          TITLE="Implement Agent-Driven GitHub Issue Lifecycle for Discovered Accessibility Violations"
+          if gh issue list --repo "$GH_REPO" --state all --search "$TITLE" --json title | grep -q "Agent-Driven GitHub Issue Lifecycle"; then
+            echo "Issue 2 already exists, skipping."
+          else
+            gh issue create \
+              --repo "$GH_REPO" \
+              --title "$TITLE" \
+              --label "enhancement" \
+              --body "## Summary
 
 Scan results today live only in static HTML/CSV reports. There is no closed-loop tracking of whether discovered violations are ever fixed. By using GitHub Accessibility Agents to automatically create, update, and close GitHub Issues, the project can create an accountability workflow that bridges discovery and remediation.
 
@@ -150,16 +164,20 @@ Full report: https://mgifford.github.io/o-hat-scanner/runs/2025-07-01T060000Z--v
 - \`site/aggregate.csv\` – historical data source for trend comparison
 - \`scripts/archive-old-runs.js\` – prior-run resolution pattern
 "
+            echo "Issue 2 created."
+          fi
 
       - name: Create Issue 3 – AI-Driven Scan Prioritization via GitHub Agents
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
         run: |
-          gh issue create \
-            --title "Use GitHub Accessibility Agent to Dynamically Prioritize Scan Pages Based on Violation History" \
-            --label "enhancement" \
-            --body "## Summary
+          TITLE="Use GitHub Accessibility Agent to Dynamically Prioritize Scan Pages Based on Violation History"
+          if gh issue list --repo "$GH_REPO" --state all --search "$TITLE" --json title | grep -q "Dynamically Prioritize Scan Pages"; then
+            echo "Issue 3 already exists, skipping."
+          else
+            gh issue create \
+              --repo "$GH_REPO" \
+              --title "$TITLE" \
+              --label "enhancement" \
+              --body "## Summary
 
 The current scanner samples pages from sitemaps using shuffle or sequential strategies without any knowledge of which pages historically have the most violations. GitHub Accessibility Agents can analyze \`aggregate.csv\` and per-run JSON results to intelligently weight page selection toward high-impact content, maximizing the value of each capped scan.
 
@@ -228,3 +246,5 @@ sites:
 - \`site/aggregate.csv\` – historical metrics
 - \`tests/sitemap-sampling.test.js\` – existing sampling tests to extend
 "
+            echo "Issue 3 created."
+          fi
