@@ -1,0 +1,68 @@
+name: Create Accessibility Agent Issues
+
+on:
+  push:
+    branches:
+      - copilot/create-issues-for-accessibility-techniques
+    paths:
+      - .github/workflows/create-agent-issues.yml
+      - .github/issue-content/*.md
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  create-issues:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Issue 1 - AI-Powered Remediation Guidance in Scan Reports
+        run: |
+          TITLE="Use GitHub Accessibility Agent for AI-Powered Violation Remediation Guidance"
+          COUNT=$(gh issue list --repo "$GH_REPO" --state all --search "in:title $TITLE" --json number --jq 'length')
+          if [ "$COUNT" -gt 0 ]; then
+            echo "Issue 1 already exists, skipping."
+          else
+            gh issue create \
+              --repo "$GH_REPO" \
+              --title "$TITLE" \
+              --label "enhancement" \
+              --body-file ".github/issue-content/issue-ai-remediation.md"
+            echo "Issue 1 created."
+          fi
+
+      - name: Create Issue 2 - Automated Issue Lifecycle Tracking for Discovered Violations
+        run: |
+          TITLE="Implement Agent-Driven GitHub Issue Lifecycle for Discovered Accessibility Violations"
+          COUNT=$(gh issue list --repo "$GH_REPO" --state all --search "in:title $TITLE" --json number --jq 'length')
+          if [ "$COUNT" -gt 0 ]; then
+            echo "Issue 2 already exists, skipping."
+          else
+            gh issue create \
+              --repo "$GH_REPO" \
+              --title "$TITLE" \
+              --label "enhancement" \
+              --body-file ".github/issue-content/issue-violation-lifecycle.md"
+            echo "Issue 2 created."
+          fi
+
+      - name: Create Issue 3 - AI-Driven Scan Prioritization via GitHub Agents
+        run: |
+          TITLE="Use GitHub Accessibility Agent to Dynamically Prioritize Scan Pages Based on Violation History"
+          COUNT=$(gh issue list --repo "$GH_REPO" --state all --search "in:title $TITLE" --json number --jq 'length')
+          if [ "$COUNT" -gt 0 ]; then
+            echo "Issue 3 already exists, skipping."
+          else
+            gh issue create \
+              --repo "$GH_REPO" \
+              --title "$TITLE" \
+              --label "enhancement" \
+              --body-file ".github/issue-content/issue-scan-prioritization.md"
+            echo "Issue 3 created."
+          fi
