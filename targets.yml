@@ -6,6 +6,17 @@
 # - Sitemap Sampling: fixed (default) | random
 
 sites:
+  # --- O-HAT SCANNER GITHUB PAGES (self-scan) ---
+  # Scans the published report site itself for accessibility issues monthly.
+  - name: mgifford.github.io/o-hat-scanner
+    baseUrl: https://mgifford.github.io/o-hat-scanner/
+    mode: sitemap
+    maxPages: 50
+    schedule:
+      - "0 6 1 * *" # Monthly: 1st of each month at 6am UTC
+    label: o-hat-pages-monthly
+    notes: Monthly self-scan of the O-Hat Scanner GitHub Pages report site
+
   - name: govt.nz
     baseUrl: https://www.govt.nz
     mode: discover
