@@ -19,11 +19,29 @@ jobs:
     permissions:
       contents: read
     steps:
+      - name: Discover latest run page URL
+        id: discover
+        run: |
+          # Fetch the GitHub Pages index and extract the latest run page link
+          INDEX_HTML=$(curl -sf --max-time 30 https://mgifford.github.io/o-hat-scanner/ 2>/dev/null || echo "")
+          LATEST_RUN=$(echo "$INDEX_HTML" | grep -oP 'href="\Kruns/[^"]+/index\.html' | head -1 || echo "")
+          # Build full URL list (static pages + dynamically discovered run page)
+          URLS="https://mgifford.github.io/o-hat-scanner/
+          https://mgifford.github.io/o-hat-scanner/trends.html
+          https://mgifford.github.io/o-hat-scanner/404.html"
+          if [ -n "$LATEST_RUN" ]; then
+            URLS="$URLS
+          https://mgifford.github.io/o-hat-scanner/$LATEST_RUN"
+          else
+            echo "::warning::Could not discover a latest run page URL from the GitHub Pages index. Only static pages will be scanned."
+          fi
+          echo "urls<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$URLS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
       - uses: github/accessibility-scanner@v2
         with:
-          urls: | # Newline-delimited list of URLs to scan
-            https://mgifford.github.io/o-hat-scanner/
-            https://mgifford.github.io/o-hat-scanner/trends.html
+          urls: ${{ steps.discover.outputs.urls }}
           repository: mgifford/o-hat-scanner # Repository where issues will be filed
           token: ${{ secrets.GH_TOKEN }} # Must have write access (contents, issues, PRs)
           cache_key: o-hat-scanner-cache_key.txt # Cache filename for incremental results
