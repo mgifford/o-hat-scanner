@@ -49,6 +49,23 @@ describe('404 page landmark accessibility', () => {
     expect(h1Index).toBeLessThan(mainEnd);
   });
 
+  test('404 page links have text-decoration underline to meet WCAG 2.1 SC 1.4.1 (link-in-text-block)', () => {
+    const html = fs.readFileSync(page404Path, 'utf-8');
+
+    // Extract the CSS style block
+    const styleMatch = html.match(/<style>([\s\S]*?)<\/style>/);
+    expect(styleMatch).toBeTruthy();
+
+    const css = styleMatch[1];
+
+    // Links must have text-decoration: underline at the base level so they are
+    // distinguishable from surrounding text without relying on color alone
+    expect(css).toMatch(/\ba\s*\{[^}]*text-decoration:\s*underline[^}]*\}/);
+
+    // Links must NOT rely solely on color (no text-decoration: none at base level)
+    expect(css).not.toMatch(/\ba\s*\{[^}]*text-decoration:\s*none[^}]*\}/);
+  });
+
   test('404 page meets axe region rule requirements', () => {
     const html = fs.readFileSync(page404Path, 'utf-8');
 
