@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import * as cheerio from 'cheerio';
 
 // Utility: calculate relative luminance per WCAG 2.x
 function relativeLuminance(hexColor) {
