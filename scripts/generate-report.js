@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const STATIC_DIR = path.resolve(__dirname, '..', 'static');
 
 const SITE_DIR = 'site';
 const RUNS_DIR = path.join(SITE_DIR, 'runs');
@@ -94,8 +95,12 @@ function main() {
         fs.mkdirSync(SITE_DIR, { recursive: true });
     }
 
-    // Copy static 404.html to site/ so GitHub Pages serves it with the correct lang attribute
-    copyStaticFiles();
+    // Copy static pages to site directory so they are deployed with correct content
+    const static404Src = path.join(STATIC_DIR, '404.html');
+    const static404Dst = path.join(SITE_DIR, '404.html');
+    if (fs.existsSync(static404Src)) {
+        fs.copyFileSync(static404Src, static404Dst);
+    }
 
     // Only skip if both runs and archives are empty
     if (!fs.existsSync(RUNS_DIR) && !fs.existsSync(ARCHIVES_DIR)) {
