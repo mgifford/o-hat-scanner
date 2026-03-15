@@ -4,6 +4,9 @@ import crypto from 'crypto';
 
 import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const SITE_DIR = 'site';
 const RUNS_DIR = path.join(SITE_DIR, 'runs');
 const ARCHIVES_DIR = path.join(SITE_DIR, 'archives');
@@ -78,10 +81,22 @@ const SEVERITY_MAP = {
     'review': { label: 'Manual Review Required', order: 3, color: '#1976d2' }
 };
 
+function copyStaticFiles() {
+    const static404Src = path.join(__dirname, '..', 'static', '404.html');
+    const static404Dest = path.join(SITE_DIR, '404.html');
+    if (fs.existsSync(static404Src)) {
+        fs.copyFileSync(static404Src, static404Dest);
+    }
+}
+
 function main() {
     if (!fs.existsSync(SITE_DIR)) {
         fs.mkdirSync(SITE_DIR, { recursive: true });
     }
+
+    // Copy static 404.html to site/ so GitHub Pages serves it with the correct lang attribute
+    copyStaticFiles();
+
     // Only skip if both runs and archives are empty
     if (!fs.existsSync(RUNS_DIR) && !fs.existsSync(ARCHIVES_DIR)) {
         fs.mkdirSync(RUNS_DIR, { recursive: true });
@@ -1977,4 +1992,4 @@ function esc(s) {
     return String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }
 
-export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort, generateMainIndex, extractDomain };
+export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort, generateMainIndex, extractDomain, copyStaticFiles };
