@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import * as cheerio from 'cheerio';
 
 describe('404 page landmark accessibility', () => {
   const __dirname = path.dirname(new URL(import.meta.url).pathname);
@@ -47,5 +48,37 @@ describe('404 page landmark accessibility', () => {
       expect(mainContent).toContain('<p>');
       expect(mainContent).toContain('<a');
     }
+  });
+
+  test('all links on 404 page have discernible text (link-name rule)', () => {
+    const html = fs.readFileSync(page404Path, 'utf-8');
+    const $ = cheerio.load(html);
+
+    const links = $('a');
+
+    // There must be at least one link on the page
+    expect(links.length).toBeGreaterThan(0);
+
+    links.each((_, el) => {
+      const $el = $(el);
+
+      // A link has discernible text if it has:
+      // 1. Non-empty visible text content, OR
+      // 2. An aria-label attribute with non-empty value, OR
+      // 3. An aria-labelledby attribute, OR
+      // 4. A title attribute with non-empty value
+      const visibleText = $el.text().trim();
+      const ariaLabel = ($el.attr('aria-label') || '').trim();
+      const ariaLabelledby = $el.attr('aria-labelledby');
+      const titleAttr = ($el.attr('title') || '').trim();
+
+      const hasDiscernibleText =
+        visibleText.length > 0 ||
+        ariaLabel.length > 0 ||
+        !!ariaLabelledby ||
+        titleAttr.length > 0;
+
+      expect(hasDiscernibleText).toBe(true);
+    });
   });
 });
