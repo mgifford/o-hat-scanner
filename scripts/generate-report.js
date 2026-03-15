@@ -78,10 +78,39 @@ const SEVERITY_MAP = {
     'review': { label: 'Manual Review Required', order: 3, color: '#1976d2' }
 };
 
+function generate404Page() {
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 40px 20px; text-align: center; background-color: #f5f5f5; color: #333; }
+        h1 { font-size: 32px; margin-bottom: 16px; color: #0a2540; }
+        p { font-size: 18px; margin-bottom: 24px; }
+        a { color: #1976d2; text-decoration: none; font-weight: 600; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Page Not Found</h1>
+        <p>Sorry, the page you were looking for could not be found.</p>
+        <p><a href="/o-hat-scanner/">Return to Homepage</a></p>
+    </main>
+</body>
+</html>
+`;
+    fs.writeFileSync(path.join(SITE_DIR, '404.html'), html);
+    console.log('Generated 404 page.');
+}
+
 function main() {
     if (!fs.existsSync(SITE_DIR)) {
         fs.mkdirSync(SITE_DIR, { recursive: true });
     }
+    generate404Page();
     // Only skip if both runs and archives are empty
     if (!fs.existsSync(RUNS_DIR) && !fs.existsSync(ARCHIVES_DIR)) {
         fs.mkdirSync(RUNS_DIR, { recursive: true });
@@ -1977,4 +2006,4 @@ function esc(s) {
     return String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }
 
-export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort, generateMainIndex, extractDomain };
+export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort, generateMainIndex, generate404Page, extractDomain };
