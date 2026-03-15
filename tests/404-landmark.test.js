@@ -48,4 +48,32 @@ describe('404 page landmark accessibility', () => {
       expect(mainContent).toContain('<a');
     }
   });
+
+  test('generate-report copies 404.html to site/ so it is deployed to GitHub Pages', async () => {
+    // Import the report generator and trigger it
+    const { generateMainIndex } = await import('../scripts/generate-report.js');
+
+    // Ensure site/ exists (report generator creates it)
+    const siteDir = path.join(ROOT, 'site');
+    fs.mkdirSync(siteDir, { recursive: true });
+
+    // generateMainIndex does not copy statics; verify that running the full
+    // generate-report script (node scripts/generate-report.js) produces site/404.html.
+    // We test the copyStaticFiles side-effect by calling the script directly.
+    const { execFileSync } = await import('child_process');
+    execFileSync(process.execPath, [path.join(ROOT, 'scripts', 'generate-report.js')], { cwd: ROOT });
+
+    const site404Path = path.join(siteDir, '404.html');
+    expect(fs.existsSync(site404Path)).toBe(true);
+
+    const html = fs.readFileSync(site404Path, 'utf-8');
+    // Must contain a main landmark
+    expect(html).toMatch(/<main[^>]*>/);
+    // h1 must be inside main
+    const mainMatch = html.match(/<main[^>]*>([\s\S]*?)<\/main>/);
+    expect(mainMatch).toBeTruthy();
+    if (mainMatch) {
+      expect(mainMatch[1]).toContain('<h1>');
+    }
+  });
 });
