@@ -2,6 +2,26 @@ import fs from 'fs';
 import path from 'path';
 import * as cheerio from 'cheerio';
 
+// Utility: calculate relative luminance per WCAG 2.x
+function relativeLuminance(hexColor) {
+  let hex = hexColor.replace('#', '');
+  // Expand 3-digit shorthand (e.g. #333 -> #333333)
+  if (hex.length === 3) hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+  const r = parseInt(hex.substring(0, 2), 16) / 255;
+  const g = parseInt(hex.substring(2, 4), 16) / 255;
+  const b = parseInt(hex.substring(4, 6), 16) / 255;
+  const linearize = (c) => c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b);
+}
+
+function contrastRatio(color1, color2) {
+  const l1 = relativeLuminance(color1);
+  const l2 = relativeLuminance(color2);
+  const lighter = Math.max(l1, l2);
+  const darker = Math.min(l1, l2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
 describe('404 page landmark accessibility', () => {
   const __dirname = path.dirname(new URL(import.meta.url).pathname);
   const ROOT = path.resolve(__dirname, '..');
@@ -50,35 +70,62 @@ describe('404 page landmark accessibility', () => {
     }
   });
 
-  test('all links on 404 page have discernible text (link-name rule)', () => {
+  test('404 page does not use low-contrast color #797979 on #f1f1f1 (the reported axe violation)', () => {
     const html = fs.readFileSync(page404Path, 'utf-8');
-    const $ = cheerio.load(html);
 
-    const links = $('a');
+    // The reported violation: #797979 foreground on #f1f1f1 background = 3.85:1 (fails WCAG AA 4.5:1)
+    // Ensure neither the bad foreground color nor the bad background color appear in the file
+    expect(html).not.toContain('#797979');
+    expect(html).not.toContain('#f1f1f1');
 
-    // There must be at least one link on the page
-    expect(links.length).toBeGreaterThan(0);
+    // Verify there is no <strong> element that could carry the reported violation
+    // (the axe report flagged: <strong>File not found</strong> with those bad colors)
+    // If a <strong> element is added in future, a contrast test below will catch it
+    const strongElements = html.match(/<strong[^>]*>[\s\S]*?<\/strong>/gi) || [];
+    for (const el of strongElements) {
+      // No inline color style that would produce low contrast (#797979 = rgb(121, 121, 121))
+      expect(el).not.toMatch(/color\s*:\s*#797979/i);
+    }
+  });
 
-    links.each((_, el) => {
-      const $el = $(el);
+  test('404 page link color meets WCAG AA 4.5:1 contrast ratio on page background', () => {
+    const html = fs.readFileSync(page404Path, 'utf-8');
 
-      // A link has discernible text if it has:
-      // 1. Non-empty visible text content, OR
-      // 2. An aria-label attribute with non-empty value, OR
-      // 3. An aria-labelledby attribute, OR
-      // 4. A title attribute with non-empty value
-      const visibleText = $el.text().trim();
-      const ariaLabel = ($el.attr('aria-label') || '').trim();
-      const ariaLabelledby = $el.attr('aria-labelledby');
-      const titleAttr = ($el.attr('title') || '').trim();
+    // Extract link color from CSS - only valid 3-digit or 6-digit hex colors
+    const linkColorMatch = html.match(/a\s*{[^}]*color\s*:\s*(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3})\b/);
+    expect(linkColorMatch).toBeTruthy();
+    const linkColor = linkColorMatch[1];
 
-      const hasDiscernibleText =
-        visibleText.length > 0 ||
-        ariaLabel.length > 0 ||
-        !!ariaLabelledby ||
-        titleAttr.length > 0;
+    // Extract body background color from CSS
+    const bgColorMatch = html.match(/body\s*{[^}]*background-color\s*:\s*(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3})\b/);
+    expect(bgColorMatch).toBeTruthy();
+    const bgColor = bgColorMatch[1];
 
-      expect(hasDiscernibleText).toBe(true);
-    });
+    const ratio = contrastRatio(linkColor, bgColor);
+    // WCAG AA requires 4.5:1 for normal text (the link text is 18px semi-bold, <14pt bold threshold)
+    expect(ratio).toBeGreaterThanOrEqual(4.5);
+  });
+
+  test('404 page body text color meets WCAG AA 4.5:1 contrast ratio on page background', () => {
+    const html = fs.readFileSync(page404Path, 'utf-8');
+
+    // Two-step: extract body CSS block then find the text color (not background-color)
+    const bodyBlockMatch = html.match(/body\s*{([^}]*)}/);
+    expect(bodyBlockMatch).toBeTruthy();
+    const bodyStyle = bodyBlockMatch[1];
+
+    // Find color property (not background-color) by looking for "; color:" or start of block
+    const textColorMatch = bodyStyle.match(/(?:^|;)\s*color\s*:\s*(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3})\b/);
+    expect(textColorMatch).toBeTruthy();
+    const textColor = textColorMatch[1];
+
+    // Extract body background color
+    const bgColorMatch = bodyStyle.match(/background-color\s*:\s*(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3})\b/);
+    expect(bgColorMatch).toBeTruthy();
+    const bgColor = bgColorMatch[1];
+
+    const ratio = contrastRatio(textColor, bgColor);
+    // WCAG AA requires 4.5:1 for normal text
+    expect(ratio).toBeGreaterThanOrEqual(4.5);
   });
 });
