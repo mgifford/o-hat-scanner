@@ -9,6 +9,7 @@ let generateRunPage;
 let generateMainIndex;
 let generateTrendsPage;
 let analyzeResults;
+let copyStaticFiles;
 
 describe('HTML lang attribute accessibility (html-has-lang)', () => {
     const runId = 'test-lang-run';
@@ -52,6 +53,7 @@ describe('HTML lang attribute accessibility (html-has-lang)', () => {
         generateMainIndex = module.generateMainIndex;
         generateTrendsPage = module.generateTrendsPage;
         analyzeResults = module.analyzeResults;
+        copyStaticFiles = module.copyStaticFiles;
     });
 
     afterAll(() => {
@@ -64,6 +66,7 @@ describe('HTML lang attribute accessibility (html-has-lang)', () => {
             fs.rmSync(path.join(siteDir, 'index.html'), { force: true });
             fs.rmSync(path.join(siteDir, 'trends.html'), { force: true });
             fs.rmSync(path.join(siteDir, 'aggregate.csv'), { force: true });
+            fs.rmSync(path.join(siteDir, '404.html'), { force: true });
         } catch (err) {
             // Ignore cleanup errors
         }
@@ -197,6 +200,18 @@ describe('HTML lang attribute accessibility (html-has-lang)', () => {
         const html = fs.readFileSync(static404Path, 'utf-8');
         
         // Verify <html> tag has lang attribute
+        expect(html).toMatch(/<html\s+[^>]*lang="en"[^>]*>/);
+    });
+
+    test('copyStaticFiles copies 404.html with lang="en" to site/', () => {
+        // copyStaticFiles should deploy static/404.html to site/404.html
+        fs.mkdirSync(siteDir, { recursive: true });
+        copyStaticFiles();
+
+        const site404Path = path.join(siteDir, '404.html');
+        expect(fs.existsSync(site404Path)).toBe(true);
+
+        const html = fs.readFileSync(site404Path, 'utf-8');
         expect(html).toMatch(/<html\s+[^>]*lang="en"[^>]*>/);
     });
 });

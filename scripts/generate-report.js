@@ -11,7 +11,6 @@ const STATIC_DIR = path.resolve(__dirname, '..', 'static');
 const SITE_DIR = 'site';
 const RUNS_DIR = path.join(SITE_DIR, 'runs');
 const ARCHIVES_DIR = path.join(SITE_DIR, 'archives');
-const STATIC_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'static');
 const MAX_INDEX_RUNS_PER_DOMAIN = 3;
 
 function formatRunIdShort(runId = '') {
