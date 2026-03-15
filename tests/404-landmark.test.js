@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import * as cheerio from 'cheerio';
 
 // Utility: calculate relative luminance per WCAG 2.x
 function relativeLuminance(hexColor) {
@@ -143,5 +144,29 @@ describe('404 page landmark accessibility', () => {
     const ratio = contrastRatio(textColor, bgColor);
     // WCAG AA requires 4.5:1 for normal text
     expect(ratio).toBeGreaterThanOrEqual(4.5);
+  });
+
+  test('generate-report copies 404.html to site/ so it is deployed to GitHub Pages', async () => {
+    const { copyStaticFiles } = await import('../scripts/generate-report.js');
+
+    // Ensure site/ exists (report generator creates it)
+    const siteDir = path.join(ROOT, 'site');
+    fs.mkdirSync(siteDir, { recursive: true });
+
+    // Call copyStaticFiles directly to test the static file copy logic in isolation
+    copyStaticFiles();
+
+    const site404Path = path.join(siteDir, '404.html');
+    expect(fs.existsSync(site404Path)).toBe(true);
+
+    const html = fs.readFileSync(site404Path, 'utf-8');
+    // Must contain a main landmark
+    expect(html).toMatch(/<main[^>]*>/);
+    // h1 must be inside main
+    const mainMatch = html.match(/<main[^>]*>([\s\S]*?)<\/main>/);
+    expect(mainMatch).toBeTruthy();
+    if (mainMatch) {
+      expect(mainMatch[1]).toContain('<h1>');
+    }
   });
 });

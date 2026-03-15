@@ -11,6 +11,7 @@ const STATIC_DIR = path.resolve(__dirname, '..', 'static');
 const SITE_DIR = 'site';
 const RUNS_DIR = path.join(SITE_DIR, 'runs');
 const ARCHIVES_DIR = path.join(SITE_DIR, 'archives');
+const STATIC_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'static');
 const MAX_INDEX_RUNS_PER_DOMAIN = 3;
 
 function formatRunIdShort(runId = '') {
@@ -82,18 +83,23 @@ const SEVERITY_MAP = {
     'review': { label: 'Manual Review Required', order: 3, color: '#1976d2' }
 };
 
+function copyStaticFiles() {
+    if (!fs.existsSync(STATIC_DIR)) return;
+    const files = fs.readdirSync(STATIC_DIR);
+    for (const file of files) {
+        const src = path.join(STATIC_DIR, file);
+        const dest = path.join(SITE_DIR, file);
+        if (fs.statSync(src).isFile()) {
+            fs.copyFileSync(src, dest);
+        }
+    }
+}
+
 function main() {
     if (!fs.existsSync(SITE_DIR)) {
         fs.mkdirSync(SITE_DIR, { recursive: true });
     }
-
-    // Copy static pages to site directory so they are deployed with correct content
-    const static404Src = path.join(STATIC_DIR, '404.html');
-    const static404Dst = path.join(SITE_DIR, '404.html');
-    if (fs.existsSync(static404Src)) {
-        fs.copyFileSync(static404Src, static404Dst);
-    }
-
+    copyStaticFiles();
     // Only skip if both runs and archives are empty
     if (!fs.existsSync(RUNS_DIR) && !fs.existsSync(ARCHIVES_DIR)) {
         fs.mkdirSync(RUNS_DIR, { recursive: true });
@@ -617,7 +623,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
 
         .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
         .card { background: var(--card-bg); border: 1px solid var(--panel-border); border-radius: 6px; padding: 1rem; }
-        .card h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 0.35rem; }
+        .card h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 0.35rem; font-weight: normal; }
         .card .value { font-size: 30px; font-weight: 700; color: #000; background: #fff; padding: 2px 4px; border-radius: 3px; display: inline-block; }
         .card .subtext { font-size: 12px; color: var(--muted); margin-top: 4px; }
         [data-theme="dark"] .card .value { color: #fff; background: #0f141a; }
@@ -823,27 +829,27 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
 
                 <div class="summary-grid">
                     <div class="card">
-                        <h4>Pages scanned</h4>
+                        <h2>Pages scanned</h2>
                         <div class="value">${urls.length}</div>
                         <div class="subtext">Targets from sitemap or config</div>
                     </div>
                     <div class="card">
-                        <h4>Pages with issues</h4>
+                        <h2>Pages with issues</h2>
                         <div class="value">${pagesWithIssues}</div>
                         <div class="subtext">${Math.round((pagesWithIssues / Math.max(urls.length, 1)) * 100)}% of pages</div>
                     </div>
                     <div class="card critical">
-                        <h4>Must Fix</h4>
+                        <h2>Must Fix</h2>
                         <div class="value">${mustFixCount}</div>
                         <div class="subtext">Critical / Serious impacts</div>
                     </div>
                     <div class="card warning">
-                        <h4>Good to Fix</h4>
+                        <h2>Good to Fix</h2>
                         <div class="value">${goodToFixCount}</div>
                         <div class="subtext">Moderate / Minor impacts</div>
                     </div>
                     <div class="card info">
-                        <h4>Manual review</h4>
+                        <h2>Manual review</h2>
                         <div class="value">${reviewCount}</div>
                         <div class="subtext">Potential false positives</div>
                     </div>
@@ -1989,4 +1995,4 @@ function esc(s) {
     return String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }
 
-export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort, generateMainIndex, extractDomain };
+export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort, generateMainIndex, extractDomain, copyStaticFiles };
