@@ -82,18 +82,23 @@ const SEVERITY_MAP = {
     'review': { label: 'Manual Review Required', order: 3, color: '#1976d2' }
 };
 
+function copyStaticFiles() {
+    if (!fs.existsSync(STATIC_DIR)) return;
+    const files = fs.readdirSync(STATIC_DIR);
+    for (const file of files) {
+        const src = path.join(STATIC_DIR, file);
+        const dest = path.join(SITE_DIR, file);
+        if (fs.statSync(src).isFile()) {
+            fs.copyFileSync(src, dest);
+        }
+    }
+}
+
 function main() {
     if (!fs.existsSync(SITE_DIR)) {
         fs.mkdirSync(SITE_DIR, { recursive: true });
     }
-
-    // Copy static pages to site directory so they are deployed with correct content
-    const static404Src = path.join(STATIC_DIR, '404.html');
-    const static404Dst = path.join(SITE_DIR, '404.html');
-    if (fs.existsSync(static404Src)) {
-        fs.copyFileSync(static404Src, static404Dst);
-    }
-
+    copyStaticFiles();
     // Only skip if both runs and archives are empty
     if (!fs.existsSync(RUNS_DIR) && !fs.existsSync(ARCHIVES_DIR)) {
         fs.mkdirSync(RUNS_DIR, { recursive: true });
@@ -1989,4 +1994,4 @@ function esc(s) {
     return String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }
 
-export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort, generateMainIndex, extractDomain };
+export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort, generateMainIndex, extractDomain, copyStaticFiles };
