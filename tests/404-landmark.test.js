@@ -1,13 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-<<<<<<< copilot/fix-accessibility-issue-main-landmark
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-=======
-import * as cheerio from 'cheerio';
->>>>>>> main
 
 // Utility: calculate relative luminance per WCAG 2.x
 function relativeLuminance(hexColor) {
