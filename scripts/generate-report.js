@@ -93,8 +93,8 @@ function generate404Page() {
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 40px 20px; text-align: center; background-color: #f5f5f5; color: #333; }
         h1 { font-size: 32px; margin-bottom: 16px; color: #0a2540; }
         p { font-size: 18px; margin-bottom: 24px; }
-        a { color: #1976d2; text-decoration: none; font-weight: 600; }
-        a:hover { text-decoration: underline; }
+        a { color: #1565c0; text-decoration: underline; font-weight: 600; }
+        a:hover { text-decoration: none; }
     </style>
 </head>
 <body>

@@ -219,4 +219,31 @@ describe('generate404Page deploys main landmark to site/', () => {
     const html = fs.readFileSync(site404Path, 'utf-8');
     expect(html).toMatch(/<html[^>]*lang=/);
   });
+
+  test('site/404.html link color meets WCAG AA 4.5:1 contrast ratio on page background', () => {
+    const html = fs.readFileSync(site404Path, 'utf-8');
+
+    // Extract link color from CSS
+    const linkColorMatch = html.match(/a\s*{[^}]*color\s*:\s*(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3})\b/);
+    expect(linkColorMatch).toBeTruthy();
+    const linkColor = linkColorMatch[1];
+
+    // Extract body background color from CSS
+    const bgColorMatch = html.match(/body\s*{[^}]*background-color\s*:\s*(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3})\b/);
+    expect(bgColorMatch).toBeTruthy();
+    const bgColor = bgColorMatch[1];
+
+    const ratio = contrastRatio(linkColor, bgColor);
+    // WCAG AA requires 4.5:1 for normal text
+    expect(ratio).toBeGreaterThanOrEqual(4.5);
+  });
+
+  test('site/404.html link has text-decoration underline at base level (WCAG SC 1.4.1)', () => {
+    const html = fs.readFileSync(site404Path, 'utf-8');
+    const styleMatch = html.match(/<style>([\s\S]*?)<\/style>/);
+    expect(styleMatch).toBeTruthy();
+    const css = styleMatch[1];
+    expect(css).toMatch(/\ba\s*\{[^}]*text-decoration:\s*underline[^}]*\}/);
+    expect(css).not.toMatch(/\ba\s*\{[^}]*text-decoration:\s*none[^}]*\}/);
+  });
 });
