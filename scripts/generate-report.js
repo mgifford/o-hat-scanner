@@ -82,7 +82,6 @@ const SEVERITY_MAP = {
     'review': { label: 'Manual Review Required', order: 3, color: '#1976d2' }
 };
 
-<<<<<<< copilot/fix-accessibility-issue-main-landmark
 function generate404Page() {
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -109,7 +108,8 @@ function generate404Page() {
 `;
     fs.writeFileSync(path.join(SITE_DIR, '404.html'), html);
     console.log('Generated 404 page.');
-=======
+}
+
 function copyStaticFiles() {
     if (!fs.existsSync(STATIC_DIR)) return;
     const files = fs.readdirSync(STATIC_DIR);
@@ -120,7 +120,6 @@ function copyStaticFiles() {
             fs.copyFileSync(src, dest);
         }
     }
->>>>>>> main
 }
 
 function main() {
@@ -128,7 +127,7 @@ function main() {
         fs.mkdirSync(SITE_DIR, { recursive: true });
     }
     copyStaticFiles();
-    // Only skip if both runs and archives are empty
+    generate404Page();
     if (!fs.existsSync(RUNS_DIR) && !fs.existsSync(ARCHIVES_DIR)) {
         fs.mkdirSync(RUNS_DIR, { recursive: true });
         console.log('No runs found. Skipping report generation to preserve existing data.');
@@ -2023,8 +2022,4 @@ function esc(s) {
     return String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }
 
-<<<<<<< copilot/fix-accessibility-issue-main-landmark
-export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort, generateMainIndex, generate404Page, extractDomain };
-=======
-export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort, generateMainIndex, extractDomain, copyStaticFiles };
->>>>>>> main
+export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort, generateMainIndex, generate404Page, extractDomain, copyStaticFiles };
