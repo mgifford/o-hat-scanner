@@ -1,6 +1,13 @@
 import fs from 'fs';
 import path from 'path';
+<<<<<<< copilot/fix-accessibility-issue-main-landmark
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(__dirname, '..');
+=======
 import * as cheerio from 'cheerio';
+>>>>>>> main
 
 // Utility: calculate relative luminance per WCAG 2.x
 function relativeLuminance(hexColor) {
@@ -23,8 +30,6 @@ function contrastRatio(color1, color2) {
 }
 
 describe('404 page landmark accessibility', () => {
-  const __dirname = path.dirname(new URL(import.meta.url).pathname);
-  const ROOT = path.resolve(__dirname, '..');
   const page404Path = path.join(ROOT, 'static', '404.html');
 
   test('404 page has main landmark wrapping all content', () => {
@@ -168,5 +173,54 @@ describe('404 page landmark accessibility', () => {
     if (mainMatch) {
       expect(mainMatch[1]).toContain('<h1>');
     }
+  });
+});
+
+describe('generate404Page deploys main landmark to site/', () => {
+  const siteDir = path.join(ROOT, 'site');
+  const site404Path = path.join(siteDir, '404.html');
+  let generate404Page;
+
+  beforeAll(async () => {
+    process.env.NODE_ENV = 'test';
+    ({ generate404Page } = await import('../scripts/generate-report.js'));
+    fs.mkdirSync(siteDir, { recursive: true });
+    generate404Page();
+  });
+
+  afterAll(() => {
+    try {
+      fs.rmSync(site404Path, { force: true });
+    } catch (err) {
+      // Ignore cleanup errors
+    }
+  });
+
+  test('generate404Page writes site/404.html', () => {
+    expect(fs.existsSync(site404Path)).toBe(true);
+  });
+
+  test('site/404.html has a main landmark (landmark-one-main)', () => {
+    const html = fs.readFileSync(site404Path, 'utf-8');
+    expect(html).toMatch(/<main[^>]*>/);
+  });
+
+  test('site/404.html main landmark wraps h1 and content', () => {
+    const html = fs.readFileSync(site404Path, 'utf-8');
+
+    const mainStart = html.indexOf('<main');
+    const mainEnd = html.indexOf('</main>');
+    const h1Index = html.indexOf('<h1>');
+
+    expect(mainStart).toBeGreaterThan(-1);
+    expect(mainEnd).toBeGreaterThan(-1);
+    expect(h1Index).toBeGreaterThan(-1);
+    expect(h1Index).toBeGreaterThan(mainStart);
+    expect(h1Index).toBeLessThan(mainEnd);
+  });
+
+  test('site/404.html has lang attribute on html element', () => {
+    const html = fs.readFileSync(site404Path, 'utf-8');
+    expect(html).toMatch(/<html[^>]*lang=/);
   });
 });
