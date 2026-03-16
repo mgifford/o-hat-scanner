@@ -1,9 +1,13 @@
 import fs from 'fs';
 import path from 'path';
+<<<<<<< copilot/fix-accessibility-issue-main-landmark
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
+=======
+import * as cheerio from 'cheerio';
+>>>>>>> main
 
 // Utility: calculate relative luminance per WCAG 2.x
 function relativeLuminance(hexColor) {
@@ -48,6 +52,23 @@ describe('404 page landmark accessibility', () => {
     // Ensure h1 is between main opening and closing tags
     expect(h1Index).toBeGreaterThan(mainStart);
     expect(h1Index).toBeLessThan(mainEnd);
+  });
+
+  test('404 page links have text-decoration underline to meet WCAG 2.1 SC 1.4.1 (link-in-text-block)', () => {
+    const html = fs.readFileSync(page404Path, 'utf-8');
+
+    // Extract the CSS style block
+    const styleMatch = html.match(/<style>([\s\S]*?)<\/style>/);
+    expect(styleMatch).toBeTruthy();
+
+    const css = styleMatch[1];
+
+    // Links must have text-decoration: underline at the base level so they are
+    // distinguishable from surrounding text without relying on color alone
+    expect(css).toMatch(/\ba\s*\{[^}]*text-decoration:\s*underline[^}]*\}/);
+
+    // Links must NOT rely solely on color (no text-decoration: none at base level)
+    expect(css).not.toMatch(/\ba\s*\{[^}]*text-decoration:\s*none[^}]*\}/);
   });
 
   test('404 page meets axe region rule requirements', () => {
@@ -128,6 +149,30 @@ describe('404 page landmark accessibility', () => {
     const ratio = contrastRatio(textColor, bgColor);
     // WCAG AA requires 4.5:1 for normal text
     expect(ratio).toBeGreaterThanOrEqual(4.5);
+  });
+
+  test('generate-report copies 404.html to site/ so it is deployed to GitHub Pages', async () => {
+    const { copyStaticFiles } = await import('../scripts/generate-report.js');
+
+    // Ensure site/ exists (report generator creates it)
+    const siteDir = path.join(ROOT, 'site');
+    fs.mkdirSync(siteDir, { recursive: true });
+
+    // Call copyStaticFiles directly to test the static file copy logic in isolation
+    copyStaticFiles();
+
+    const site404Path = path.join(siteDir, '404.html');
+    expect(fs.existsSync(site404Path)).toBe(true);
+
+    const html = fs.readFileSync(site404Path, 'utf-8');
+    // Must contain a main landmark
+    expect(html).toMatch(/<main[^>]*>/);
+    // h1 must be inside main
+    const mainMatch = html.match(/<main[^>]*>([\s\S]*?)<\/main>/);
+    expect(mainMatch).toBeTruthy();
+    if (mainMatch) {
+      expect(mainMatch[1]).toContain('<h1>');
+    }
   });
 });
 
