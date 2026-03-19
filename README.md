@@ -525,6 +525,26 @@ This filtering is applied automatically after sitemap/crawl discovery and before
 
 **Standalone Scanner UI:**
 
+## 🤖 AI Disclosure
+
+This project was developed with the assistance of AI tools. This section documents which AI systems have been used, in what capacity, and whether any AI is active at runtime or in the browser.
+
+### Tools used
+
+| AI Tool | Provider | Build-time use | Runtime use | Browser-based AI |
+|---|---|---|---|---|
+| **GitHub Copilot** | GitHub / Microsoft | Yes — code generation, refactoring, and test authoring across the repository. PRs authored or co-authored by the Copilot agent are labeled with the `copilot/` branch prefix. | No | No |
+| **Claude (Sonnet / Opus)** | Anthropic | Yes — used via the GitHub Copilot coding agent (which runs on Claude models) to implement features, write documentation, and fix bugs. | No | No |
+
+### Explanatory notes
+
+- **Build-time use**: Both tools above assisted human developers in writing and reviewing source code, scripts, tests, and documentation. No code was committed without human review of a pull request.
+- **Runtime use**: The scanner itself (Playwright + axe-core) does **not** call any LLM or AI API during a scan. Reports are generated from static axe-core rule output with no AI post-processing.
+- **Browser-based AI**: The generated static HTML reports contain no calls to browser AI APIs (e.g., Chrome's `window.ai`, WebGPU-based models, etc.). All interactivity is plain client-side JavaScript.
+- **Bing Search API**: The optional `discover` mode can call the Bing Web Search v7 API (a search index, not a generative AI) when a `BING_API_KEY` secret is configured. This is a traditional keyword search service and is not an LLM.
+
+> **Keep this section current.** If you add or use a new AI tool while contributing to this repository, update this table per the instructions in `AGENTS.md`.
+
 ## License
 
 AGPL-3.0 - See [LICENSE](LICENSE) for details.

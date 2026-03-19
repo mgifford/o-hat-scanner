@@ -254,6 +254,22 @@ The test suite includes 19 test files covering:
 
 ---
 
+## AI disclosure requirement
+
+When an AI agent contributes to this repository, it **must** update the `## 🤖 AI Disclosure` section in `README.md`:
+
+- Add your LLM/tool name and version (if known) to the list if it is not already present.
+- Describe specifically what you did (e.g., "Implemented language-diversity filter", "Wrote unit tests for X").
+- Do **not** list AI tools that have not actually been used in this project.
+- Keep the section accurate and up-to-date — do not overstate or understate AI involvement.
+
+This disclosure covers three dimensions for each tool:
+1. **Build-time use**: Was the LLM used to write, refactor, or review code/documentation?
+2. **Runtime use**: Is the LLM called or invoked when the scanner runs (scans, reports, CI jobs)?
+3. **Browser-based AI**: Does the generated report UI invoke any in-browser AI APIs?
+
+---
+
 ## What not to do
 - Do not remove GitHub Pages deployment or move reports out of /site.
 - Do not weaken or remove testing or accessibility requirements.
