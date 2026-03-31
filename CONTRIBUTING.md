@@ -49,7 +49,7 @@ Contributions that improve usability, accessibility, and documentation are just 
 You will need:
 
 - Git
-- Node.js (LTS recommended)
+- Node.js 24 LTS (or later)
 - npm or pnpm
 
 Check versions:

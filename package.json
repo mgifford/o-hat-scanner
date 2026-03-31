@@ -9,6 +9,9 @@
     "report": "node scripts/generate-report.js",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest"
   },
+  "engines": {
+    "node": ">=24"
+  },
   "keywords": [
     "accessibility",
     "a11y",
