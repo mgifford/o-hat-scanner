@@ -35,6 +35,28 @@ function hashForNode(url, selector) {
     return crypto.createHash('md5').update(input).digest('hex');
 }
 
+/**
+ * Extract WCAG success criterion numbers from axe-core violation tags.
+ * Axe encodes criteria by concatenating digits, e.g. "wcag111" → "1.1.1",
+ * "wcag1412" → "1.4.12". Version/level tags such as "wcag2a" or "wcag21aa"
+ * are ignored.
+ * @param {string[]} tags - axe-core violation tags
+ * @returns {string} comma-separated WCAG SC numbers, or empty string
+ */
+function extractWcagCriteria(tags = []) {
+    if (!Array.isArray(tags)) return '';
+    const criteria = [];
+    for (const tag of tags) {
+        // Match wcag + exactly one digit for each of the first two SC components,
+        // then one or more digits for the third component (handles 1.4.12 etc.)
+        const match = tag.match(/^wcag(\d)(\d)(\d+)$/);
+        if (match) {
+            criteria.push(`${match[1]}.${match[2]}.${match[3]}`);
+        }
+    }
+    return criteria.join(', ');
+}
+
 function collectRunEntries() {
     const entries = [];
     
@@ -986,7 +1008,7 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
                                     <div class="violation-item" data-violation="${esc(violationId)}">
                                         <div class="violation-id">${esc(violationId)}</div>
                                         <div class="violation-help">${esc(help)}</div>
-                                        <div class="violation-meta">Impact: ${esc(impact || 'unknown')} · Pages with issue: ${pages.size}</div>
+                                        <div class="violation-meta">Impact: ${esc(impact || 'unknown')} · Pages with issue: ${pages.size} / ${urls.length} scanned</div>
                                         ${helpUrl ? `<div><a class="learn-more" href="${esc(helpUrl)}" target="_blank" rel="noopener">Learn more</a></div>` : ''}
                                         <button class="copy-btn" type="button" data-copy-violation="true">Copy failure details</button>
                                         ${(() => {
@@ -1510,13 +1532,13 @@ function generateCSV(runId, runRelPath, results) {
                 const severityClass = mapSeverity(v.impact);
                 const severityLabel = SEVERITY_MAP[severityClass]?.label || 'Manual Review Required';
                 const row = [
-                    "None", // customFlowLabel
-                    "Desktop", // deviceChosen
+                    results.config?.label || "None", // customFlowLabel
+                    results.config?.viewport === 'mobile' ? 'Mobile' : 'Desktop', // deviceChosen
                     results.finishedAt || new Date().toISOString(), // scanCompletedAt
                     severityLabel, // severity
                     v.id, // issueId
                     v.description, // issueDescription
-                    v.tags ? v.tags.join(',') : '', // wcagConformance
+                    extractWcagCriteria(v.tags), // wcagConformance
                     url, // url
                     data.title || '', // pageTitle
                     node.html || '', // context
@@ -1944,6 +1966,7 @@ function analyzeResults(results) {
     }
 
     return {
+        pagesScanned: urls.length,
         mustFixCount,
         goodToFixCount,
         reviewCount,
@@ -2022,4 +2045,4 @@ function esc(s) {
     return String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }
 
-export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort, generateMainIndex, generate404Page, extractDomain, copyStaticFiles };
+export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort, generateMainIndex, generate404Page, extractDomain, copyStaticFiles, extractWcagCriteria };
