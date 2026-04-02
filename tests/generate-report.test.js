@@ -5,7 +5,9 @@ const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const ROOT = path.resolve(__dirname, '..');
 
 let generateRunPage;
+let generateCSV;
 let analyzeResults;
+let extractWcagCriteria;
 let formatRunIdShort;
 
 describe('generate-report run page', () => {
@@ -52,7 +54,7 @@ describe('generate-report run page', () => {
 
     beforeAll(async () => {
         process.env.NODE_ENV = 'test';
-        ({ generateRunPage, analyzeResults, formatRunIdShort } = await import('../scripts/generate-report.js'));
+        ({ generateRunPage, generateCSV, analyzeResults, extractWcagCriteria, formatRunIdShort } = await import('../scripts/generate-report.js'));
         fs.rmSync(runDir, { recursive: true, force: true });
     });
 
@@ -240,5 +242,94 @@ describe('generate-report data loss protection', () => {
         expect(fs.existsSync(dummyIndexPath)).toBe(true);
         const contentAfter = fs.readFileSync(dummyIndexPath, 'utf-8');
         expect(contentAfter).toBe(originalContent);
+    });
+});
+
+describe('extractWcagCriteria', () => {
+    beforeAll(async () => {
+        ({ extractWcagCriteria } = await import('../scripts/generate-report.js'));
+    });
+
+    test('extracts 3-digit WCAG SC from axe tags', () => {
+        expect(extractWcagCriteria(['wcag111', 'wcag2a'])).toBe('1.1.1');
+        expect(extractWcagCriteria(['wcag143', 'wcag2aa'])).toBe('1.4.3');
+        expect(extractWcagCriteria(['wcag412', 'best-practice'])).toBe('4.1.2');
+    });
+
+    test('extracts 4-digit WCAG SC (e.g. 1.4.12) from axe tags', () => {
+        expect(extractWcagCriteria(['wcag1412', 'wcag2aa'])).toBe('1.4.12');
+    });
+
+    test('returns multiple criteria separated by comma', () => {
+        const result = extractWcagCriteria(['wcag111', 'wcag412', 'wcag2a', 'wcag2aa']);
+        expect(result).toBe('1.1.1, 4.1.2');
+    });
+
+    test('returns empty string when no SC tags present', () => {
+        expect(extractWcagCriteria(['best-practice', 'wcag2aa', 'wcag21aa'])).toBe('');
+    });
+
+    test('handles undefined/empty tags gracefully', () => {
+        expect(extractWcagCriteria([])).toBe('');
+        expect(extractWcagCriteria(undefined)).toBe('');
+    });
+});
+
+describe('generateCSV viewport handling', () => {
+    const runId = 'csv-viewport-test';
+    const domainSlug = 'csv-test-domain';
+    const runRelPath = path.join(domainSlug, runId);
+    const runDir = path.join(ROOT, 'site', 'runs', runRelPath);
+    const baseResults = {
+        startedAt: '2024-06-01T00:00:00Z',
+        finishedAt: '2024-06-01T00:01:00Z',
+        mode: 'ci',
+        targets: ['http://example.com'],
+        resultsByUrl: {
+            'http://example.com/p1': {
+                title: 'Test Page',
+                violations: [
+                    {
+                        id: 'image-alt',
+                        impact: 'critical',
+                        help: 'Images must have alt text.',
+                        tags: ['wcag111', 'wcag2a'],
+                        nodes: [{ target: ['img'], html: '<img src="a.png">', failureSummary: 'Add alt' }]
+                    }
+                ]
+            }
+        }
+    };
+
+    beforeAll(async () => {
+        ({ generateCSV } = await import('../scripts/generate-report.js'));
+        fs.mkdirSync(runDir, { recursive: true });
+    });
+
+    afterAll(() => {
+        fs.rmSync(runDir, { recursive: true, force: true });
+    });
+
+    test('deviceChosen reflects mobile viewport in CSV', () => {
+        const mobileResults = { ...baseResults, config: { viewport: 'mobile' } };
+        generateCSV(runId, runRelPath, mobileResults);
+        const csv = fs.readFileSync(path.join(runDir, 'report.csv'), 'utf-8');
+        expect(csv).toContain('"Mobile"');
+        expect(csv).not.toContain('"Desktop"');
+    });
+
+    test('deviceChosen reflects desktop viewport in CSV', () => {
+        const desktopResults = { ...baseResults, config: { viewport: 'desktop' } };
+        generateCSV(runId, runRelPath, desktopResults);
+        const csv = fs.readFileSync(path.join(runDir, 'report.csv'), 'utf-8');
+        expect(csv).toContain('"Desktop"');
+        expect(csv).not.toContain('"Mobile"');
+    });
+
+    test('wcagConformance in CSV contains proper SC numbers from tags', () => {
+        const resultsWithTags = { ...baseResults, config: { viewport: 'desktop' } };
+        generateCSV(runId, runRelPath, resultsWithTags);
+        const csv = fs.readFileSync(path.join(runDir, 'report.csv'), 'utf-8');
+        expect(csv).toContain('1.1.1');
     });
 });
