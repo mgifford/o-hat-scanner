@@ -17,7 +17,9 @@ jobs:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write      # Required: push cache to gh-cache branch
+      issues: write        # Required: file and close accessibility issues
+      pull-requests: write # Required: create fix pull requests
     steps:
       - name: Discover latest run page URL
         id: discover
@@ -43,7 +45,7 @@ jobs:
         with:
           urls: ${{ steps.discover.outputs.urls }}
           repository: mgifford/o-hat-scanner # Repository where issues will be filed
-          token: ${{ secrets.GH_TOKEN }} # Must have write access (contents, issues, PRs)
+          token: ${{ github.token }} # Built-in token with contents/issues/pull-requests write access
           cache_key: o-hat-scanner-cache_key.txt # Cache filename for incremental results
           # login_url: # Optional: URL of the login page if authentication is required
           # username: # Optional: Username for authentication
