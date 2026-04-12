@@ -6,6 +6,20 @@ This repository provides two accessibility scanning modes:
 1. **CI Scanner**: Runs in GitHub Actions using Playwright + Axe, producing a static HTML report.
 2. **Standalone Scanner**: A single HTML file you can drop into your website to scan it from the inside (same-origin).
 
+## 🔗 Related project: open-scans
+
+> **[mgifford/open-scans](https://github.com/mgifford/open-scans)** — issue-driven accessibility scanning via a public GitHub Pages form.
+
+**Use open-scans instead if you:**
+- Want to scan a batch of URLs without forking or configuring a repo.
+- Need **multi-engine comparisons** (axe-core, ALFA, IBM Equal Access, AccessLint, QualWeb) in a single run.
+- Prefer a simple submit-URL-and-wait workflow rather than managing `targets.yml` and cron schedules.
+
+**Stick with o-hat-scanner if you:**
+- Need **scheduled, automated scanning** of your own sites on a recurring basis.
+- Want full control over the scanning pipeline (modes, concurrency, discovery queries, viewport/color-scheme variants).
+- Are integrating accessibility scanning into your own CI/CD workflow.
+
 ## ℹ️ Where the reports live (GitHub Pages)
 
 - Reports are generated into `site/` during CI and deployed via the **GitHub Pages** workflow artifact (`github-pages`). The `site/` folder is not committed to the repo.
