@@ -6,7 +6,9 @@ This repository provides two accessibility scanning modes:
 1. **CI Scanner**: Runs in GitHub Actions using Playwright + Axe, producing a static HTML report.
 2. **Standalone Scanner**: A single HTML file you can drop into your website to scan it from the inside (same-origin).
 
-## 🔗 Related project: open-scans
+## 🔗 Related projects
+
+> **[mgifford/o-hat-standalone](https://github.com/mgifford/o-hat-standalone)** — standalone single-file scanner you can drop into any website to run same-origin accessibility checks directly in the browser.
 
 > **[mgifford/open-scans](https://github.com/mgifford/open-scans)** — issue-driven accessibility scanning via a public GitHub Pages form.
 
