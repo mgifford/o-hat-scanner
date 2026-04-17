@@ -156,6 +156,27 @@ function main() {
         return;
     }
 
+    // Load prior aggregate data so each run page can embed trend history in its insights panel.
+    const priorAggRows = [];
+    const aggCsvPath = path.join(SITE_DIR, 'aggregate.csv');
+    if (fs.existsSync(aggCsvPath)) {
+        try {
+            const text = fs.readFileSync(aggCsvPath, 'utf-8');
+            const lines = text.trim().split(/\r?\n/).filter(Boolean);
+            if (lines.length > 1) {
+                const headers = lines[0].split(',');
+                for (const line of lines.slice(1)) {
+                    const cols = line.split(',');
+                    const row = {};
+                    headers.forEach((h, i) => { row[h] = cols[i] || ''; });
+                    priorAggRows.push(row);
+                }
+            }
+        } catch (e) {
+            console.warn('Could not load aggregate.csv for trend history:', e.message);
+        }
+    }
+
     const runEntries = collectRunEntries();
     const runSummaries = [];
     const aggregateRows = [];
@@ -190,7 +211,7 @@ function main() {
         if (fs.existsSync(resultsPath)) {
             const results = JSON.parse(fs.readFileSync(resultsPath, 'utf-8'));
             const pageStats = analyzeResults(results);
-            generateRunPage(runId, runRelPath, results, pageStats); // creates site/runs/<domain>/<id>/index.html
+            generateRunPage(runId, runRelPath, results, pageStats, priorAggRows); // creates site/runs/<domain>/<id>/index.html
             generateCSV(runId, runRelPath, results); // creates site/runs/<domain>/<id>/report.csv
             aggregateRows.push(...buildAggregateRows(runId, results, pageStats));
             
@@ -530,7 +551,7 @@ function generateMainIndex(summaries) {
     console.log('Generated main index.');
 }
 
-function generateRunPage(runId, runRelPath, results, pageStats) {
+function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = []) {
     const urls = Object.keys(results.resultsByUrl);
     const processedUrls = urls;
     const { mustFixCount, goodToFixCount, reviewCount, pagesWithIssues, automationCoverage } = pageStats;
@@ -548,6 +569,10 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
         const samplingLabel = `${cfg.sitemapSample?.strategy || 'shuffle'}${cfg.sitemapSample?.seed ? ` (seed ${cfg.sitemapSample.seed})` : ''}`;
         const maxPagesLabel = cfg.maxPages ?? 'N/A';
     fs.mkdirSync(runDir, { recursive: true });
+
+    // Build the structured insights payload (current scan + trend history)
+    const insightsPayload = buildInsightsPayload(runId, results, pageStats, priorAggRows);
+    const insightsPayloadJson = JSON.stringify(insightsPayload);
 
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -832,7 +857,49 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             .severity-header { page-break-inside: avoid; }
             .page-row, .card, .panel { page-break-inside: avoid; }
             footer { border: none; background: #fff; }
+            #insights-section { display: none; }
         }
+
+        /* Insights panel */
+        #insights-section { margin-top: 0; max-width: 1200px; margin-left: auto; margin-right: auto; padding: 0 1rem 1rem 1rem; }
+        .insights-intro { color: var(--muted); font-size: 14px; margin: 0 0 1rem 0; }
+        .insights-buttons { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .insights-btn { padding: 10px 16px; background: var(--link); color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 14px; }
+        .insights-btn:hover { opacity: 0.9; }
+        .insights-btn:focus { outline: 2px solid var(--focus); outline-offset: 2px; }
+        .insights-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .insights-btn.active { background: #2e7d32; }
+        #ai-status { font-size: 13px; color: var(--muted); margin-bottom: 0.75rem; min-height: 1.2em; }
+        .insights-output { margin-top: 1rem; padding: 1rem; border: 1px solid var(--panel-border); border-radius: 4px; background: var(--card-bg); min-height: 3rem; font-size: 14px; line-height: 1.6; white-space: pre-wrap; display: none; }
+        .insights-output.visible { display: block; }
+        .insights-output h3, .insights-output h4, .insights-output h5 { color: var(--text); margin: 0.75rem 0 0.25rem 0; }
+        .insights-output ul, .insights-output ol { padding-left: 1.5rem; margin: 0.5rem 0; }
+        .insights-output p { margin: 0.5rem 0; }
+        .ai-warning { background: #fff3e0; border: 1px solid #f57c00; border-radius: 4px; padding: 8px 12px; margin-bottom: 0.75rem; color: #b35900; font-size: 13px; font-weight: 600; }
+        [data-theme="dark"] .ai-warning { background: #2a1f00; border-color: #f57c00; color: #ffb74d; }
+        .ai-cached-note { font-size: 12px; color: var(--muted); margin-top: 0.5rem; }
+        .insights-fallback { margin-top: 0.75rem; }
+        .fallback-prompt-wrap { margin-top: 0.75rem; }
+        .fallback-prompt-label { font-size: 13px; font-weight: 600; margin-bottom: 0.25rem; }
+        .fallback-prompt-text { font-size: 12px; background: var(--code-bg); border: 1px solid var(--panel-border); border-radius: 4px; padding: 8px; max-height: 120px; overflow-y: auto; white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        .copy-prompt-btn { margin-top: 4px; padding: 5px 10px; background: var(--link); color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        .copy-prompt-btn:focus { outline: 2px solid var(--focus); outline-offset: 2px; }
+        .copy-prompt-btn.copied { background: #4caf50; }
+        .insights-trends { margin-top: 1.5rem; border-top: 1px solid var(--panel-border); padding-top: 1rem; }
+        .insights-trends h4 { margin: 0 0 0.75rem 0; font-size: 15px; }
+        .trends-charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media (max-width: 640px) { .trends-charts-row { grid-template-columns: 1fr; } }
+        .trend-chart-wrap { }
+        .trend-chart-label { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+        .insight-trend-svg { width: 100%; height: 120px; border: 1px solid var(--panel-border); border-radius: 4px; background: var(--card-bg); display: block; }
+        .regression-alerts { margin-top: 1rem; }
+        .regression-alert { border-radius: 4px; padding: 10px 14px; font-size: 13px; margin-bottom: 0.5rem; }
+        .regression-alert.new { background: #fff3e0; border: 1px solid #f57c00; color: #b35900; }
+        .regression-alert.spike { background: #ffebee; border: 1px solid #ef9a9a; color: #b71c1c; }
+        .regression-alert.improved { background: #e8f5e9; border: 1px solid #a5d6a7; color: #1b5e20; }
+        [data-theme="dark"] .regression-alert.new { background: #2a1f00; border-color: #f57c00; color: #ffb74d; }
+        [data-theme="dark"] .regression-alert.spike { background: #2a0000; border-color: #ef9a9a; color: #ff8a80; }
+        [data-theme="dark"] .regression-alert.improved { background: #0a1f0a; border-color: #a5d6a7; color: #69f0ae; }
     </style>
 </head>
 <body>
@@ -1133,7 +1200,41 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
             </details>
         </div>
     </section>
+
+    <!-- Insights panel: audience summaries + trends -->
+    <section id="insights-section" aria-labelledby="insights-heading">
+        <div class="panel">
+            <h3 id="insights-heading">Accessibility Insights</h3>
+            <p class="insights-intro">Generate audience-specific summaries using in-browser AI (Chrome Prompt API / Gemini Nano, if available). All processing is local — no data leaves your browser. Numbers are computed from scan data and cannot be altered by the model.</p>
+            <div id="ai-status" role="status" aria-live="polite">Checking for in-browser AI availability…</div>
+            <div class="insights-buttons" role="group" aria-label="Generate accessibility summaries">
+                <button id="btn-exec" class="insights-btn" type="button" disabled>Summarize for executives</button>
+                <button id="btn-dev" class="insights-btn" type="button" disabled>Summarize for dev team</button>
+                <button id="btn-jira" class="insights-btn" type="button" disabled>Generate Jira checklist</button>
+                <button id="btn-clear" class="insights-btn" type="button" style="background: var(--muted);" hidden>Clear output</button>
+            </div>
+            <div id="insights-fallback" class="insights-fallback" hidden></div>
+            <div id="insights-output" class="insights-output" aria-live="polite" aria-label="Generated summary output"></div>
+            <div class="insights-trends" id="insightsTrends" hidden>
+                <h4>Violation trends over time</h4>
+                <div class="trends-charts-row">
+                    <div class="trend-chart-wrap">
+                        <div class="trend-chart-label">Total violations</div>
+                        <svg id="insightTrendTotal" class="insight-trend-svg" role="img" aria-label="Total violations over time"></svg>
+                    </div>
+                    <div class="trend-chart-wrap">
+                        <div class="trend-chart-label">Critical + Serious</div>
+                        <svg id="insightTrendCritical" class="insight-trend-svg" role="img" aria-label="Critical and serious violations over time"></svg>
+                    </div>
+                </div>
+                <div id="regressionAlerts" class="regression-alerts" role="region" aria-label="Regression alerts"></div>
+            </div>
+        </div>
+    </section>
     </main>
+
+    <!-- Structured scan data for the Insights panel (not rendered, only parsed by JS) -->
+    <script id="reportData" type="application/json">${insightsPayloadJson}</script>
 
     <footer aria-label="Report footer">
         <p>
@@ -1503,6 +1604,375 @@ function generateRunPage(runId, runRelPath, results, pageStats) {
                 });
             }
         });
+
+        // ---- Insights panel ----
+        (function() {
+            const dataEl = document.getElementById('reportData');
+            if (!dataEl) return;
+            let PAYLOAD;
+            try { PAYLOAD = JSON.parse(dataEl.textContent); } catch (e) { return; }
+            if (!PAYLOAD) return;
+
+            const scan = PAYLOAD.scan;
+            const trends = PAYLOAD.trends;
+            const aiStatusEl = document.getElementById('ai-status');
+            const btnExec = document.getElementById('btn-exec');
+            const btnDev = document.getElementById('btn-dev');
+            const btnJira = document.getElementById('btn-jira');
+            const btnClear = document.getElementById('btn-clear');
+            const outputEl = document.getElementById('insights-output');
+            const fallbackEl = document.getElementById('insights-fallback');
+            const trendsSection = document.getElementById('insightsTrends');
+            const regressionAlertsEl = document.getElementById('regressionAlerts');
+
+            // Show the section (hidden by default for no-JS environments)
+            const insightsSection = document.getElementById('insights-section');
+            if (insightsSection) insightsSection.removeAttribute('hidden');
+
+            // ---- Trend charts ----
+            function drawInsightTrendSvg(svgId, series, valueKey, lineColor) {
+                const svg = document.getElementById(svgId);
+                if (!svg || series.length < 2) return;
+                svg.innerHTML = '';
+                const W = 400, H = 100;
+                svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+                const vals = series.map(s => Number(s[valueKey] || 0));
+                const minV = Math.min(...vals, 0);
+                const maxV = Math.max(...vals, 1);
+                const span = Math.max(maxV - minV, 1);
+                const pad = 6;
+                const pts = series.map((s, i) => {
+                    const x = (i / (series.length - 1)) * (W - pad * 2) + pad;
+                    const y = H - pad - ((Number(s[valueKey] || 0) - minV) / span) * (H - pad * 2);
+                    return { x, y, val: Number(s[valueKey] || 0), date: s.date };
+                });
+                // Draw gridlines (3 horizontal)
+                for (let g = 0; g <= 2; g++) {
+                    const y = pad + (g / 2) * (H - pad * 2);
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', pad); line.setAttribute('x2', W - pad);
+                    line.setAttribute('y1', y); line.setAttribute('y2', y);
+                    line.setAttribute('stroke', 'var(--panel-border)');
+                    line.setAttribute('stroke-width', '0.5');
+                    svg.appendChild(line);
+                }
+                // Draw path
+                const pathD = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ' ' + p.y.toFixed(1)).join(' ');
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', pathD);
+                path.setAttribute('fill', 'none');
+                path.setAttribute('stroke', lineColor);
+                path.setAttribute('stroke-width', '2');
+                svg.appendChild(path);
+                // Draw dots with titles
+                pts.forEach(p => {
+                    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    c.setAttribute('cx', p.x.toFixed(1));
+                    c.setAttribute('cy', p.y.toFixed(1));
+                    c.setAttribute('r', '3');
+                    c.setAttribute('fill', lineColor);
+                    const t = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                    t.textContent = p.date + ': ' + p.val;
+                    c.appendChild(t);
+                    svg.appendChild(c);
+                });
+                // Max/min labels
+                function addLabel(text, x, y) {
+                    const tEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    tEl.setAttribute('x', x);
+                    tEl.setAttribute('y', y);
+                    tEl.setAttribute('fill', 'var(--muted)');
+                    tEl.setAttribute('font-size', '8');
+                    tEl.textContent = text;
+                    svg.appendChild(tEl);
+                }
+                addLabel(String(maxV), pad + 2, pad + 8);
+                addLabel(String(minV), pad + 2, H - pad - 2);
+            }
+
+            if (trends.series.length >= 2) {
+                drawInsightTrendSvg('insightTrendTotal', trends.series, 'violations_total', 'var(--pill-info)');
+                const critSeries = trends.series.map(s => ({ ...s, crit_serious: (s.critical || 0) + (s.serious || 0) }));
+                drawInsightTrendSvg('insightTrendCritical', critSeries, 'crit_serious', 'var(--pill-critical)');
+                if (trendsSection) trendsSection.removeAttribute('hidden');
+            }
+
+            // ---- Regression alerts ----
+            if (regressionAlertsEl) {
+                const alerts = [];
+                if (trends.new_rules && trends.new_rules.length > 0) {
+                    alerts.push({ cls: 'new', msg: '⚠ New rule IDs in this scan (not seen previously): ' + trends.new_rules.join(', ') });
+                }
+                if (trends.delta_vs_last) {
+                    const d = trends.delta_vs_last;
+                    const critChange = (d.critical || 0) + (d.serious || 0);
+                    if (critChange > 0) {
+                        alerts.push({ cls: 'spike', msg: '↑ Critical + Serious violations increased by ' + critChange + ' vs last scan.' });
+                    } else if (critChange < 0) {
+                        alerts.push({ cls: 'improved', msg: '↓ Critical + Serious violations decreased by ' + Math.abs(critChange) + ' vs last scan.' });
+                    }
+                    if (d.violations_total > 0) {
+                        alerts.push({ cls: 'spike', msg: '↑ Total violations increased by ' + d.violations_total + ' vs last scan.' });
+                    } else if (d.violations_total < 0) {
+                        alerts.push({ cls: 'improved', msg: '↓ Total violations decreased by ' + Math.abs(d.violations_total) + ' vs last scan.' });
+                    }
+                }
+                if (trends.top_movers && trends.top_movers.length > 0) {
+                    const risers = trends.top_movers.filter(m => m.change > 0).slice(0, 3);
+                    const fallers = trends.top_movers.filter(m => m.change < 0).slice(0, 3);
+                    if (risers.length) alerts.push({ cls: 'spike', msg: 'Biggest risers: ' + risers.map(m => m.rule_id + ' (+' + m.change + ')').join(', ') });
+                    if (fallers.length) alerts.push({ cls: 'improved', msg: 'Biggest improvements: ' + fallers.map(m => m.rule_id + ' (' + m.change + ')').join(', ') });
+                }
+                regressionAlertsEl.innerHTML = alerts.map(a => '<div class="regression-alert ' + a.cls + '">' + escHtml(a.msg) + '</div>').join('');
+            }
+
+            // ---- Safe escaping for JS-generated HTML ----
+            function escHtml(s) {
+                return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+
+            // ---- Safe markdown renderer (never trusts model output as HTML) ----
+            function safeMarkdown(text) {
+                // First escape HTML, then apply limited formatting
+                let s = String(text || '')
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                // Headings
+                s = s.replace(/^### (.+)$/gm, '<h5>$1</h5>');
+                s = s.replace(/^## (.+)$/gm, '<h4>$1</h4>');
+                s = s.replace(/^# (.+)$/gm, '<h3>$1</h3>');
+                // Bold / italic
+                s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+                // Unordered lists
+                s = s.replace(/^- (.+)$/gm, '<li>$1</li>');
+                s = s.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+                // Paragraphs (double newline)
+                s = s.replace(/\\n\\n/g, '</p><p>').replace(/\n\n/g, '</p><p>');
+                s = s.replace(/\\n/g, '<br>').replace(/\n/g, '<br>');
+                return '<p>' + s + '</p>';
+            }
+
+            // ---- Number validation ----
+            function validateNumbers(text) {
+                // Extract the set of known numbers from the payload
+                const known = new Set([
+                    scan.pages_scanned,
+                    scan.violations_total,
+                    scan.by_impact.critical,
+                    scan.by_impact.serious,
+                    scan.by_impact.moderate,
+                    scan.by_impact.minor
+                ].map(String));
+                scan.top_rules.forEach(r => { known.add(String(r.count)); known.add(String(r.pages_affected)); });
+                if (trends.series.length >= 2) {
+                    const prev = trends.series[trends.series.length - 2];
+                    known.add(String(prev.violations_total));
+                }
+
+                // Find all numeric tokens (3+ digits) in the output
+                const found = [...text.matchAll(/\b(\d{3,})\b/g)].map(m => m[1]);
+                const unknown = found.filter(n => !known.has(n));
+                return unknown.length === 0;
+            }
+
+            // ---- Render output ----
+            function renderOutput(text, validated, fromCache) {
+                outputEl.innerHTML = '';
+                if (!validated) {
+                    const warn = document.createElement('div');
+                    warn.className = 'ai-warning';
+                    warn.textContent = '⚠ Some numbers in this output may not match the scan data exactly. Verify before sharing.';
+                    outputEl.appendChild(warn);
+                }
+                const content = document.createElement('div');
+                content.innerHTML = safeMarkdown(text);
+                outputEl.appendChild(content);
+                if (fromCache) {
+                    const note = document.createElement('div');
+                    note.className = 'ai-cached-note';
+                    note.textContent = 'ℹ Showing cached output. Clear to regenerate.';
+                    outputEl.appendChild(note);
+                }
+                outputEl.classList.add('visible');
+                if (btnClear) btnClear.hidden = false;
+            }
+
+            // ---- Prompt builders ----
+            function buildExecPrompt() {
+                const d = trends.delta_vs_last;
+                const dStr = d ? ('vs last scan: total ' + (d.violations_total >= 0 ? '+' : '') + d.violations_total + ', critical+serious ' + (((d.critical || 0) + (d.serious || 0)) >= 0 ? '+' : '') + ((d.critical || 0) + (d.serious || 0))) : 'no prior scan data';
+                const topRules = PAYLOAD.recommended_priorities.map(r => r.rule_id + ' (' + r.count + ' occurrences, ' + r.pages_affected + ' pages)').join('; ');
+                return [
+                    'You are writing an executive accessibility summary. Use ONLY the numbers provided. Do not invent or compute new numbers.',
+                    '',
+                    'Scan date: ' + scan.date,
+                    'Pages scanned: ' + scan.pages_scanned,
+                    'Total violations: ' + scan.violations_total,
+                    'Critical: ' + scan.by_impact.critical + ', Serious: ' + scan.by_impact.serious + ', Moderate: ' + scan.by_impact.moderate + ', Minor: ' + scan.by_impact.minor,
+                    'Trend (' + dStr + ')',
+                    'Top issues: ' + topRules,
+                    '',
+                    'Write a 3-paragraph executive summary. Include: (1) topline trend (serious+critical up/down), (2) what got better/worse and business risk, (3) top 3 recommended actions framed as outcomes (e.g. "reduce form abandonment"). No WCAG jargon. No invented numbers.',
+                ].join('\\n');
+            }
+
+            function buildDevPrompt() {
+                const topRules = PAYLOAD.recommended_priorities.map((r, i) =>
+                    (i+1) + '. ' + r.rule_id + ' — impact: ' + r.impact + ', ' + r.count + ' occurrences on ' + r.pages_affected + ' pages (score: ' + r.score + ')'
+                ).join('\\n');
+                const movers = (trends.top_movers || []).map(m => m.rule_id + ' ' + (m.change >= 0 ? '+' : '') + m.change).join(', ') || 'none';
+                const newR = (trends.new_rules || []).join(', ') || 'none';
+                return [
+                    'You are writing a dev-team accessibility summary. Use ONLY the numbers provided.',
+                    '',
+                    'Scan date: ' + scan.date,
+                    'Pages: ' + scan.pages_scanned + ', Total violations: ' + scan.violations_total,
+                    'By impact — Critical: ' + scan.by_impact.critical + ', Serious: ' + scan.by_impact.serious + ', Moderate: ' + scan.by_impact.moderate + ', Minor: ' + scan.by_impact.minor,
+                    '',
+                    'Prioritised fix list (computed by severity × pages × count):',
+                    topRules,
+                    '',
+                    'Top movers vs last scan: ' + movers,
+                    'New rule IDs not seen before: ' + newR,
+                    '',
+                    'Write a dev-team summary with: (1) top 5 fix themes with rule IDs, (2) "fix once remove many" component candidates, (3) regression list, (4) notes on manual verification areas. Include rule IDs.',
+                ].join('\\n');
+            }
+
+            function buildJiraPrompt() {
+                const epics = PAYLOAD.recommended_priorities.map((r, i) =>
+                    '\\n### Story ' + (i+1) + ': Fix ' + r.rule_id +
+                    '\\nSeverity: ' + r.impact + ' | Occurrences: ' + r.count + ' | Affected pages: ' + r.pages_affected +
+                    '\\nDescription: Remediate ' + r.rule_id + ' violations found in the ' + scan.date + ' accessibility scan.' +
+                    '\\nAcceptance criteria: Zero ' + r.rule_id + ' violations reported by axe-core on affected pages.' +
+                    '\\nEvidence: ' + r.count + ' occurrences across ' + r.pages_affected + ' pages.'
+                ).join('\\n');
+                return [
+                    'You are creating a Jira-ready accessibility ticket list. Use ONLY the data provided. Do not invent URLs or anchors.',
+                    '',
+                    'Epic: Accessibility remediation sprint — ' + scan.date,
+                    epics,
+                    '',
+                    'Format each story as a Jira ticket with: Title, Description, Acceptance Criteria, Evidence, Suggested owner (leave blank), Priority (map critical→Highest, serious→High, moderate→Medium, minor→Low).',
+                    'Do not invent page URLs. Do not add external links.',
+                ].join('\\n');
+            }
+
+            // ---- Fallback prompt UI (when AI not available) ----
+            function showFallbackPrompts() {
+                if (!fallbackEl) return;
+                const prompts = [
+                    { id: 'exec', label: 'Executive summary prompt', fn: buildExecPrompt },
+                    { id: 'dev', label: 'Dev team summary prompt', fn: buildDevPrompt },
+                    { id: 'jira', label: 'Jira checklist prompt', fn: buildJiraPrompt }
+                ];
+                fallbackEl.innerHTML = '<p style="font-size:13px; color:var(--muted); margin:0 0 0.5rem 0;">Copy a prompt below and paste it into any AI assistant (ChatGPT, Claude, Gemini, etc.):</p>' +
+                    prompts.map(p => {
+                        const promptText = p.fn().replace(/\\n/g, '\n');
+                        return '<div class="fallback-prompt-wrap">' +
+                            '<div class="fallback-prompt-label">' + escHtml(p.label) + '</div>' +
+                            '<div class="fallback-prompt-text" id="fallback-' + p.id + '">' + escHtml(promptText) + '</div>' +
+                            '<button class="copy-prompt-btn" type="button" data-fallback-copy="' + p.id + '" aria-label="Copy ' + escHtml(p.label) + '">Copy prompt</button>' +
+                        '</div>';
+                    }).join('');
+                fallbackEl.hidden = false;
+
+                fallbackEl.addEventListener('click', function(e) {
+                    const btn = e.target.closest('[data-fallback-copy]');
+                    if (!btn) return;
+                    const id = btn.dataset.fallbackCopy;
+                    const text = document.getElementById('fallback-' + id)?.textContent || '';
+                    copyTextToClipboard(text).then(() => {
+                        const old = btn.textContent;
+                        btn.textContent = 'Copied!';
+                        btn.classList.add('copied');
+                        setTimeout(() => { btn.textContent = old; btn.classList.remove('copied'); }, 2000);
+                    });
+                });
+            }
+
+            // ---- AI session management ----
+            let activeSession = null;
+
+            async function runAI(type, promptFn) {
+                const cacheKey = 'insights-' + type + '-' + scan.date + '-' + runId.slice(-12);
+                const cached = localStorage.getItem(cacheKey);
+                if (cached) {
+                    renderOutput(cached, validateNumbers(cached), true);
+                    return;
+                }
+
+                if (!window.ai || !window.ai.languageModel) {
+                    aiStatusEl.textContent = 'AI not available. Use the copy prompts below.';
+                    showFallbackPrompts();
+                    return;
+                }
+
+                [btnExec, btnDev, btnJira].forEach(b => { b.disabled = true; });
+                outputEl.innerHTML = '<p style="color:var(--muted)">Generating…</p>';
+                outputEl.classList.add('visible');
+                aiStatusEl.textContent = 'Generating summary…';
+
+                try {
+                    if (activeSession) { try { activeSession.destroy(); } catch(e) {} activeSession = null; }
+                    activeSession = await window.ai.languageModel.create({
+                        systemPrompt: 'You are an accessibility expert assistant. Always use only the numbers and data provided. Never invent statistics, URLs, or rule IDs not in the prompt. Output in markdown.'
+                    });
+                    const promptText = promptFn().replace(/\\\\n/g, '\n').replace(/\\n/g, '\n');
+                    const result = await activeSession.prompt(promptText);
+                    activeSession.destroy(); activeSession = null;
+                    localStorage.setItem(cacheKey, result);
+                    renderOutput(result, validateNumbers(result), false);
+                    aiStatusEl.textContent = 'Summary generated.';
+                } catch (err) {
+                    outputEl.innerHTML = '<p style="color:var(--pill-critical)">Error: ' + escHtml(String(err.message || err)) + '</p>';
+                    outputEl.classList.add('visible');
+                    aiStatusEl.textContent = 'Generation failed.';
+                } finally {
+                    [btnExec, btnDev, btnJira].forEach(b => { b.disabled = false; });
+                }
+            }
+
+            btnExec?.addEventListener('click', () => runAI('exec', buildExecPrompt));
+            btnDev?.addEventListener('click', () => runAI('dev', buildDevPrompt));
+            btnJira?.addEventListener('click', () => runAI('jira', buildJiraPrompt));
+            btnClear?.addEventListener('click', () => {
+                outputEl.innerHTML = '';
+                outputEl.classList.remove('visible');
+                if (btnClear) btnClear.hidden = true;
+                // Remove cached entries for this run
+                ['exec', 'dev', 'jira'].forEach(t => {
+                    localStorage.removeItem('insights-' + t + '-' + scan.date + '-' + runId.slice(-12));
+                });
+            });
+
+            // ---- AI availability check ----
+            async function initAI() {
+                if (typeof window === 'undefined' || !window.ai || !window.ai.languageModel) {
+                    aiStatusEl.textContent = 'In-browser AI not available. Copy a prompt below to use with any AI tool.';
+                    showFallbackPrompts();
+                    return;
+                }
+                try {
+                    const caps = await window.ai.languageModel.capabilities();
+                    if (caps.available === 'no') {
+                        aiStatusEl.textContent = 'AI model not available on this device.';
+                        showFallbackPrompts();
+                        return;
+                    }
+                    const readyMsg = caps.available === 'readily'
+                        ? 'In-browser AI ready. Click a button to generate a summary.'
+                        : 'AI model downloading… generation will start once ready.';
+                    aiStatusEl.textContent = readyMsg;
+                    [btnExec, btnDev, btnJira].forEach(b => { if (b) b.disabled = false; });
+                } catch (e) {
+                    aiStatusEl.textContent = 'AI not available. Use the copy prompts below.';
+                    showFallbackPrompts();
+                }
+            }
+
+            initAI();
+        })();
     </script>
 </body>
 </html>`;
@@ -1591,6 +2061,158 @@ function aggregateMetrics(results, pageStats) {
         pagesWithIssues: pageStats.pagesWithIssues,
         automationCoverage: pageStats.automationCoverage,
         ...counts
+    };
+}
+
+/**
+ * Build a structured insights payload for the current scan.
+ * Embeds current scan summary, top rules with pages_affected,
+ * prioritisation scores, and trend history (last 10 scans for same target).
+ * All deltas are computed here in JS — the AI model must not invent numbers.
+ *
+ * @param {string} runId
+ * @param {object} results - scan results (resultsByUrl, targets, startedAt, config)
+ * @param {object} pageStats - analyzeResults output
+ * @param {Array}  priorAggRows - previously accumulated aggregateRows from other runs (for history)
+ * @returns {object} the payload object (will be JSON-serialized into the report)
+ */
+function buildInsightsPayload(runId, results, pageStats, priorAggRows = []) {
+    const metrics = aggregateMetrics(results, pageStats);
+    const cfg = results.config || {};
+    const rawTarget = (results.targets && results.targets[0]) || cfg.baseUrl || '';
+    const target = extractDomain(rawTarget) || rawTarget;
+    const scanDate = results.startedAt ? results.startedAt.slice(0, 10) : new Date().toISOString().slice(0, 10);
+
+    // Build top_rules with pages_affected and prioritisation score
+    const IMPACT_WEIGHT = { critical: 10, serious: 5, moderate: 2, minor: 1 };
+    const rulePageMap = new Map(); // ruleId → Set of affected URLs
+    const ruleImpact = new Map();  // ruleId → impact string
+    for (const url of Object.keys(results.resultsByUrl)) {
+        const data = results.resultsByUrl[url];
+        if (!data.violations) continue;
+        for (const v of data.violations) {
+            if (!rulePageMap.has(v.id)) {
+                rulePageMap.set(v.id, new Set());
+                ruleImpact.set(v.id, v.impact || 'minor');
+            }
+            rulePageMap.get(v.id).add(url);
+        }
+    }
+    const topRules = Array.from(metrics.rules.entries()).map(([ruleId, count]) => {
+        const pages_affected = rulePageMap.get(ruleId)?.size || 0;
+        const impact = ruleImpact.get(ruleId) || 'minor';
+        const weight = IMPACT_WEIGHT[impact] || 1;
+        const score = weight * pages_affected * count;
+        return { rule_id: ruleId, count, pages_affected, impact, score };
+    }).sort((a, b) => b.score - a.score).slice(0, 10);
+
+    const currentSummary = {
+        date: scanDate,
+        pages_scanned: metrics.pagesScanned,
+        violations_total: metrics.total,
+        by_impact: {
+            critical: metrics.byImpact.critical,
+            serious: metrics.byImpact.serious,
+            moderate: metrics.byImpact.moderate,
+            minor: metrics.byImpact.minor
+        },
+        top_rules: topRules
+    };
+
+    // Build trend history from prior aggregate rows for same target/viewport/browser
+    const viewport = cfg.viewport || 'desktop';
+    const colorScheme = cfg.colorScheme || 'light';
+    const browser = (cfg.browser || 'chromium').toLowerCase();
+
+    const historySeries = priorAggRows
+        .filter(r =>
+            r.metricType === 'summary' &&
+            r.target === target &&
+            r.viewport === viewport &&
+            r.colorScheme === colorScheme &&
+            r.browser === browser &&
+            r.runId !== runId
+        )
+        .sort((a, b) => new Date(a.startedAt) - new Date(b.startedAt))
+        .slice(-9) // keep last 9 so with current = 10 total
+        .map(r => ({
+            date: (r.startedAt || '').slice(0, 10),
+            run_id: r.runId,
+            pages: Number(r.pagesScanned || 0),
+            violations_total: Number(r.totalViolations || 0),
+            critical: Number(r.critical || 0),
+            serious: Number(r.serious || 0),
+            moderate: Number(r.moderate || 0),
+            minor: Number(r.minor || 0)
+        }));
+
+    // Append current run as the last point
+    historySeries.push({
+        date: scanDate,
+        run_id: runId,
+        pages: metrics.pagesScanned,
+        violations_total: metrics.total,
+        critical: metrics.byImpact.critical,
+        serious: metrics.byImpact.serious,
+        moderate: metrics.byImpact.moderate,
+        minor: metrics.byImpact.minor
+    });
+
+    // Compute deltas vs last scan (second-to-last entry in series)
+    const prevEntry = historySeries.length >= 2 ? historySeries[historySeries.length - 2] : null;
+    const baseEntry = historySeries.length >= 2 ? historySeries[0] : null;
+    const deltaVsLast = prevEntry ? {
+        violations_total: metrics.total - prevEntry.violations_total,
+        critical: metrics.byImpact.critical - prevEntry.critical,
+        serious: metrics.byImpact.serious - prevEntry.serious
+    } : null;
+    const deltaVsBaseline = baseEntry && baseEntry.run_id !== runId ? {
+        violations_total: metrics.total - baseEntry.violations_total,
+        critical: metrics.byImpact.critical - baseEntry.critical,
+        serious: metrics.byImpact.serious - baseEntry.serious
+    } : null;
+
+    // Detect new rule IDs (present in current scan but not in any prior run)
+    const priorRuleRows = priorAggRows.filter(r =>
+        r.metricType === 'rule' &&
+        r.target === target &&
+        r.runId !== runId
+    );
+    const priorRuleIds = new Set(priorRuleRows.map(r => r.metricId));
+    const currentRuleIds = new Set(Array.from(metrics.rules.keys()));
+    const newRules = [...currentRuleIds].filter(id => !priorRuleIds.has(id));
+
+    // Top movers (rules with biggest change vs last run)
+    let topMovers = [];
+    if (prevEntry) {
+        const prevRuleMap = new Map(
+            priorAggRows
+                .filter(r => r.metricType === 'rule' && r.target === target && r.runId === prevEntry.run_id)
+                .map(r => [r.metricId, Number(r.metricCount || 0)])
+        );
+        topMovers = [...currentRuleIds].map(id => {
+            const prev = prevRuleMap.get(id) || 0;
+            const curr = metrics.rules.get(id) || 0;
+            return { rule_id: id, change: curr - prev };
+        }).filter(m => m.change !== 0).sort((a, b) => Math.abs(b.change) - Math.abs(a.change)).slice(0, 5);
+    }
+
+    return {
+        scan: currentSummary,
+        trends: {
+            window: `last_${historySeries.length}_scans`,
+            series: historySeries,
+            delta_vs_last: deltaVsLast,
+            delta_vs_baseline: deltaVsBaseline,
+            top_movers: topMovers,
+            new_rules: newRules
+        },
+        recommended_priorities: topRules.slice(0, 5),
+        constraints: {
+            no_invented_numbers: true,
+            no_policy_claims: true,
+            output_format: 'markdown'
+        }
     };
 }
 
@@ -2045,4 +2667,4 @@ function esc(s) {
     return String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }
 
-export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort, generateMainIndex, generate404Page, extractDomain, copyStaticFiles, extractWcagCriteria };
+export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort, generateMainIndex, generate404Page, extractDomain, copyStaticFiles, extractWcagCriteria, buildInsightsPayload };
