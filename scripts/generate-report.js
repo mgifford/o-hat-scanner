@@ -1607,8 +1607,8 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
 
         // ---- Insights panel ----
         // NOTE ON ESCAPING: This block is inside a Node.js template literal.
-        // '\\n' here → '\n' in the generated HTML → newline character in the browser's JS engine.
-        // /\\n/g here → /\n/g in generated HTML → regex matching actual newlines in the browser.
+        // Double-escaped sequences (\\\\n) in source appear as (\\n) in generated HTML,
+        // which the browser interprets as a newline character at runtime.
         (function() {
             const dataEl = document.getElementById('reportData');
             if (!dataEl) return;
@@ -1890,7 +1890,7 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
                 ];
                 fallbackEl.innerHTML = '<p style="font-size:13px; color:var(--muted); margin:0 0 0.5rem 0;">Copy a prompt below and paste it into any AI assistant (ChatGPT, Claude, Gemini, etc.):</p>' +
                     prompts.map(p => {
-                        const promptText = p.fn().replace(/\\n/g, '\n');
+                        const promptText = p.fn().replace(/\\n/g, '\\x0a');
                         return '<div class="fallback-prompt-wrap">' +
                             '<div class="fallback-prompt-label">' + escHtml(p.label) + '</div>' +
                             '<div class="fallback-prompt-text" id="fallback-' + p.id + '">' + escHtml(promptText) + '</div>' +

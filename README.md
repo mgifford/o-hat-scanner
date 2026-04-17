@@ -161,14 +161,19 @@ sites:
 
 ### SERP API Setup (Optional)
 
-To enable Bing Web Search API discovery:
+The workflow automatically selects the best available SERP source:
 
-1. **Create a Bing Search v7 subscription** on Azure.
-2. **Store the API key** as a GitHub Secret:
+1. **Bing Web Search API** (preferred): If `BING_API_KEY` is configured as a GitHub Secret, Bing is used for high-quality SERP results.
+   - Create a Bing Search v7 subscription on Azure.
    - Go to your repo **Settings → Secrets and variables → Actions**.
    - Add secret `BING_API_KEY` with your subscription key.
    - Optionally add `BING_ENDPOINT` (defaults to `https://api.bing.microsoft.com/v7.0/`).
-3. **If no key is set**, discovery falls back to navigation-only crawling and clearly reports that SERP was unavailable.
+
+2. **DuckDuckGo** (fallback, no API key required): If no `BING_API_KEY` is configured, the workflow falls back to DuckDuckGo Lite HTML parsing with respectful rate limiting.
+
+3. **Navigation-only**: If SERP returns no results, discovery falls back to crawling the site's homepage navigation (header, footer, nav links + one-hop expansion).
+
+The SERP source actually used is recorded in the discovery metadata JSON (`serp.provider`).
 
 ### Output
 
@@ -550,7 +555,7 @@ This project was developed with the assistance of AI tools. This section documen
 | AI Tool | Provider | Build-time use | Runtime use | Browser-based AI |
 |---|---|---|---|---|
 | **GitHub Copilot** | GitHub / Microsoft | Yes — code generation, refactoring, and test authoring across the repository. PRs authored or co-authored by the Copilot agent are labeled with the `copilot/` branch prefix. | No | No |
-| **Claude (Sonnet / Opus)** | Anthropic | Yes — used via the GitHub Copilot coding agent (which runs on Claude models) to implement features, write documentation, and fix bugs. | No | No |
+| **Claude (Sonnet / Opus)** | Anthropic | Yes — used via the GitHub Copilot coding agent (which runs on Claude models) to implement features (including `discover` mode, `discover-top-pages.js` script, workflow integration, and CI fixes), write documentation, and fix bugs. | No | No |
 | **Chrome Prompt API (Gemini Nano on-device)** | Google | No | No | Yes — the run-page Insights panel optionally calls `window.ai.languageModel` if the user's browser supports it. Invocation is user-initiated; all inference is local. Reports degrade gracefully when the API is unavailable. |
 
 ### Explanatory notes
