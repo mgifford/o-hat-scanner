@@ -1606,6 +1606,9 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
         });
 
         // ---- Insights panel ----
+        // NOTE ON ESCAPING: This block is inside a Node.js template literal.
+        // '\\n' here → '\n' in the generated HTML → newline character in the browser's JS engine.
+        // /\\n/g here → /\n/g in generated HTML → regex matching actual newlines in the browser.
         (function() {
             const dataEl = document.getElementById('reportData');
             if (!dataEl) return;
@@ -1785,7 +1788,9 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
                     known.add(String(prev.violations_total));
                 }
 
-                // Find all numeric tokens (2+ digits) in the output and verify they are known
+                // Find all numeric tokens with 2+ digits in the output and verify they are known.
+                // Single-digit numbers (0-9) are intentionally skipped to avoid false positives
+                // from common context words like "top 5" or narrative language.
                 const found = [...text.matchAll(/\b(\d{2,})\b/g)].map(m => m[1]);
                 const unknown = found.filter(n => !known.has(n));
                 return unknown.length === 0;
