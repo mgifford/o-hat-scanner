@@ -1613,6 +1613,9 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
             try { PAYLOAD = JSON.parse(dataEl.textContent); } catch (e) { return; }
             if (!PAYLOAD) return;
 
+            // runId is embedded at build time (not available as a JS variable in the browser)
+            const _runId = ${JSON.stringify(String(runId || ''))};
+
             const scan = PAYLOAD.scan;
             const trends = PAYLOAD.trends;
             const aiStatusEl = document.getElementById('ai-status');
@@ -1743,9 +1746,22 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
                 // Bold / italic
                 s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
                 s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
-                // Unordered lists
+                // Unordered lists - first convert "- item" lines to <li>, then group into <ul> blocks
                 s = s.replace(/^- (.+)$/gm, '<li>$1</li>');
-                s = s.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+                const _lines = s.split('\\n');
+                const _out = [];
+                let _inList = false;
+                for (const _line of _lines) {
+                    if (_line.startsWith('<li>')) {
+                        if (!_inList) { _out.push('<ul>'); _inList = true; }
+                        _out.push(_line);
+                    } else {
+                        if (_inList) { _out.push('</ul>'); _inList = false; }
+                        _out.push(_line);
+                    }
+                }
+                if (_inList) _out.push('</ul>');
+                s = _out.join('\\n');
                 // Paragraphs (double newline) and line breaks
                 s = s.replace(/\\n\\n/g, '</p><p>');
                 s = s.replace(/\\n/g, '<br>');
@@ -1896,8 +1912,7 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
             let activeSession = null;
 
             async function runAI(type, promptFn) {
-                const safeId = String(typeof runId !== 'undefined' ? runId : '');
-                const cacheKey = 'insights-' + type + '-' + scan.date + '-' + safeId.slice(-12);
+                const cacheKey = 'insights-' + type + '-' + scan.date + '-' + _runId.slice(-12);
                 const cached = localStorage.getItem(cacheKey);
                 if (cached) {
                     renderOutput(cached, validateNumbers(cached), true);
@@ -1943,9 +1958,8 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
                 outputEl.classList.remove('visible');
                 if (btnClear) btnClear.hidden = true;
                 // Remove cached entries for this run
-                const safeIdClear = String(typeof runId !== 'undefined' ? runId : '');
                 ['exec', 'dev', 'jira'].forEach(t => {
-                    localStorage.removeItem('insights-' + t + '-' + scan.date + '-' + safeIdClear.slice(-12));
+                    localStorage.removeItem('insights-' + t + '-' + scan.date + '-' + _runId.slice(-12));
                 });
             });
 
