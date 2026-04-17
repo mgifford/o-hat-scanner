@@ -551,12 +551,13 @@ This project was developed with the assistance of AI tools. This section documen
 |---|---|---|---|---|
 | **GitHub Copilot** | GitHub / Microsoft | Yes — code generation, refactoring, and test authoring across the repository. PRs authored or co-authored by the Copilot agent are labeled with the `copilot/` branch prefix. | No | No |
 | **Claude (Sonnet / Opus)** | Anthropic | Yes — used via the GitHub Copilot coding agent (which runs on Claude models) to implement features, write documentation, and fix bugs. | No | No |
+| **Chrome Prompt API (Gemini Nano on-device)** | Google | No | No | Yes — the run-page Insights panel optionally calls `window.ai.languageModel` if the user's browser supports it. Invocation is user-initiated; all inference is local. Reports degrade gracefully when the API is unavailable. |
 
 ### Explanatory notes
 
 - **Build-time use**: Both tools above assisted human developers in writing and reviewing source code, scripts, tests, and documentation. No code was committed without human review of a pull request.
 - **Runtime use**: The scanner itself (Playwright + axe-core) does **not** call any LLM or AI API during a scan. Reports are generated from static axe-core rule output with no AI post-processing.
-- **Browser-based AI**: The generated static HTML reports contain no calls to browser AI APIs (e.g., Chrome's `window.ai`, WebGPU-based models, etc.). All interactivity is plain client-side JavaScript.
+- **Browser-based AI**: The generated static HTML reports now include an **opt-in Insights panel** that can invoke the [Chrome Prompt API](https://developer.chrome.com/docs/ai/built-in) (`window.ai.languageModel`) if available on the user's device. This is entirely optional — the panel gracefully degrades to a "copy prompt" fallback when the API is not available. No data is sent to any external server; all inference runs locally in the browser. The model is only invoked when the user explicitly clicks a "Generate" button.
 - **Bing Search API**: The optional `discover` mode can call the Bing Web Search v7 API (a search index, not a generative AI) when a `BING_API_KEY` secret is configured. This is a traditional keyword search service and is not an LLM.
 
 > **Keep this section current.** If you add or use a new AI tool while contributing to this repository, update this table per the instructions in `AGENTS.md`.
