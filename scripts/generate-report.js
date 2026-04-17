@@ -1746,9 +1746,9 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
                 // Unordered lists
                 s = s.replace(/^- (.+)$/gm, '<li>$1</li>');
                 s = s.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
-                // Paragraphs (double newline)
-                s = s.replace(/\\n\\n/g, '</p><p>').replace(/\n\n/g, '</p><p>');
-                s = s.replace(/\\n/g, '<br>').replace(/\n/g, '<br>');
+                // Paragraphs (double newline) and line breaks
+                s = s.replace(/\\n\\n/g, '</p><p>');
+                s = s.replace(/\\n/g, '<br>');
                 return '<p>' + s + '</p>';
             }
 
@@ -1769,8 +1769,8 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
                     known.add(String(prev.violations_total));
                 }
 
-                // Find all numeric tokens (3+ digits) in the output
-                const found = [...text.matchAll(/\b(\d{3,})\b/g)].map(m => m[1]);
+                // Find all numeric tokens (2+ digits) in the output and verify they are known
+                const found = [...text.matchAll(/\b(\d{2,})\b/g)].map(m => m[1]);
                 const unknown = found.filter(n => !known.has(n));
                 return unknown.length === 0;
             }
@@ -1800,7 +1800,8 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
             // ---- Prompt builders ----
             function buildExecPrompt() {
                 const d = trends.delta_vs_last;
-                const dStr = d ? ('vs last scan: total ' + (d.violations_total >= 0 ? '+' : '') + d.violations_total + ', critical+serious ' + (((d.critical || 0) + (d.serious || 0)) >= 0 ? '+' : '') + ((d.critical || 0) + (d.serious || 0))) : 'no prior scan data';
+                const critSeriousDelta = d ? ((d.critical || 0) + (d.serious || 0)) : 0;
+                const dStr = d ? ('vs last scan: total ' + (d.violations_total >= 0 ? '+' : '') + d.violations_total + ', critical+serious ' + (critSeriousDelta >= 0 ? '+' : '') + critSeriousDelta) : 'no prior scan data';
                 const topRules = PAYLOAD.recommended_priorities.map(r => r.rule_id + ' (' + r.count + ' occurrences, ' + r.pages_affected + ' pages)').join('; ');
                 return [
                     'You are writing an executive accessibility summary. Use ONLY the numbers provided. Do not invent or compute new numbers.',
@@ -1895,7 +1896,8 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
             let activeSession = null;
 
             async function runAI(type, promptFn) {
-                const cacheKey = 'insights-' + type + '-' + scan.date + '-' + runId.slice(-12);
+                const safeId = String(typeof runId !== 'undefined' ? runId : '');
+                const cacheKey = 'insights-' + type + '-' + scan.date + '-' + safeId.slice(-12);
                 const cached = localStorage.getItem(cacheKey);
                 if (cached) {
                     renderOutput(cached, validateNumbers(cached), true);
@@ -1918,7 +1920,7 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
                     activeSession = await window.ai.languageModel.create({
                         systemPrompt: 'You are an accessibility expert assistant. Always use only the numbers and data provided. Never invent statistics, URLs, or rule IDs not in the prompt. Output in markdown.'
                     });
-                    const promptText = promptFn().replace(/\\\\n/g, '\n').replace(/\\n/g, '\n');
+                    const promptText = promptFn();
                     const result = await activeSession.prompt(promptText);
                     activeSession.destroy(); activeSession = null;
                     localStorage.setItem(cacheKey, result);
@@ -1941,8 +1943,9 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
                 outputEl.classList.remove('visible');
                 if (btnClear) btnClear.hidden = true;
                 // Remove cached entries for this run
+                const safeIdClear = String(typeof runId !== 'undefined' ? runId : '');
                 ['exec', 'dev', 'jira'].forEach(t => {
-                    localStorage.removeItem('insights-' + t + '-' + scan.date + '-' + runId.slice(-12));
+                    localStorage.removeItem('insights-' + t + '-' + scan.date + '-' + safeIdClear.slice(-12));
                 });
             });
 
