@@ -118,7 +118,8 @@ async function main() {
     let crawlFallbackUsed = false;
 
     // 1. Discovery Phase
-    if (MODE === 'list') {
+    if (MODE === 'list' || MODE === 'discover') {
+        // discover mode targets have already been converted to a URL list by the workflow
         urls.forEach(u => {
             const target = normalizeUrl(u);
             if (target) scanQueue.add(target);

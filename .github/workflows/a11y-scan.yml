@@ -263,6 +263,14 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p site/targets
+          # Auto-select SERP provider: use Bing if key is configured, otherwise DuckDuckGo
+          if [ -n "${BING_API_KEY:-}" ]; then
+            SERP_PROVIDER="bing"
+            echo "🔑 Bing API key found; using Bing for SERP discovery"
+          else
+            SERP_PROVIDER="duckduckgo"
+            echo "ℹ️  No Bing API key; using DuckDuckGo for SERP discovery"
+          fi
           jq -c '.[]' /tmp/due-sites.json | while read -r site; do
             mode=$(echo "$site" | jq -r '.mode // "sitemap"')
             if [ "$mode" != "discover" ]; then
@@ -275,13 +283,22 @@ jobs:
             maxPages=$(echo "$site" | jq -r '.maxPages // "100"')
             siteKey=$(echo "$name" | tr '.' '-' | tr '/' '-')
             
-            echo "🔍 Discovering top pages for $name ($baseUrl)"
+            # Pass any custom discovery queries from targets.yml
+            customQueriesArg=""
+            customQueries=$(echo "$site" | jq -r '.discoveryQueries // [] | if length > 0 then @json else "" end')
+            if [ -n "$customQueries" ]; then
+              customQueriesArg="--customQueries $customQueries"
+            fi
+            
+            echo "🔍 Discovering top pages for $name ($baseUrl) using $SERP_PROVIDER"
             node scripts/discover-top-pages.js \
               --baseUrl "$baseUrl" \
               --maxPages "$maxPages" \
               --outDir site/targets \
               --siteKey "$siteKey" \
-              --serpProvider duckduckgo || echo "⚠️  Discovery failed for $name (continuing)"
+              --serpProvider "$SERP_PROVIDER" \
+              ${customQueriesArg:+$customQueriesArg} \
+              || echo "⚠️  Discovery failed for $name (continuing)"
           done
 
       - name: Convert discover output to scannable URLs
