@@ -1607,8 +1607,9 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
 
         // ---- Insights panel ----
         // NOTE ON ESCAPING: This block is inside a Node.js template literal.
-        // Double-escaped sequences (\\\\n) in source appear as (\\n) in generated HTML,
-        // which the browser interprets as a newline character at runtime.
+        // '\\\\n' in source (4 chars) → '\\n' in generated HTML → newline in browser JS.
+        // '\\x0a' in source → '\\x0a' in generated HTML → newline character in browser JS
+        // (hex escape sequence, equivalent to \\n at runtime).
         (function() {
             const dataEl = document.getElementById('reportData');
             if (!dataEl) return;
