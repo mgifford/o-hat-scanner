@@ -882,6 +882,7 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
         .fallback-prompt-wrap { margin-top: 0.75rem; }
         .fallback-prompt-label { font-size: 13px; font-weight: 600; margin-bottom: 0.25rem; }
         .fallback-prompt-text { font-size: 12px; background: var(--code-bg); border: 1px solid var(--panel-border); border-radius: 4px; padding: 8px; max-height: 120px; overflow-y: auto; white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        .fallback-prompt-text:focus { outline: 2px solid var(--focus); outline-offset: 2px; }
         .copy-prompt-btn { margin-top: 4px; padding: 5px 10px; background: var(--link); color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; }
         .copy-prompt-btn:focus { outline: 2px solid var(--focus); outline-offset: 2px; }
         .copy-prompt-btn.copied { background: #4caf50; }
@@ -1894,7 +1895,7 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
                         const promptText = p.fn().replace(/\\n/g, '\\x0a');
                         return '<div class="fallback-prompt-wrap">' +
                             '<div class="fallback-prompt-label">' + escHtml(p.label) + '</div>' +
-                            '<div class="fallback-prompt-text" id="fallback-' + p.id + '">' + escHtml(promptText) + '</div>' +
+                            '<div class="fallback-prompt-text" id="fallback-' + p.id + '" tabindex="0" role="region" aria-label="' + escHtml(p.label) + '">' + escHtml(promptText) + '</div>' +
                             '<button class="copy-prompt-btn" type="button" data-fallback-copy="' + p.id + '" aria-label="Copy ' + escHtml(p.label) + '">Copy prompt</button>' +
                         '</div>';
                     }).join('');
