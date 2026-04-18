@@ -555,7 +555,7 @@ This project was developed with the assistance of AI tools. This section documen
 | AI Tool | Provider | Build-time use | Runtime use | Browser-based AI |
 |---|---|---|---|---|
 | **GitHub Copilot** | GitHub / Microsoft | Yes — code generation, refactoring, and test authoring across the repository. PRs authored or co-authored by the Copilot agent are labeled with the `copilot/` branch prefix. | No | No |
-| **Claude (Sonnet / Opus)** | Anthropic | Yes — used via the GitHub Copilot coding agent (which runs on Claude models) to implement features (including `discover` mode, `discover-top-pages.js` script, workflow integration, and CI fixes), write documentation, and fix bugs. | No | No |
+| **Claude (Sonnet / Opus)** | Anthropic | Yes — used via the GitHub Copilot coding agent (which runs on Claude models) to implement features (including `discover` mode, `discover-top-pages.js` script, workflow integration, CI fixes, and accessibility fix for `scrollable-region-focusable` on `.fallback-prompt-text` elements), write documentation, and fix bugs. | No | No |
 | **Chrome Prompt API (Gemini Nano on-device)** | Google | No | No | Yes — the run-page Insights panel optionally calls `window.ai.languageModel` if the user's browser supports it. Invocation is user-initiated; all inference is local. Reports degrade gracefully when the API is unavailable. |
 
 ### Explanatory notes
