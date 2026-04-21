@@ -416,7 +416,7 @@ The standalone scanner (`standalone/a11y-scan.html`) runs entirely in the browse
 - Same-origin scanning via sitemap.xml or custom URL list
 - Real-time progress tracking with live log
 - JSON export of raw axe-core results
-- **CSV export** with Oobee-compatible schema (14 columns)
+- **CSV export** with [Oobee](https://github.com/GovTechSG/oobee)-compatible schema (14 columns)
 - Path prefix filtering and URL exclusions
 - Configurable timeouts and delays
 
@@ -474,7 +474,7 @@ The generated reports follow professional accessibility reporting standards:
 - **Top Pages**: Ranked list of the 5 most affected pages
 - **Severity Grouping**: Issues organized by impact level (critical, moderate, manual review)
 - **Collapsible Sections**: Click severity headers to expand/collapse issue details
-- **CSV Export**: Download results in spreadsheet format with 14 columns matching Oobee schema
+- **CSV Export**: Download results in spreadsheet format with 14 columns matching [Oobee](https://github.com/GovTechSG/oobee) schema
 - **Per-Issue Details**: Violation ID, help text, impact level, affected pages, selectors, HTML snippets
 
 ### Report Files
