@@ -546,6 +546,58 @@ This filtering is applied automatically after sitemap/crawl discovery and before
 
 **Standalone Scanner UI:**
 
+## 🔍 Local Dedupe and Pattern Clustering (Chrome AI)
+
+Each generated run report includes a **"Dedupe and Patterns"** section that reduces thousands of repeated accessibility findings into actionable groups — entirely in your browser.
+
+### Phase A: Deterministic Deduplication (always available)
+
+Runs automatically when you open a report. No AI or internet connection required.
+
+- Computes a **stable signature** per finding based on: rule ID, impact, normalized CSS selector, and message fingerprint.
+- **Normalizes** selectors to remove fragile parts (`:nth-child`, long numeric suffix IDs like `#item-12345`).
+- **Fingerprints** messages by lowercasing and replacing numbers and URLs with wildcards — so "contrast ratio 2.5:1" and "contrast ratio 3.0:1" are treated as the same issue.
+- Groups findings into **DedupedGroups** with: count, pages affected, examples, and component hints.
+- Shows a capped summary card (first 5,000 findings) with "show more" pagination.
+
+### Phase B: AI-Assisted Clustering (Chrome with Prompt API only)
+
+When the [Chrome Prompt API](https://developer.chrome.com/docs/ai/built-in) is available (Chrome ≥ 128 with Gemini Nano on-device), a **"Run local clustering"** button appears.
+
+Clicking it:
+1. Pre-buckets deduped groups by rule family (contrast, images, naming, headings, forms, focus, landmarks, tables, other).
+2. Sends each bucket (up to 30 groups at a time) to the on-device model with a structured prompt.
+3. The model returns clusters with: pattern name, root cause, fix steps, evidence, and confidence.
+4. A final **"Top Actions"** list summarizes the highest-blast-radius fixes.
+
+Results are cached in `localStorage` keyed to the run ID, so re-opening the report shows previous clustering without re-running. A **"Clear cached clustering"** button removes the cache.
+
+### Browser requirements for AI clustering
+
+| Browser | Prompt API | Supported |
+|---------|------------|-----------|
+| Chrome 128+ (desktop) with Gemini Nano | `window.ai.languageModel` | ✅ Yes |
+| Firefox, Safari, Edge, older Chrome | — | ❌ No (deterministic groups still shown) |
+
+### Privacy
+
+- **No data leaves your browser.** All deduplication and AI inference runs locally.
+- The findings payload embedded in the report contains only axe-core output (rule IDs, selectors, HTML snippets) — the same data already visible in the violations list above.
+- The AI model is only invoked when you click the button. The report works fully without it.
+
+### Security
+
+- Model output is **never inserted as HTML** (`innerHTML` is not used for AI results).
+- All user/scan data is rendered via `textContent` or safe DOM construction.
+- HTML snippets from findings are escaped before display.
+
+### Limitations
+
+- AI clustering requires Chrome with the built-in Gemini Nano model downloaded.
+- For very large scans (>5,000 findings), only the first 5,000 are analyzed by the dedup engine; all violations are still visible in the violations list.
+- For AI clustering, only the top 200 groups by count are sent to the model; a disclosure is shown when this cap applies.
+- AI results may occasionally merge unrelated groups or miss a cluster. Always verify with the deterministic groups as ground truth.
+
 ## 🤖 AI Disclosure
 
 This project was developed with the assistance of AI tools. This section documents which AI systems have been used, in what capacity, and whether any AI is active at runtime or in the browser.
@@ -555,8 +607,8 @@ This project was developed with the assistance of AI tools. This section documen
 | AI Tool | Provider | Build-time use | Runtime use | Browser-based AI |
 |---|---|---|---|---|
 | **GitHub Copilot** | GitHub / Microsoft | Yes — code generation, refactoring, and test authoring across the repository. PRs authored or co-authored by the Copilot agent are labeled with the `copilot/` branch prefix. | No | No |
-| **Claude (Sonnet / Opus)** | Anthropic | Yes — used via the GitHub Copilot coding agent (which runs on Claude models) to implement features (including `discover` mode, `discover-top-pages.js` script, workflow integration, CI fixes, and accessibility fix for `scrollable-region-focusable` on `.fallback-prompt-text` elements), write documentation, and fix bugs. | No | No |
-| **Chrome Prompt API (Gemini Nano on-device)** | Google | No | No | Yes — the run-page Insights panel optionally calls `window.ai.languageModel` if the user's browser supports it. Invocation is user-initiated; all inference is local. Reports degrade gracefully when the API is unavailable. |
+| **Claude (Sonnet / Opus)** | Anthropic | Yes — used via the GitHub Copilot coding agent (which runs on Claude models) to implement features (including `discover` mode, `discover-top-pages.js` script, workflow integration, CI fixes, accessibility fix for `scrollable-region-focusable` on `.fallback-prompt-text` elements, and the **Local Dedupe and Pattern Clustering** feature in `scripts/dedupe-utils.js`), write documentation, and fix bugs. | No | No |
+| **Chrome Prompt API (Gemini Nano on-device)** | Google | No | No | Yes — the run-page Insights panel optionally calls `window.ai.languageModel` if the user's browser supports it. Invocation is user-initiated; all inference is local. Reports degrade gracefully when the API is unavailable. The new **Dedupe and Patterns** section also uses `window.ai.languageModel` for optional AI-assisted pattern clustering (Phase B). |
 
 ### Explanatory notes
 

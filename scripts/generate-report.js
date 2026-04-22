@@ -13,6 +13,46 @@ const RUNS_DIR = path.join(SITE_DIR, 'runs');
 const ARCHIVES_DIR = path.join(SITE_DIR, 'archives');
 const MAX_INDEX_RUNS_PER_DOMAIN = 3;
 
+/**
+ * Build a compact, capped array of normalized findings for client-side dedupe.
+ * Each entry is the minimal shape needed by the dedupe algorithm.
+ * @param {object} results - scan results with resultsByUrl
+ * @returns {{ findings: Array, capped: boolean }}
+ */
+function buildCompactFindings(results) {
+    const MAX_FINDINGS = 5000;
+    const findings = [];
+    let capped = false;
+    for (const [url, pageData] of Object.entries(results.resultsByUrl || {})) {
+        if (!pageData.violations) continue;
+        for (const v of pageData.violations) {
+            for (const node of (v.nodes || [])) {
+                if (findings.length >= MAX_FINDINGS) { capped = true; break; }
+                findings.push({
+                    page: url,
+                    rule_id: v.id || '',
+                    impact: v.impact || null,
+                    message: v.help || v.description || '',
+                    selector: Array.isArray(node.target) ? node.target.join(', ') : (node.target || ''),
+                    html_snippet: typeof node.html === 'string' ? node.html.substring(0, 200) : ''
+                });
+            }
+            if (capped) break;
+        }
+        if (capped) break;
+    }
+    return { findings, capped };
+}
+
+/**
+ * Read dedupe-utils.js and return it as a string suitable for inlining in HTML.
+ * Strips the ES module export statement.
+ */
+function getDedupeUtilsInline() {
+    const src = fs.readFileSync(path.join(__dirname, 'dedupe-utils.js'), 'utf-8');
+    return src.replace(/^export\s*\{[^}]*\};?\s*$/m, '').trim();
+}
+
 function formatRunIdShort(runId = '') {
     const safe = runId || '';
     if (!safe) return 'n/a';
@@ -574,6 +614,13 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
     const insightsPayload = buildInsightsPayload(runId, results, pageStats, priorAggRows);
     const insightsPayloadJson = JSON.stringify(insightsPayload);
 
+    // Build compact findings payload for client-side deduplication
+    const { findings: compactFindings, capped: findingsCapped } = buildCompactFindings(results);
+    const findingsDataJson = JSON.stringify(compactFindings);
+
+    // Inline dedupe-utils for browser-side execution
+    const dedupeUtilsInline = getDedupeUtilsInline();
+
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -901,6 +948,49 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
         [data-theme="dark"] .regression-alert.new { background: #2a1f00; border-color: #f57c00; color: #ffb74d; }
         [data-theme="dark"] .regression-alert.spike { background: #2a0000; border-color: #ef9a9a; color: #ff8a80; }
         [data-theme="dark"] .regression-alert.improved { background: #0a1f0a; border-color: #a5d6a7; color: #69f0ae; }
+
+        /* Dedupe and Patterns section */
+        #dedupe-section { margin-top: 0; max-width: 1200px; margin-left: auto; margin-right: auto; padding: 0 1rem 1rem 1rem; }
+        .dedupe-intro { color: var(--muted); font-size: 14px; margin: 0 0 1rem 0; }
+        .dedupe-summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin: 0 0 1rem 0; }
+        .dedupe-ai-status { font-size: 13px; color: var(--muted); margin: 0.5rem 0; min-height: 1.2em; }
+        .dedupe-buttons { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .dedupe-progress { font-size: 13px; color: var(--muted); margin: 0.5rem 0; }
+        .dedupe-cap-note { font-size: 12px; color: var(--muted); margin-top: 0.5rem; font-style: italic; }
+        #dedupe-groups-section h4,
+        #dedupe-clusters-section h4,
+        #dedupe-actions-section h4 { margin: 1rem 0 0.5rem 0; font-size: 15px; border-bottom: 1px solid var(--panel-border); padding-bottom: 0.5rem; color: var(--text); }
+        .dedupe-group-card { border: 1px solid var(--panel-border); border-radius: 4px; padding: 0.75rem; margin-bottom: 0.5rem; background: var(--card-bg); }
+        .dg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; gap: 0.5rem; }
+        .dg-rule { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-weight: 700; font-size: 13px; color: var(--text); }
+        .dg-count { background: var(--pill-info); color: #fff; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+        .dg-message { color: var(--muted); font-size: 13px; margin-bottom: 0.35rem; }
+        .dg-meta { font-size: 12px; color: var(--muted); margin-bottom: 0.5rem; }
+        .dg-examples { font-size: 12px; display: flex; flex-direction: column; gap: 3px; }
+        .dg-example { background: var(--code-bg); border-radius: 3px; padding: 4px 6px; }
+        .dg-ex-page { color: var(--link); overflow-wrap: anywhere; }
+        .dg-ex-selector { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color: var(--muted); overflow-wrap: anywhere; }
+        .dedupe-cluster-card { border: 1px solid var(--panel-border); border-radius: 4px; padding: 0.75rem; margin-bottom: 0.75rem; background: var(--card-bg); }
+        .dc-name { font-weight: 700; font-size: 15px; color: var(--text); margin-bottom: 0.25rem; }
+        .dc-root-cause { color: var(--text); font-size: 13px; margin-bottom: 0.5rem; }
+        .dc-fix-title { font-weight: 600; font-size: 13px; color: var(--text); margin-bottom: 0.25rem; }
+        .dc-fix-steps { padding-left: 1.25rem; margin: 0.25rem 0 0.5rem 0; font-size: 13px; color: var(--text); }
+        .dc-meta { font-size: 12px; color: var(--muted); }
+        .dedupe-action-card { border-left: 3px solid var(--pill-info); padding: 0.75rem; margin-bottom: 0.5rem; background: var(--card-bg); border-radius: 0 4px 4px 0; }
+        .da-title { font-weight: 700; color: var(--text); margin-bottom: 0.25rem; font-size: 14px; }
+        .da-why { font-size: 13px; color: var(--muted); margin-bottom: 0.25rem; }
+        .da-blast { font-size: 12px; font-weight: 700; }
+        .da-blast-low { color: #2e7d32; }
+        .da-blast-medium { color: #b95e00; }
+        .da-blast-high { color: #d32f2f; }
+        [data-theme="dark"] .da-blast-low { color: #69f0ae; }
+        [data-theme="dark"] .da-blast-medium { color: #ffb74d; }
+        [data-theme="dark"] .da-blast-high { color: #ff8a80; }
+        .dedupe-error { background: #ffebee; border: 1px solid #ef9a9a; border-radius: 4px; padding: 8px 12px; font-size: 13px; color: #b71c1c; margin-top: 0.5rem; }
+        [data-theme="dark"] .dedupe-error { background: #2a0000; border-color: #ef9a9a; color: #ff8a80; }
+        @media print {
+            #dedupe-section { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -1232,10 +1322,40 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
             </div>
         </div>
     </section>
+
+    <!-- Dedupe and Patterns section -->
+    <section id="dedupe-section" aria-labelledby="dedupe-heading">
+        <div class="panel">
+            <h3 id="dedupe-heading">Dedupe and Patterns</h3>
+            <p class="dedupe-intro">Deterministic deduplication groups repeated findings by signature — no AI needed. In-browser AI clustering (Chrome with Prompt API) reveals root causes and "fix once, remove many" actions. All processing is local — no data leaves your browser.</p>
+            <div id="dedupe-summary" class="dedupe-summary-cards" hidden></div>
+            <div id="dedupe-ai-status" class="dedupe-ai-status" role="status" aria-live="polite"></div>
+            <div class="dedupe-buttons" role="group" aria-label="Dedupe and clustering actions">
+                <button id="btn-run-cluster" class="insights-btn" type="button" hidden>Run local clustering (Chrome AI)</button>
+                <button id="btn-clear-dedupe" class="insights-btn" type="button" style="background: var(--muted);" hidden>Clear cached clustering</button>
+            </div>
+            <div id="dedupe-progress" class="dedupe-progress" role="status" aria-live="polite" hidden></div>
+            <div id="dedupe-groups-section" hidden>
+                <h4>Deduped Groups (<span id="dedupe-groups-count">0</span>)</h4>
+                <div id="dedupe-groups-list"></div>
+            </div>
+            <div id="dedupe-clusters-section" hidden>
+                <h4>AI-Identified Patterns (<span id="dedupe-clusters-count">0</span>)</h4>
+                <div id="dedupe-clusters-list"></div>
+            </div>
+            <div id="dedupe-actions-section" hidden>
+                <h4>Top Actions</h4>
+                <div id="dedupe-actions-list"></div>
+            </div>
+        </div>
+    </section>
     </main>
 
     <!-- Structured scan data for the Insights panel (not rendered, only parsed by JS) -->
     <script id="reportData" type="application/json">${insightsPayloadJson}</script>
+
+    <!-- Compact findings for client-side deduplication (not rendered, only parsed by JS) -->
+    <script id="findingsData" type="application/json">${findingsDataJson}</script>
 
     <footer aria-label="Report footer">
         <p>
@@ -1998,6 +2118,491 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
             initAI();
         })();
     </script>
+
+    <script>
+        // ---- Dedupe and Patterns ----
+        // NOTE: dedupe-utils functions are inlined below for browser execution.
+        (function() {
+            // === Inlined dedupe utility functions ===
+            ${dedupeUtilsInline}
+
+            // === Data loading ===
+            var findingsEl = document.getElementById('findingsData');
+            if (!findingsEl) return;
+            var FINDINGS;
+            try { FINDINGS = JSON.parse(findingsEl.textContent); } catch(e) { return; }
+            if (!Array.isArray(FINDINGS)) return;
+
+            var _runId = ${JSON.stringify(String(runId || ''))};
+            var _findingsCapped = ${JSON.stringify(findingsCapped)};
+            var CACHE_PREFIX = 'dedupe-cluster-' + _runId;
+
+            var dedupeSection = document.getElementById('dedupe-section');
+            var summaryEl = document.getElementById('dedupe-summary');
+            var aiStatusEl = document.getElementById('dedupe-ai-status');
+            var clusterBtn = document.getElementById('btn-run-cluster');
+            var clearDedupeBtn = document.getElementById('btn-clear-dedupe');
+            var progressEl = document.getElementById('dedupe-progress');
+            var groupsSection = document.getElementById('dedupe-groups-section');
+            var groupsList = document.getElementById('dedupe-groups-list');
+            var groupsCountEl = document.getElementById('dedupe-groups-count');
+            var clustersSection = document.getElementById('dedupe-clusters-section');
+            var clustersList = document.getElementById('dedupe-clusters-list');
+            var clustersCountEl = document.getElementById('dedupe-clusters-count');
+            var actionsSection = document.getElementById('dedupe-actions-section');
+            var actionsList = document.getElementById('dedupe-actions-list');
+
+            if (dedupeSection) dedupeSection.removeAttribute('hidden');
+
+            // Safe HTML escape for inline use
+            function escDedupe(s) {
+                return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+
+            // === Phase A: Deterministic dedupe (always runs) ===
+            var groups = groupFindings(FINDINGS);
+
+            // Summary cards
+            if (summaryEl) {
+                var totalFindings = FINDINGS.length;
+                var cards = [
+                    { label: 'Total findings', value: totalFindings, sub: _findingsCapped ? 'capped at 5000' : 'all findings' },
+                    { label: 'Unique groups', value: groups.length, sub: 'after deduplication' },
+                    { label: 'Pages affected', value: (function() {
+                        var pages = Object.create(null);
+                        for (var i = 0; i < FINDINGS.length; i++) { pages[FINDINGS[i].page || ''] = true; }
+                        return Object.keys(pages).length;
+                    }()), sub: 'with findings' }
+                ];
+                cards.forEach(function(c) {
+                    var card = document.createElement('div');
+                    card.className = 'card';
+                    var h = document.createElement('h2');
+                    h.textContent = c.label;
+                    var v = document.createElement('div');
+                    v.className = 'value';
+                    v.textContent = String(c.value);
+                    var s = document.createElement('div');
+                    s.className = 'subtext';
+                    s.textContent = c.sub;
+                    card.appendChild(h);
+                    card.appendChild(v);
+                    card.appendChild(s);
+                    summaryEl.appendChild(card);
+                });
+                if (_findingsCapped) {
+                    var capNote = document.createElement('p');
+                    capNote.className = 'dedupe-cap-note';
+                    capNote.textContent = 'Note: Analysis is based on the first 5,000 findings. All findings are shown in the violations list above.';
+                    summaryEl.appendChild(capNote);
+                }
+                summaryEl.removeAttribute('hidden');
+            }
+
+            // Render deduped groups list
+            if (groupsList && groupsSection) {
+                if (groupsCountEl) groupsCountEl.textContent = groups.length;
+                var INITIAL_SHOW = 50;
+                var shown = groups.slice(0, INITIAL_SHOW);
+                shown.forEach(function(g) { groupsList.appendChild(createGroupCard(g)); });
+                if (groups.length > INITIAL_SHOW) {
+                    var moreBtn = document.createElement('button');
+                    moreBtn.className = 'see-more-btn';
+                    moreBtn.type = 'button';
+                    moreBtn.textContent = 'Show ' + (groups.length - INITIAL_SHOW) + ' more groups';
+                    moreBtn.addEventListener('click', function() {
+                        groups.slice(INITIAL_SHOW).forEach(function(g) { groupsList.appendChild(createGroupCard(g)); });
+                        moreBtn.remove();
+                    });
+                    groupsList.appendChild(moreBtn);
+                }
+                groupsSection.removeAttribute('hidden');
+            }
+
+            function createGroupCard(group) {
+                var div = document.createElement('div');
+                div.className = 'dedupe-group-card';
+                div.setAttribute('data-group-id', group.group_id);
+
+                var header = document.createElement('div');
+                header.className = 'dg-header';
+                var ruleEl = document.createElement('span');
+                ruleEl.className = 'dg-rule';
+                ruleEl.textContent = group.rule_id;
+                var countEl = document.createElement('span');
+                countEl.className = 'dg-count';
+                countEl.textContent = group.count + (group.count !== 1 ? ' occurrences' : ' occurrence');
+                header.appendChild(ruleEl);
+                header.appendChild(countEl);
+                div.appendChild(header);
+
+                var msgEl = document.createElement('div');
+                msgEl.className = 'dg-message';
+                msgEl.textContent = group.message;
+                div.appendChild(msgEl);
+
+                var metaEl = document.createElement('div');
+                metaEl.className = 'dg-meta';
+                var metaParts = ['Impact: ' + (group.impact || 'unknown'), 'Pages: ' + group.pages_affected];
+                if (group.component_hint) metaParts.push('Component hint: ' + group.component_hint);
+                metaEl.textContent = metaParts.join(' \u00B7 ');
+                div.appendChild(metaEl);
+
+                if (group.examples.length) {
+                    var examplesEl = document.createElement('div');
+                    examplesEl.className = 'dg-examples';
+                    group.examples.slice(0, 3).forEach(function(ex) {
+                        var exDiv = document.createElement('div');
+                        exDiv.className = 'dg-example';
+                        var pageEl = document.createElement('div');
+                        pageEl.className = 'dg-ex-page';
+                        pageEl.textContent = ex.page;
+                        var selEl = document.createElement('div');
+                        selEl.className = 'dg-ex-selector';
+                        selEl.textContent = 'Selector: ' + ex.selector;
+                        exDiv.appendChild(pageEl);
+                        exDiv.appendChild(selEl);
+                        examplesEl.appendChild(exDiv);
+                    });
+                    div.appendChild(examplesEl);
+                }
+                return div;
+            }
+
+            // === Phase B: AI Clustering ===
+
+            // Rule-family mapping for pre-bucketing
+            var RULE_FAMILIES = {
+                'color-contrast': 'contrast', 'color-contrast-enhanced': 'contrast',
+                'image-alt': 'images', 'image-redundant-alt': 'images', 'image-svg-alt': 'images',
+                'button-name': 'naming', 'link-name': 'naming', 'input-button-name': 'naming',
+                'aria-label': 'naming', 'aria-labelledby': 'naming',
+                'heading-order': 'headings', 'empty-heading': 'headings', 'p-as-heading': 'headings',
+                'label': 'forms', 'aria-required-attr': 'forms', 'aria-valid-attr': 'forms',
+                'select-name': 'forms', 'aria-required-children': 'forms',
+                'focus-order-semantics': 'focus', 'tabindex': 'focus', 'focus-trap': 'focus',
+                'landmark-one-main': 'landmarks', 'region': 'landmarks', 'bypass': 'landmarks',
+                'landmark-no-duplicate-main': 'landmarks', 'landmark-complementary-is-top-level': 'landmarks',
+                'td-headers-attr': 'tables', 'th-has-data-cells': 'tables', 'scope-attr-valid': 'tables',
+                'frame-title': 'frames', 'frame-tested': 'frames'
+            };
+
+            function getFamily(ruleId) {
+                if (RULE_FAMILIES[ruleId]) return RULE_FAMILIES[ruleId];
+                var keys = Object.keys(RULE_FAMILIES);
+                for (var i = 0; i < keys.length; i++) {
+                    if (String(ruleId).indexOf(keys[i]) === 0) return RULE_FAMILIES[keys[i]];
+                }
+                return 'other';
+            }
+
+            function bucketGroups(allGroups) {
+                var buckets = Object.create(null);
+                for (var i = 0; i < allGroups.length; i++) {
+                    var family = getFamily(allGroups[i].rule_id);
+                    if (!buckets[family]) buckets[family] = [];
+                    buckets[family].push(allGroups[i]);
+                }
+                return buckets;
+            }
+
+            function buildBucketPrompt(bucketName, bucketItems) {
+                var lines = [
+                    'You are an accessibility expert. Analyze these deduped finding groups and identify root-cause clusters.',
+                    'Category: ' + bucketName,
+                    'Groups (format: [group_id] rule_id | impact | message (count occurrences, N pages)):',
+                    ''
+                ];
+                var MAX_GROUPS = 30;
+                var items = bucketItems.slice(0, MAX_GROUPS);
+                for (var i = 0; i < items.length; i++) {
+                    var g = items[i];
+                    lines.push('[' + g.group_id + '] ' + g.rule_id + ' | ' + (g.impact || 'unknown') + ' | ' + g.message + ' (' + g.count + ' occ., ' + g.pages_affected + ' pages)');
+                    if (g.examples.length > 0) {
+                        lines.push('  Example selector: ' + g.examples[0].selector);
+                    }
+                }
+                lines.push('');
+                lines.push('Output ONLY valid JSON with no other text, markdown, or code fences:');
+                lines.push('{"clusters":[{"pattern_name":"str","root_cause":"str","primary_fix":["step1","step2"],"evidence":{"rules":["rule_id"],"count":0,"top_examples":[{"page":"url","selector":"sel"}]},"group_ids":["id"],"confidence":0.0}],"top_actions":[{"action":"str","why":"str","estimated_blast_radius":"low|medium|high","clusters_covered":[0]}]}');
+                lines.push('');
+                lines.push('RULES: Merge groups ONLY when root cause is identical. Do NOT invent pages/selectors not in the input. Keep pattern_name under 8 words. Group IDs must be from the input list. Output valid JSON only.');
+                return lines.join('\\n');
+            }
+
+            function parseClusterResponse(text) {
+                // Remove potential markdown code fences without using backtick characters in source
+                // (backticks would terminate the outer Node.js template literal)
+                var fence = String.fromCharCode(96, 96, 96);
+                var re1 = new RegExp('^' + fence + '[a-z]*', 'm');
+                var re2 = new RegExp(fence + '\\s*$', 'm');
+                var cleaned = text.replace(re1, '').replace(re2, '').trim();
+                // Try to find JSON object
+                var start = cleaned.indexOf('{');
+                var end = cleaned.lastIndexOf('}');
+                if (start === -1 || end === -1) throw new Error('No JSON object found in response');
+                var jsonStr = cleaned.substring(start, end + 1);
+                var parsed = JSON.parse(jsonStr);
+                if (!Array.isArray(parsed.clusters)) throw new Error('Missing clusters array');
+                return parsed;
+            }
+
+            function setProgress(msg) {
+                if (progressEl) {
+                    progressEl.textContent = msg;
+                    progressEl.removeAttribute('hidden');
+                }
+            }
+
+            async function runClustering() {
+                if (!window.ai || !window.ai.languageModel) return;
+
+                // Cap AI input to top 200 groups by count
+                var AI_MAX_GROUPS = 200;
+                var aiGroups = groups.slice(0, AI_MAX_GROUPS);
+                var buckets = bucketGroups(aiGroups);
+                var bucketNames = Object.keys(buckets);
+                var allClusters = [];
+                var allActions = [];
+                var clusterIdCounter = 0;
+
+                clusterBtn.disabled = true;
+                setProgress('Starting clustering…');
+
+                try {
+                    var session = await window.ai.languageModel.create({
+                        systemPrompt: 'You are an accessibility expert. Output only valid JSON as instructed. Do not include any text outside the JSON.'
+                    });
+
+                    for (var bi = 0; bi < bucketNames.length; bi++) {
+                        var bucketName = bucketNames[bi];
+                        var bucketItems = buckets[bucketName];
+                        if (!bucketItems.length) continue;
+
+                        setProgress('Processing bucket ' + (bi + 1) + ' of ' + bucketNames.length + ': ' + bucketName + ' (' + bucketItems.length + ' groups)…');
+
+                        var prompt = buildBucketPrompt(bucketName, bucketItems);
+                        var responseText;
+                        try {
+                            responseText = await session.prompt(prompt);
+                        } catch(promptErr) {
+                            continue;
+                        }
+
+                        try {
+                            var parsed = parseClusterResponse(responseText);
+                            var bucketClusters = parsed.clusters || [];
+                            // Assign stable cluster IDs
+                            for (var ci = 0; ci < bucketClusters.length; ci++) {
+                                bucketClusters[ci]._cluster_index = clusterIdCounter++;
+                            }
+                            allClusters = allClusters.concat(bucketClusters);
+                            if (parsed.top_actions) {
+                                allActions = allActions.concat(parsed.top_actions);
+                            }
+                        } catch(parseErr) {
+                            var errDiv = document.createElement('div');
+                            errDiv.className = 'dedupe-error';
+                            errDiv.textContent = 'Parse error for ' + bucketName + ' bucket: ' + String(parseErr.message || parseErr);
+                            if (clustersSection) {
+                                clustersSection.removeAttribute('hidden');
+                                clustersList.appendChild(errDiv);
+                            }
+                        }
+                    }
+
+                    try { session.destroy(); } catch(e) {}
+
+                    // Cap top_actions to 10
+                    var topActions = allActions.slice(0, 10);
+
+                    // Cache results
+                    var cachePayload = JSON.stringify({ clusters: allClusters, top_actions: topActions });
+                    try { localStorage.setItem(CACHE_PREFIX, cachePayload); } catch(e) {}
+
+                    renderClusters(allClusters);
+                    renderTopActions(topActions);
+
+                    setProgress('Clustering complete. ' + allClusters.length + ' patterns found.');
+                    if (clearDedupeBtn) clearDedupeBtn.hidden = false;
+
+                } catch(err) {
+                    setProgress('Clustering failed: ' + String(err.message || err));
+                } finally {
+                    clusterBtn.disabled = false;
+                }
+            }
+
+            function renderClusters(clusters) {
+                if (!clustersSection || !clustersList) return;
+                if (clustersCountEl) clustersCountEl.textContent = clusters.length;
+                clustersList.innerHTML = '';
+                if (!clusters.length) {
+                    var emptyMsg = document.createElement('p');
+                    emptyMsg.textContent = 'No distinct patterns identified.';
+                    emptyMsg.style.color = 'var(--muted)';
+                    emptyMsg.style.fontSize = '13px';
+                    clustersList.appendChild(emptyMsg);
+                } else {
+                    clusters.forEach(function(c) {
+                        var card = document.createElement('div');
+                        card.className = 'dedupe-cluster-card';
+
+                        var nameEl = document.createElement('div');
+                        nameEl.className = 'dc-name';
+                        nameEl.textContent = String(c.pattern_name || 'Unnamed pattern');
+                        card.appendChild(nameEl);
+
+                        var rootEl = document.createElement('div');
+                        rootEl.className = 'dc-root-cause';
+                        rootEl.textContent = String(c.root_cause || '');
+                        card.appendChild(rootEl);
+
+                        var fixSteps = Array.isArray(c.primary_fix) ? c.primary_fix : [];
+                        if (fixSteps.length) {
+                            var fixTitleEl = document.createElement('div');
+                            fixTitleEl.className = 'dc-fix-title';
+                            fixTitleEl.textContent = 'How to fix:';
+                            card.appendChild(fixTitleEl);
+                            var ol = document.createElement('ol');
+                            ol.className = 'dc-fix-steps';
+                            fixSteps.forEach(function(step) {
+                                var li = document.createElement('li');
+                                li.textContent = String(step);
+                                ol.appendChild(li);
+                            });
+                            card.appendChild(ol);
+                        }
+
+                        var ev = c.evidence || {};
+                        var metaEl = document.createElement('div');
+                        metaEl.className = 'dc-meta';
+                        var rules = Array.isArray(ev.rules) ? ev.rules.join(', ') : '';
+                        var metaParts = [];
+                        if (rules) metaParts.push('Rules: ' + rules);
+                        if (ev.count) metaParts.push(ev.count + ' occurrences');
+                        if (c.confidence != null) metaParts.push('Confidence: ' + Math.round(Number(c.confidence) * 100) + '%');
+                        metaEl.textContent = metaParts.join(' \u00B7 ');
+                        card.appendChild(metaEl);
+
+                        clustersList.appendChild(card);
+                    });
+                }
+                clustersSection.removeAttribute('hidden');
+            }
+
+            function renderTopActions(actions) {
+                if (!actionsSection || !actionsList) return;
+                actionsList.innerHTML = '';
+                if (!actions.length) return;
+                actions.forEach(function(a) {
+                    var card = document.createElement('div');
+                    card.className = 'dedupe-action-card';
+
+                    var titleEl = document.createElement('div');
+                    titleEl.className = 'da-title';
+                    titleEl.textContent = String(a.action || '');
+                    card.appendChild(titleEl);
+
+                    var whyEl = document.createElement('div');
+                    whyEl.className = 'da-why';
+                    whyEl.textContent = String(a.why || '');
+                    card.appendChild(whyEl);
+
+                    var radius = String(a.estimated_blast_radius || 'medium').toLowerCase();
+                    if (radius !== 'low' && radius !== 'medium' && radius !== 'high') radius = 'medium';
+                    var blastEl = document.createElement('div');
+                    blastEl.className = 'da-blast da-blast-' + radius;
+                    blastEl.textContent = 'Blast radius: ' + radius;
+                    card.appendChild(blastEl);
+
+                    actionsList.appendChild(card);
+                });
+                actionsSection.removeAttribute('hidden');
+            }
+
+            // Check for cached results
+            function loadCachedClustering() {
+                try {
+                    var cached = localStorage.getItem(CACHE_PREFIX);
+                    if (!cached) return false;
+                    var data = JSON.parse(cached);
+                    if (!Array.isArray(data.clusters)) return false;
+                    renderClusters(data.clusters);
+                    renderTopActions(data.top_actions || []);
+                    if (progressEl) {
+                        progressEl.textContent = 'Showing cached clustering results.';
+                        progressEl.removeAttribute('hidden');
+                    }
+                    if (clearDedupeBtn) clearDedupeBtn.hidden = false;
+                    return true;
+                } catch(e) {
+                    return false;
+                }
+            }
+
+            // AI availability check
+            async function checkDedupeAI() {
+                if (!window.ai || !window.ai.languageModel) {
+                    if (aiStatusEl) aiStatusEl.textContent = 'Chrome Prompt API not available in this browser. Only deterministic deduplication is shown.';
+                    if (clusterBtn) clusterBtn.hidden = true;
+                    return;
+                }
+                try {
+                    var caps = await window.ai.languageModel.capabilities();
+                    if (caps.available === 'no') {
+                        if (aiStatusEl) aiStatusEl.textContent = 'Chrome AI model not available on this device.';
+                        if (clusterBtn) clusterBtn.hidden = true;
+                        return;
+                    }
+                    var msg = caps.available === 'readily'
+                        ? 'Chrome AI ready. Click \u201CRun local clustering\u201D to identify root-cause patterns.'
+                        : 'Chrome AI model is downloading\u2026 try again once it is ready.';
+                    if (aiStatusEl) aiStatusEl.textContent = msg;
+                    if (clusterBtn) {
+                        clusterBtn.hidden = false;
+                        clusterBtn.disabled = caps.available !== 'readily';
+                    }
+                } catch(e) {
+                    if (aiStatusEl) aiStatusEl.textContent = 'Chrome AI not available in this browser.';
+                    if (clusterBtn) clusterBtn.hidden = true;
+                }
+            }
+
+            if (clusterBtn) {
+                clusterBtn.addEventListener('click', function() {
+                    runClustering();
+                });
+            }
+
+            if (clearDedupeBtn) {
+                clearDedupeBtn.addEventListener('click', function() {
+                    try { localStorage.removeItem(CACHE_PREFIX); } catch(e) {}
+                    if (clustersSection) {
+                        clustersSection.setAttribute('hidden', '');
+                        if (clustersList) clustersList.innerHTML = '';
+                    }
+                    if (actionsSection) {
+                        actionsSection.setAttribute('hidden', '');
+                        if (actionsList) actionsList.innerHTML = '';
+                    }
+                    if (progressEl) {
+                        progressEl.textContent = '';
+                        progressEl.setAttribute('hidden', '');
+                    }
+                    clearDedupeBtn.hidden = true;
+                });
+            }
+
+            // Load cached clustering results if available, then check AI
+            if (!loadCachedClustering()) {
+                checkDedupeAI();
+            } else {
+                // Still show AI status for re-running
+                checkDedupeAI();
+            }
+        })();
+    </script>
 </body>
 </html>`;
 
@@ -2691,4 +3296,4 @@ function esc(s) {
     return String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }
 
-export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort, generateMainIndex, generate404Page, extractDomain, copyStaticFiles, extractWcagCriteria, buildInsightsPayload };
+export { generateRunPage, generateCSV, analyzeResults, getTopPages, getIssuesByViolationType, countTotalNodes, mapSeverity, aggregateMetrics, buildAggregateRows, generateAggregateCsv, generateTrendsPage, formatRunIdShort, generateMainIndex, generate404Page, extractDomain, copyStaticFiles, extractWcagCriteria, buildInsightsPayload, buildCompactFindings };
