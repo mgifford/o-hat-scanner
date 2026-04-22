@@ -1,7 +1,12 @@
 /**
  * Pure utility functions for finding deduplication.
  * Used by server-side unit tests (via import) and inlined into the generated report HTML.
- * Must not use template literals (backticks) to allow safe inlining.
+ *
+ * IMPORTANT: This file must NOT use template literals (backtick characters).
+ * It is read at build time by `getDedupeUtilsInline()` in generate-report.js and
+ * embedded verbatim inside a Node.js template literal. Any backtick character would
+ * terminate that outer template literal and cause a build-time syntax error.
+ * Use regular string literals ('single' or "double") throughout this file.
  */
 
 /**

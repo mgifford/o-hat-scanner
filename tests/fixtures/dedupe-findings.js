@@ -11,30 +11,26 @@
 
 // 10 exact duplicates – same selector, html_snippet, rule, impact, and message
 // All findings differ only in the page URL → same signature → 1 group with count=10
-export const DUPLICATE_FINDINGS = Array.from({ length: 10 }, function(_, i) {
-    return {
-        page: 'https://example.com/page' + (i + 1),
-        rule_id: 'color-contrast',
-        impact: 'serious',
-        message: 'Elements must have sufficient color contrast',
-        selector: '.text-muted',
-        html_snippet: '<p class="text-muted">Example content</p>'
-    };
-});
+export const DUPLICATE_FINDINGS = Array.from({ length: 10 }, (_, i) => ({
+    page: 'https://example.com/page' + (i + 1),
+    rule_id: 'color-contrast',
+    impact: 'serious',
+    message: 'Elements must have sufficient color contrast',
+    selector: '.text-muted',
+    html_snippet: '<p class="text-muted">Example content</p>'
+}));
 
 // 10 similar findings – same rule and impact but different selectors and html snippets
 // Each has a unique selector (section-header-N) so they produce distinct signatures.
 // At AI layer, same root cause could merge them; Phase A keeps them separate.
-export const SIMILAR_FINDINGS = Array.from({ length: 10 }, function(_, i) {
-    return {
-        page: 'https://example.com/article-' + (i + 1),
-        rule_id: 'heading-order',
-        impact: 'moderate',
-        message: 'Heading levels should only increase by one, increment by one at a time',
-        selector: 'h3.section-header-' + (i + 1),
-        html_snippet: '<h3 class="section-header-' + (i + 1) + '">Section ' + (i + 1) + '</h3>'
-    };
-});
+export const SIMILAR_FINDINGS = Array.from({ length: 10 }, (_, i) => ({
+    page: 'https://example.com/article-' + (i + 1),
+    rule_id: 'heading-order',
+    impact: 'moderate',
+    message: 'Heading levels should only increase by one, increment by one at a time',
+    selector: 'h3.section-header-' + (i + 1),
+    html_snippet: '<h3 class="section-header-' + (i + 1) + '">Section ' + (i + 1) + '</h3>'
+}));
 
 // 10 fully distinct findings – each has a unique rule_id so they cannot share a signature
 export const DISTINCT_FINDINGS = [

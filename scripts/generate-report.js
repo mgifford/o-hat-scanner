@@ -2331,11 +2331,12 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
             }
 
             function parseClusterResponse(text) {
-                // Remove potential markdown code fences without using backtick characters in source
-                // (backticks would terminate the outer Node.js template literal)
-                var fence = String.fromCharCode(96, 96, 96);
-                var re1 = new RegExp('^' + fence + '[a-z]*', 'm');
-                var re2 = new RegExp(fence + '\\s*$', 'm');
+                // Build the markdown code-fence marker via charCode to avoid embedding backtick
+                // characters in source – this JS lives inside a Node.js template literal, and
+                // an unescaped backtick would terminate that outer literal at build time.
+                var MARKDOWN_CODE_FENCE = String.fromCharCode(96, 96, 96);
+                var re1 = new RegExp('^' + MARKDOWN_CODE_FENCE + '[a-z]*', 'm');
+                var re2 = new RegExp(MARKDOWN_CODE_FENCE + '\\s*$', 'm');
                 var cleaned = text.replace(re1, '').replace(re2, '').trim();
                 // Try to find JSON object
                 var start = cleaned.indexOf('{');
