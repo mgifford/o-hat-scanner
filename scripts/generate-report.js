@@ -1293,7 +1293,7 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
     </section>
 
     <!-- Insights panel: audience summaries + trends -->
-    <section id="insights-section" aria-labelledby="insights-heading">
+    <section id="insights-section" aria-labelledby="insights-heading" hidden>
         <div class="panel">
             <h3 id="insights-heading">Accessibility Insights</h3>
             <p class="insights-intro">Generate audience-specific summaries using in-browser AI (Chrome Prompt API / Gemini Nano, if available). All processing is local — no data leaves your browser. Numbers are computed from scan data and cannot be altered by the model.</p>
@@ -1324,7 +1324,7 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
     </section>
 
     <!-- Dedupe and Patterns section -->
-    <section id="dedupe-section" aria-labelledby="dedupe-heading">
+    <section id="dedupe-section" aria-labelledby="dedupe-heading" hidden>
         <div class="panel">
             <h3 id="dedupe-heading">Dedupe and Patterns</h3>
             <p class="dedupe-intro">Deterministic deduplication groups repeated findings by signature — no AI needed. In-browser AI clustering (Chrome with Prompt API) reveals root causes and "fix once, remove many" actions. All processing is local — no data leaves your browser.</p>
@@ -3285,7 +3285,7 @@ function renderErrors(results) {
 
     return `
             <div style="margin-top: 1rem;">
-                <h4 style="margin-bottom: 0.5rem;">Errors</h4>
+                <h3 style="margin-bottom: 0.5rem;">Errors</h3>
                 <ul style="padding-left: 1.25rem; line-height: 1.5;">
                     ${entries.map(([url, data]) => `<li><strong>${esc(url)}</strong>: ${esc(data.error)}</li>`).join('')}
                 </ul>
