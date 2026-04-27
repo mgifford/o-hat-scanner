@@ -607,7 +607,8 @@ This project was developed with the assistance of AI tools. This section documen
 | AI Tool | Provider | Build-time use | Runtime use | Browser-based AI |
 |---|---|---|---|---|
 | **GitHub Copilot** | GitHub / Microsoft | Yes — code generation, refactoring, and test authoring across the repository. PRs authored or co-authored by the Copilot agent are labeled with the `copilot/` branch prefix. | No | No |
-| **Claude (Sonnet / Opus)** | Anthropic | Yes — used via the GitHub Copilot coding agent (which runs on Claude models) to implement features (including `discover` mode, `discover-top-pages.js` script, workflow integration, CI fixes, accessibility fix for `scrollable-region-focusable` on `.fallback-prompt-text` elements, the **Local Dedupe and Pattern Clustering** feature in `scripts/dedupe-utils.js`, and fixed heading-order accessibility violation by adding `hidden` attribute to `#insights-section` and `#dedupe-section` for proper progressive enhancement and changing `renderErrors` h4 to h3), write documentation, and fix bugs. | No | No |
+| **Claude (Sonnet / Opus)** | Anthropic | Yes — used via the GitHub Copilot coding agent (which runs on Claude models) to implement features (including `discover` mode, `discover-top-pages.js` script, workflow integration, CI fixes, accessibility fix for `scrollable-region-focusable` on `.fallback-prompt-text` elements, the **Local Dedupe and Pattern Clustering** feature in `scripts/dedupe-utils.js`, and the daily-perf-improver workflow integration), write documentation, and fix bugs. | No | No |
+| **Daily Perf Improver (GitHubNext)** | GitHub | Yes — automated daily performance analysis agent (`.github/workflows/daily-perf-improver.md`). Discovers commands, identifies optimization opportunities, implements improvements with measured impact, and maintains a monthly activity summary. Requires `gh aw compile` to activate. | No | No |
 | **Chrome Prompt API (Gemini Nano on-device)** | Google | No | No | Yes — the run-page Insights panel optionally calls `window.ai.languageModel` if the user's browser supports it. Invocation is user-initiated; all inference is local. Reports degrade gracefully when the API is unavailable. The new **Dedupe and Patterns** section also uses `window.ai.languageModel` for optional AI-assisted pattern clustering (Phase B). |
 
 ### Explanatory notes
@@ -618,6 +619,17 @@ This project was developed with the assistance of AI tools. This section documen
 - **Bing Search API**: The optional `discover` mode can call the Bing Web Search v7 API (a search index, not a generative AI) when a `BING_API_KEY` secret is configured. This is a traditional keyword search service and is not an LLM.
 
 > **Keep this section current.** If you add or use a new AI tool while contributing to this repository, update this table per the instructions in `AGENTS.md`.
+
+### Activating the Daily Perf Improver (GitHubNext)
+
+The workflow source is committed at `.github/workflows/daily-perf-improver.md`. To compile and enable it, install the [GitHub Agentic Workflows extension](https://github.com/github/gh-aw) and run:
+
+```bash
+gh extension install github/gh-aw
+gh aw compile .github/workflows/daily-perf-improver.md
+```
+
+Commit the generated `.lock.yml` file and the workflow will run daily, identifying and implementing performance improvements autonomously. You can also trigger it on demand by commenting `/perf-assist <instructions>` on any issue or pull request.
 
 ## License
 
