@@ -68,7 +68,7 @@ describe('error message color contrast', () => {
     
     // The error section should NOT have any color overrides that would
     // make it lighter (e.g., no --muted or similar)
-    const errorSection = html.match(/<div style="margin-top: 1rem;">[\s\S]*?<h4[^>]*>Errors<\/h4>[\s\S]*?<\/ul>[\s\S]*?<\/div>/);
+    const errorSection = html.match(/<div style="margin-top: 1rem;">[\s\S]*?<h3[^>]*>Errors<\/h3>[\s\S]*?<\/ul>[\s\S]*?<\/div>/);
     expect(errorSection).toBeTruthy();
     
     // Verify no inline color styles that would override the good default

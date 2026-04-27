@@ -111,4 +111,110 @@ describe('Run page heading order (heading-order axe rule)', () => {
         expect(html).not.toContain('<h4>Good to Fix</h4>');
         expect(html).not.toContain('<h4>Manual review</h4>');
     });
+
+    test('insights section and dedupe section are hidden by default (progressive enhancement)', () => {
+        const htmlPath = path.join(runDir, 'index.html');
+        const html = fs.readFileSync(htmlPath, 'utf-8');
+
+        // Both sections must have hidden attribute so their h3/h4 headings are hidden
+        // before JavaScript reveals them - prevents heading order violations when
+        // the page is scanned in a no-JS or static-HTML context.
+        expect(html).toMatch(/<section[^>]+id="insights-section"[^>]+hidden/);
+        expect(html).toMatch(/<section[^>]+id="dedupe-section"[^>]+hidden/);
+    });
+
+    test('dedupe sub-section h4 headings are inside the hidden dedupe section (not exposed without JS)', () => {
+        const htmlPath = path.join(runDir, 'index.html');
+        const html = fs.readFileSync(htmlPath, 'utf-8');
+
+        // The h4 "Deduped Groups" heading must be inside a hidden container so it
+        // does not appear in the heading outline before JavaScript reveals it with
+        // the parent h3 "Dedupe and Patterns" already visible.
+        // Regression test for: heading-order axe rule violation on run report pages.
+        const dedupeGroupsMatch = html.match(/<div[^>]+id="dedupe-groups-section"([^>]*)>/);
+        expect(dedupeGroupsMatch).not.toBeNull();
+        expect(dedupeGroupsMatch[1]).toContain('hidden');
+
+        const dedupeClustersMatch = html.match(/<div[^>]+id="dedupe-clusters-section"([^>]*)>/);
+        expect(dedupeClustersMatch).not.toBeNull();
+        expect(dedupeClustersMatch[1]).toContain('hidden');
+
+        const dedupeActionsMatch = html.match(/<div[^>]+id="dedupe-actions-section"([^>]*)>/);
+        expect(dedupeActionsMatch).not.toBeNull();
+        expect(dedupeActionsMatch[1]).toContain('hidden');
+    });
+
+    test('heading order is valid on page with scan errors (regression for h4 Deduped Groups)', () => {
+        const runIdErrors = 'test-run-heading-order-errors';
+        const runRelPathErrors = path.join(domainSlug, runIdErrors);
+        const runDirErrors = path.join(ROOT, 'site', 'runs', runRelPathErrors);
+        fs.mkdirSync(runDirErrors, { recursive: true });
+
+        const resultsWithErrors = {
+            startedAt: '2024-01-01T00:00:00Z',
+            mode: 'ci',
+            targets: ['http://example.com'],
+            resultsByUrl: {
+                'http://example.com/page1': {
+                    title: 'Page One',
+                    violations: [
+                        {
+                            id: 'color-contrast',
+                            impact: 'critical',
+                            help: 'Elements must have sufficient color contrast',
+                            helpUrl: 'https://dequeuniversity.com/rules/axe/4.11/color-contrast',
+                            nodes: [
+                                { target: ['.text'], html: '<p class="text">Low contrast</p>', failureSummary: 'Increase contrast' }
+                            ]
+                        }
+                    ]
+                },
+                'http://example.com/error-page': {
+                    error: 'Navigation timeout after 30000ms'
+                }
+            }
+        };
+
+        const statsWithErrors = analyzeResults(resultsWithErrors);
+        generateRunPage(runIdErrors, runRelPathErrors, resultsWithErrors, statsWithErrors);
+
+        const html = fs.readFileSync(path.join(runDirErrors, 'index.html'), 'utf-8');
+
+        // Strip modals and script/style blocks before checking heading order.
+        // Use string-based stripping instead of regex to avoid CodeQL tag-filter warnings.
+        let withoutNoise = html.replace(/<div[^>]+class="modal"[^>]*>[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/g, '');
+        // Remove <script> blocks by splitting on the tag boundaries
+        withoutNoise = withoutNoise.split('<script').map((part, i) => {
+            if (i === 0) return part;
+            const end = part.indexOf('</script>');
+            return end >= 0 ? part.slice(end + '</script>'.length) : '';
+        }).join('');
+        // Remove <style> blocks by splitting on the tag boundaries
+        withoutNoise = withoutNoise.split('<style').map((part, i) => {
+            if (i === 0) return part;
+            const end = part.indexOf('</style>');
+            return end >= 0 ? part.slice(end + '</style>'.length) : '';
+        }).join('');
+
+        const headingMatches = [...withoutNoise.matchAll(/<h([1-6])[^>]*>/gi)];
+        const levels = headingMatches.map(m => parseInt(m[1], 10));
+
+        expect(levels.length).toBeGreaterThan(0);
+
+        for (let i = 1; i < levels.length; i++) {
+            const prev = levels[i - 1];
+            const curr = levels[i];
+            if (curr > prev) {
+                expect(curr - prev).toBe(1);
+            }
+        }
+
+        // The Errors heading (from renderErrors) must not use h4 since the debug
+        // section has no parent h3 of its own - it should be h3.
+        expect(html).not.toContain('<h4 style="margin-bottom: 0.5rem;">Errors</h4>');
+
+        try {
+            fs.rmSync(runDirErrors, { recursive: true, force: true });
+        } catch (cleanupError) { /* Cleanup failure is non-critical for test execution */ }
+    });
 });
