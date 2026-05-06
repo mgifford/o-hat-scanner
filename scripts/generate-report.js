@@ -744,7 +744,7 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
 
         .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
         .card { background: var(--card-bg); border: 1px solid var(--panel-border); border-radius: 6px; padding: 1rem; }
-        .card h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 0.35rem; font-weight: normal; }
+        .card h2, .card h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 0.35rem; font-weight: normal; }
         .card .value { font-size: 30px; font-weight: 700; color: #000; background: #fff; padding: 2px 4px; border-radius: 3px; display: inline-block; }
         .card .subtext { font-size: 12px; color: var(--muted); margin-top: 4px; }
         [data-theme="dark"] .card .value { color: #fff; background: #0f141a; }
@@ -2177,7 +2177,7 @@ function generateRunPage(runId, runRelPath, results, pageStats, priorAggRows = [
                 cards.forEach(function(c) {
                     var card = document.createElement('div');
                     card.className = 'card';
-                    var h = document.createElement('h2');
+                    var h = document.createElement('h4');
                     h.textContent = c.label;
                     var v = document.createElement('div');
                     v.className = 'value';

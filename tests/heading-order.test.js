@@ -217,4 +217,30 @@ describe('Run page heading order (heading-order axe rule)', () => {
             fs.rmSync(runDirErrors, { recursive: true, force: true });
         } catch (cleanupError) { /* Cleanup failure is non-critical for test execution */ }
     });
+
+    test('dedupe summary cards must not use h2 (would cause h2→h4 skip when followed by Deduped Groups h4)', () => {
+        // Regression test for: heading-order axe rule violation caused by dynamically
+        // created h2 elements in the dedupe summary cards. When JavaScript reveals the
+        // dedupe section (h3 "Dedupe and Patterns"), it also dynamically creates summary
+        // card elements. If those cards used h2, the heading order would be:
+        //   h3 "Dedupe and Patterns" → h2 "Total findings" → h2 ... → h4 "Deduped Groups"
+        // The h2→h4 jump (skipping h3) is a heading-order violation.
+        // The fix: summary cards inside the dedupe section must use h4 (not h2).
+        // This is verified by checking the JavaScript source in the generated HTML.
+        const htmlPath = path.join(runDir, 'index.html');
+        const html = fs.readFileSync(htmlPath, 'utf-8');
+
+        // The dedupe summary JS must create h4 elements, not h2 elements,
+        // to avoid a heading-order skip inside the h3 "Dedupe and Patterns" section.
+        // Check the inline script for the heading element creation pattern.
+        expect(html).toContain("document.createElement('h4')");
+
+        // Verify the script does NOT create h2 for dedupe summary cards.
+        // We check the specific dedupe summary card context by looking at the
+        // surrounding code pattern (label for 'Total findings').
+        const dedupeScriptMatch = html.match(/\/\/ Summary cards[\s\S]*?summaryEl\.removeAttribute\('hidden'\)/);
+        expect(dedupeScriptMatch).not.toBeNull();
+        expect(dedupeScriptMatch[0]).toContain("createElement('h4')");
+        expect(dedupeScriptMatch[0]).not.toContain("createElement('h2')");
+    });
 });
