@@ -47,8 +47,8 @@ jobs:
           repository: mgifford/o-hat-scanner # Repository where issues will be filed
           token: ${{ github.token }} # Built-in token with contents/issues/pull-requests write access
           cache_key: o-hat-scanner-cache_key.txt # Cache filename for incremental results
+          skip_copilot_assignment: true # Avoid assignment API credential failures; keep issue filing enabled
           # login_url: # Optional: URL of the login page if authentication is required
           # username: # Optional: Username for authentication
           # password: ${{ secrets.PASSWORD }} # Optional: Password for authentication (use secrets!)
           # auth_context: # Optional: Stringified JSON object for complex authentication
-          # skip_copilot_assignment: false # Optional: Set to true to skip assigning issues to GitHub Copilot (or if you don't have GitHub Copilot)

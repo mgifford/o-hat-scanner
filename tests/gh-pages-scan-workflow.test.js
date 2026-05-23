@@ -65,6 +65,10 @@ describe('a11y-scan_gh.yml workflow configuration', () => {
     expect(workflowContent).toContain('github/accessibility-scanner');
   });
 
+  test('explicitly disables Copilot assignment to avoid filing credential failures', () => {
+    expect(workflowContent).toMatch(/skip_copilot_assignment:\s*true/);
+  });
+
   test('only runs workflow_run jobs on successful completion', () => {
     expect(workflowContent).toContain("conclusion == 'success'");
   });
