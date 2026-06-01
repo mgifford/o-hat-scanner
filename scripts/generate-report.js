@@ -192,7 +192,8 @@ function main() {
     generate404Page();
     if (!fs.existsSync(RUNS_DIR) && !fs.existsSync(ARCHIVES_DIR)) {
         fs.mkdirSync(RUNS_DIR, { recursive: true });
-        console.log('No runs found. Skipping report generation to preserve existing data.');
+        console.log('No runs found. Generating empty index to satisfy deploy requirements.');
+        generateMainIndex([]);
         return;
     }
 
